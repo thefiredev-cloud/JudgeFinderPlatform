@@ -1,26 +1,34 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverActions: {
-      allowedOrigins: ['localhost:3000'],
-    },
-  },
+  reactStrictMode: true,
   images: {
-    domains: ['localhost', 'via.placeholder.com'],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
-        port: '',
-        pathname: '**',
+        hostname: '*.supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'courtlistener.com',
       },
     ],
   },
-  typescript: {
-    ignoreBuildErrors: false,
-  },
-  eslint: {
-    ignoreDuringBuilds: false,
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: process.env.NEXT_PUBLIC_SITE_URL || '*',
+          },
+        ],
+      },
+    ]
   },
 }
 
