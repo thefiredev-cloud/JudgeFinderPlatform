@@ -1,19 +1,34 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
-
-const inter = Inter({ subsets: ['latin'] })
+import { Providers } from '@/components/providers/Providers'
+import { Header } from '@/components/ui/Header'
+import { Footer } from '@/components/ui/Footer'
+import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: {
-    template: '%s | Judge Finder',
-    default: 'Judge Finder - Find Your Assigned Judge & Hire Expert Attorneys',
+  title: 'JudgeFinder.io - Legal Analytics & Judge Research Platform',
+  description: 'Comprehensive legal analytics platform providing insights into judicial decisions, ruling patterns, and case outcomes. Research judges and courts with data-driven intelligence.',
+  keywords: 'legal analytics, judge research, court decisions, judicial patterns, case outcomes, legal intelligence',
+  openGraph: {
+    title: 'JudgeFinder.io - Legal Analytics Platform',
+    description: 'Research judges and courts with data-driven intelligence',
+    url: 'https://judgefinder.io',
+    siteName: 'JudgeFinder.io',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
   },
-  description: 'Search our database of 10,000+ judges, learn about their background and ruling patterns, and find experienced attorneys who know how to work with them.',
-  keywords: ['judges', 'attorneys', 'legal', 'court', 'law firm', 'judicial analytics'],
-  authors: [{ name: 'Judge Finder' }],
-  creator: 'Judge Finder',
-  publisher: 'Judge Finder',
+  twitter: {
+    card: 'summary_large_image',
+    title: 'JudgeFinder.io - Legal Analytics Platform',
+    description: 'Research judges and courts with data-driven intelligence',
+    images: ['/twitter-image.png'],
+  },
   robots: {
     index: true,
     follow: true,
@@ -25,19 +40,6 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://judgefinder.com',
-    title: 'Judge Finder - Find Your Assigned Judge & Hire Expert Attorneys',
-    description: 'Search our database of 10,000+ judges, learn about their background and ruling patterns, and find experienced attorneys who know how to work with them.',
-    siteName: 'Judge Finder',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Judge Finder - Find Your Assigned Judge & Hire Expert Attorneys',
-    description: 'Search our database of 10,000+ judges, learn about their background and ruling patterns, and find experienced attorneys who know how to work with them.',
-  },
 }
 
 export default function RootLayout({
@@ -46,11 +48,15 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="scroll-smooth">
-      <body className={`${inter.className} antialiased bg-judge-slate-950 text-white`}>
-        <div className="min-h-screen flex flex-col">
-          {children}
-        </div>
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen bg-background font-sans antialiased">
+        <Providers>
+          <div className="relative flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </Providers>
       </body>
     </html>
   )
