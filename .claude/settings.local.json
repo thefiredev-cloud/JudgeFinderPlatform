@@ -76,7 +76,8 @@
       "Bash(npm run validate:relationships:quick:*)",
       "Bash(npm run validate:relationships:*)",
       "mcp__mcp-memory__read_graph",
-      "mcp__mcp-memory__search_nodes"
+      "mcp__mcp-memory__search_nodes",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": [],
