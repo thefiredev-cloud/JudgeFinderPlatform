@@ -1,0 +1,123 @@
+{
+  "timestamp": "2025-08-16T03:46:00.209Z",
+  "summary": {
+    "total_issues": 5,
+    "critical_issues": 0,
+    "high_priority_issues": 3,
+    "medium_priority_issues": 2,
+    "recommendations_count": 0,
+    "database_health_score": 81
+  },
+  "issues": [
+    {
+      "severity": "HIGH",
+      "category": "DATA_COMPLETENESS",
+      "description": "293 judges are missing court_id",
+      "count": 293
+    },
+    {
+      "severity": "MEDIUM",
+      "category": "DATA_COMPLETENESS",
+      "description": "287 judges are missing court_name",
+      "count": 287
+    },
+    {
+      "severity": "HIGH",
+      "category": "ORPHANED_RECORDS",
+      "description": "614 judges are not assigned to any court",
+      "count": 614,
+      "details": [
+        {
+          "id": "140d844b-d2d9-4b05-96e3-0000128bc4d2",
+          "name": "Edward S. Smith",
+          "court_id": null
+        },
+        {
+          "id": "bd3037a3-de62-4dc6-aaf1-ca411d31f6d6",
+          "name": "Ursula A. Hall",
+          "court_id": null
+        },
+        {
+          "id": "a4d6d6bd-5793-42f5-a2c9-4bde20f0c916",
+          "name": "James M. Mosley",
+          "court_id": null
+        },
+        {
+          "id": "d4830932-bbef-49fe-aab6-0ea2eb912e08",
+          "name": "Chris Morton",
+          "court_id": null
+        },
+        {
+          "id": "22858587-aef2-4069-8404-37fe7e2844db",
+          "name": "Christopher Dean Morton",
+          "court_id": null
+        },
+        {
+          "id": "81461270-1d5a-47eb-8aee-ae87f3a4aba6",
+          "name": "Brad Morin",
+          "court_id": null
+        },
+        {
+          "id": "c9c1f8e3-0226-446a-9f3d-e6d40d63eefd",
+          "name": "James Bradford Morin",
+          "court_id": null
+        },
+        {
+          "id": "33636405-ab86-42df-b56c-ac5310d52ddf",
+          "name": "Mark A. Morefield",
+          "court_id": null
+        },
+        {
+          "id": "a52815c3-c754-41cd-9021-8a67f218eeca",
+          "name": "Regina La'Chae Moore",
+          "court_id": null
+        },
+        {
+          "id": "162c36c3-370c-40ce-a78e-ba2bb086af6a",
+          "name": "Michelle Denise Moore",
+          "court_id": null
+        }
+      ]
+    },
+    {
+      "severity": "MEDIUM",
+      "category": "ORPHANED_RECORDS",
+      "description": "109 cases are not assigned to any judge",
+      "count": 109
+    },
+    {
+      "severity": "HIGH",
+      "category": "DATA_ACCESSIBILITY",
+      "description": "Expected 1061 California judges, found 1000",
+      "expected": 1061,
+      "actual": 1000
+    }
+  ],
+  "recommendations": [
+    {
+      "category": "DATA_ACCESS",
+      "priority": "CRITICAL",
+      "description": "Ensure all California judges are properly accessible",
+      "action": "Standardize jurisdiction field values and update API filters"
+    },
+    {
+      "category": "DATA_QUALITY",
+      "priority": "MEDIUM",
+      "description": "Complete missing data fields for better user experience",
+      "action": "Populate missing court assignments and geographic information"
+    }
+  ],
+  "statistics": {
+    "judges_count": 1946,
+    "courts_count": 909,
+    "cases_count": 149,
+    "users_count": 0,
+    "attorneys_count": 0,
+    "attorney_slots_count": 0,
+    "empty_attorney_slots": 0,
+    "jurisdiction_distribution": {
+      "CA": 1000
+    },
+    "california_judges_accessible": 1000
+  }
+}

@@ -2,6 +2,7 @@ import './globals.css'
 import { Providers } from '@/components/providers/Providers'
 import { Header } from '@/components/ui/Header'
 import { Footer } from '@/components/ui/Footer'
+import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -49,14 +50,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="google-site-verification" content="your-google-search-console-verification-code" />
+        <meta name="msvalidate.01" content="your-bing-webmaster-verification-code" />
+      </head>
       <body className="min-h-screen bg-background font-sans antialiased">
-        <Providers>
-          <div className="relative flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-        </Providers>
+        <GlobalErrorBoundary>
+          <Providers>
+            <div className="relative flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+          </Providers>
+        </GlobalErrorBoundary>
       </body>
     </html>
   )

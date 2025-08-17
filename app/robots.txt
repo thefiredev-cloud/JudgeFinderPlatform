@@ -1,0 +1,59 @@
+export default function robots() {
+  const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://judgefinder.io').replace(/\/$/, '')
+  return {
+    rules: [
+      {
+        userAgent: '*',
+        allow: '/',
+        disallow: [
+          '/api/',
+          '/admin/',
+          '/dashboard/',
+          '/attorney-setup/',
+          '/success/',
+          '/_next/',
+          '/private/',
+          '*?*utm_*',  // Exclude tracking parameters
+          '*?*session*', // Exclude session parameters
+        ],
+        crawlDelay: 1,
+      },
+      {
+        userAgent: 'GPTBot',
+        disallow: ['/'],  // Disallow AI training crawlers
+      },
+      {
+        userAgent: 'ChatGPT-User',
+        disallow: ['/'],
+      },
+      {
+        userAgent: 'CCBot',
+        disallow: ['/'],
+      },
+      {
+        userAgent: 'anthropic-ai',
+        disallow: ['/'],
+      },
+      {
+        userAgent: 'Claude-Web',
+        disallow: ['/'],
+      },
+      {
+        userAgent: 'facebookexternalhit',
+        allow: '/',  // Allow social media crawlers
+      },
+      {
+        userAgent: 'Twitterbot',
+        allow: '/',
+      },
+      {
+        userAgent: 'LinkedInBot',
+        allow: '/',
+      }
+    ],
+    sitemap: `${siteUrl}/sitemap.xml`,
+    host: siteUrl,
+  }
+}
+
+

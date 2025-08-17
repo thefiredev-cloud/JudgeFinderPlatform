@@ -1,0 +1,63 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/daily-sync",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-sync", 
+      "schedule": "0 3 * * 0"
+    }
+  ],
+  "functions": {
+    "app/api/sync/courts/route.ts": {
+      "maxDuration": 300
+    },
+    "app/api/sync/judges/route.ts": {
+      "maxDuration": 300
+    },
+    "app/api/sync/decisions/route.ts": {
+      "maxDuration": 600
+    },
+    "app/api/cron/daily-sync/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/cron/weekly-sync/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/webhooks/courtlistener/route.ts": {
+      "maxDuration": 120
+    }
+  },
+  "env": {
+    "COURTLISTENER_API_KEY": "@courtlistener-api-key",
+    "SYNC_API_KEY": "@sync-api-key",
+    "CRON_SECRET": "@cron-secret"
+  },
+  "headers": [
+    {
+      "source": "/api/sync/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/api/cron/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control", 
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/sync",
+      "destination": "/api/admin/sync-status"
+    }
+  ]
+}

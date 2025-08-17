@@ -25,9 +25,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
-.env
+
 
 # vercel
 .vercel
@@ -98,6 +96,8 @@ jspm_packages/
 .yarn-integrity
 
 # dotenv environment variable files
+.env
+.env.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -149,6 +149,3 @@ public
 .yarn/install-state.gz
 .pnp.*
 
-# Supabase
-**/supabase/.branches
-**/supabase/.temp

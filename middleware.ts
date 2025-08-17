@@ -13,11 +13,11 @@ export function middleware(request: NextRequest) {
   // Add CSP header for security
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.supabase.co",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.supabase.co https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' blob: data: *.supabase.co https://images.unsplash.com",
+    "img-src 'self' blob: data: *.supabase.co https://images.unsplash.com https://www.courtlistener.com",
     "font-src 'self' data:",
-    "connect-src 'self' *.supabase.co wss://*.supabase.co https://api.openai.com https://courtlistener.com",
+    "connect-src 'self' *.supabase.co wss://*.supabase.co https://api.openai.com https://www.courtlistener.com https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://www.googletagmanager.com",
     "frame-ancestors 'none'",
   ].join('; ')
   

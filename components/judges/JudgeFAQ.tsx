@@ -35,6 +35,20 @@ export function JudgeFAQ({ judgeName }: JudgeFAQProps) {
 
   return (
     <div className="rounded-lg bg-white p-6 shadow-sm">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: faqs.map((f) => ({
+              '@type': 'Question',
+              name: f.question,
+              acceptedAnswer: { '@type': 'Answer', text: f.answer },
+            })),
+          }),
+        }}
+      />
       <div className="mb-4 flex items-center">
         <HelpCircle className="mr-2 h-5 w-5 text-blue-600" />
         <h2 className="text-xl font-bold text-gray-900">Frequently Asked Questions</h2>
