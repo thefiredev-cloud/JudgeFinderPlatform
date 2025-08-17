@@ -53,6 +53,13 @@ export default function RootLayout({
       <head>
         <meta name="google-site-verification" content="your-google-search-console-verification-code" />
         <meta name="msvalidate.01" content="your-bing-webmaster-verification-code" />
+        {process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT && (
+          <script 
+            async 
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT}`}
+            crossOrigin="anonymous"
+          />
+        )}
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         <GlobalErrorBoundary>

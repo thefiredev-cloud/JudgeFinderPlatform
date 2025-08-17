@@ -9,7 +9,7 @@ import { CourtSyncManager } from './court-sync'
 import { JudgeSyncManager } from './judge-sync'
 import { DecisionSyncManager } from './decision-sync'
 
-export type SyncJobType = 'court' | 'judge' | 'decision' | 'full'
+export type SyncJobType = 'court' | 'judge' | 'decision' | 'full' | 'cleanup'
 export type SyncJobStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled'
 
 export interface SyncJob {

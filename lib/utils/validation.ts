@@ -29,7 +29,8 @@ export const judgeSearchParamsSchema = z.object({
   q: z.string().optional(),
   limit: z.string().optional().transform(val => parseInt(val || '20') || 20).pipe(z.number().int().min(1).max(100)),
   page: z.string().optional().transform(val => parseInt(val || '1') || 1).pipe(z.number().int().min(1)),
-  jurisdiction: z.string().optional()
+  jurisdiction: z.string().optional(),
+  court_id: z.string().uuid('Invalid court ID format').optional()
 })
 
 export const judgeBySlugParamsSchema = z.object({
@@ -47,6 +48,13 @@ export const courtSearchParamsSchema = z.object({
   page: z.string().optional().transform(val => parseInt(val || '1') || 1).pipe(z.number().int().min(1)),
   jurisdiction: z.string().optional(),
   court_type: z.string().max(50).optional()
+})
+
+export const courtJudgesSearchParamsSchema = z.object({
+  limit: z.string().optional().transform(val => parseInt(val || '20') || 20).pipe(z.number().int().min(1).max(100)),
+  page: z.string().optional().transform(val => parseInt(val || '1') || 1).pipe(z.number().int().min(1)),
+  status: z.enum(['active', 'retired', 'inactive', 'all']).default('all'),
+  position_type: z.string().max(50).optional()
 })
 
 // Analytics API schemas

@@ -52,9 +52,9 @@ export function CountySelector() {
     setSelectedCounty(county)
     setIsOpen(false)
     
-    // Navigate to county-specific page
+    // Navigate to jurisdiction-specific page
     if (county.status === 'active' || county.status === 'expanding') {
-      router.push(`/counties/${county.id}`)
+      router.push(`/jurisdictions/${county.id}`)
     }
   }
 

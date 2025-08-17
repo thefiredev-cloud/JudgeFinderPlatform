@@ -55,7 +55,7 @@ export async function GET() {
 
     // Calculate platform metrics
     const californiaJudges = jurisdictionData?.filter(j => j.jurisdiction === 'CA').length || 0
-    const platformCoverage = totalJudges > 0 ? (californiaJudges / totalJudges) * 100 : 0
+    const platformCoverage = (totalJudges || 0) > 0 ? (californiaJudges / (totalJudges || 1)) * 100 : 0
     
     // Calculate attorney slots potential
     const availableSlots = (totalJudges || 0) * 5 // 5 slots per judge
@@ -72,8 +72,8 @@ export async function GET() {
 
     // Platform growth simulation (based on real expansion)
     const originalJudgeCount = 1061 // From CLAUDE.md
-    const growthRate = totalJudges > originalJudgeCount ? 
-      ((totalJudges - originalJudgeCount) / originalJudgeCount) * 100 : 0
+    const growthRate = (totalJudges || 0) > originalJudgeCount ? 
+      (((totalJudges || 0) - originalJudgeCount) / originalJudgeCount) * 100 : 0
 
     const kpiData = {
       // Platform metrics

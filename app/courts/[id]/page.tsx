@@ -2,9 +2,19 @@ import { notFound } from 'next/navigation'
 import { Building, MapPin, Users, Scale, Phone, Globe, Gavel, Award, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
+import CourtJudgesSection from '@/components/courts/CourtJudgesSection'
 import type { Court } from '@/types'
 
 type Params = Promise<{ id: string }>
+
+interface JudgeWithPosition {
+  id: string
+  name: string
+  appointed_date: string | null
+  position_type: string
+  status: string
+  courtlistener_id: string | null
+}
 
 // Fetch court using direct database lookup
 async function getCourt(id: string): Promise<Court | null> {
@@ -30,27 +40,26 @@ async function getCourt(id: string): Promise<Court | null> {
 }
 
 
-// Fetch judges for this court
-async function getCourtJudges(courtId: string) {
+// Get initial judges data for the court (first few for initial render)
+async function getInitialJudges(courtId: string): Promise<{ judges: JudgeWithPosition[], totalCount: number }> {
   try {
-    const supabase = await createServerClient()
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005'}/api/courts/${courtId}/judges?limit=5&page=1`, {
+      cache: 'force-cache',
+      next: { revalidate: 1800 } // 30 minutes
+    })
     
-    const { data: judges, error } = await supabase
-      .from('judges')
-      .select('id, name, appointed_date, courtlistener_id')
-      .eq('court_id', courtId)
-      .order('name')
-      .limit(10)
-
-    if (error) {
-      console.error('Error fetching court judges:', error)
-      return []
+    if (!response.ok) {
+      return { judges: [], totalCount: 0 }
     }
-
-    return judges || []
+    
+    const data = await response.json()
+    return {
+      judges: data.judges || [],
+      totalCount: data.total_count || 0
+    }
   } catch (error) {
-    console.error('Error fetching court judges:', error)
-    return []
+    console.error('Error fetching initial court judges:', error)
+    return { judges: [], totalCount: 0 }
   }
 }
 
@@ -62,7 +71,7 @@ export default async function CourtPage({ params }: { params: Params }) {
     notFound()
   }
 
-  const judges = await getCourtJudges(court.id)
+  const { judges: initialJudges, totalCount } = await getInitialJudges(court.id)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -101,11 +110,11 @@ export default async function CourtPage({ params }: { params: Params }) {
                 name: `${court.jurisdiction} Judicial System`,
                 url: `https://judgefinder.io/jurisdictions#${court.jurisdiction.toLowerCase()}`
               },
-              employee: judges.slice(0, 5).map(judge => ({
+              employee: initialJudges.slice(0, 5).map((judge: JudgeWithPosition) => ({
                 '@type': 'Person',
                 '@id': `https://judgefinder.io/judges/${judge.name.toLowerCase().replace(/\s+/g, '-').replace(/[.,]/g, '')}#judge`,
                 name: judge.name,
-                jobTitle: 'Judge',
+                jobTitle: judge.position_type || 'Judge',
                 url: `https://judgefinder.io/judges/${judge.name.toLowerCase().replace(/\s+/g, '-').replace(/[.,]/g, '')}`
               }))
             },
@@ -211,7 +220,7 @@ export default async function CourtPage({ params }: { params: Params }) {
                   <div className="text-right">
                     <p className="text-sm text-blue-200">Active Judges</p>
                     <p className="text-3xl font-bold">
-                      {court.judge_count || judges.length}
+                      {court.judge_count || totalCount}
                     </p>
                   </div>
                 </div>
@@ -271,7 +280,7 @@ export default async function CourtPage({ params }: { params: Params }) {
                     <div className="rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 p-4 text-center">
                       <Gavel className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                       <p className="text-3xl font-bold text-gray-900">
-                        {court.judge_count || judges.length}
+                        {court.judge_count || totalCount}
                       </p>
                       <p className="text-sm text-gray-600">Active Judges</p>
                     </div>
@@ -294,41 +303,12 @@ export default async function CourtPage({ params }: { params: Params }) {
               </div>
             </div>
 
-            {/* Judges List */}
-            {judges.length > 0 && (
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                  <Gavel className="h-5 w-5 mr-2 text-blue-600" />
-                  Judges at This Court
-                </h2>
-                <div className="space-y-4">
-                  {judges.slice(0, 8).map((judge: any) => (
-                    <Link
-                      key={judge.id}
-                      href={`/judges/${judge.name.toLowerCase().replace(/\s+/g, '-').replace(/[.,]/g, '')}`}
-                      className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors hover:border-blue-300"
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="font-medium text-gray-900">{judge.name}</h3>
-                          {judge.appointed_date && (
-                            <p className="text-sm text-gray-600">
-                              Appointed {new Date(judge.appointed_date).getFullYear()}
-                            </p>
-                          )}
-                        </div>
-                        <span className="text-blue-600 font-medium">View Profile →</span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-                {judges.length > 8 && (
-                  <Link href={`/judges?court=${encodeURIComponent(court.name)}`} className="block mt-4 text-center text-blue-600 hover:text-blue-700 font-medium">
-                    View all {judges.length} judges →
-                  </Link>
-                )}
-              </div>
-            )}
+            {/* Enhanced Judges Section */}
+            <CourtJudgesSection 
+              courtId={court.id} 
+              courtName={court.name}
+              initialJudges={initialJudges}
+            />
           </div>
 
           {/* Right Column - Sidebar */}
@@ -341,7 +321,7 @@ export default async function CourtPage({ params }: { params: Params }) {
                   href={`/judges?court=${encodeURIComponent(court.name)}`}
                   className="block w-full text-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-medium transition-colors"
                 >
-                  Browse All Judges
+                  Browse All {totalCount > 0 ? `${totalCount} ` : ''}Judges
                 </Link>
                 <Link 
                   href="/signup"

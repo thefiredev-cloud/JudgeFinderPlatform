@@ -4,7 +4,7 @@
 export const stripe = {
   checkout: {
     sessions: {
-      create: async () => {
+      create: async (_options: any): Promise<{ id: string; url: string }> => {
         throw new Error('Stripe integration is currently disabled - platform is free')
       }
     }

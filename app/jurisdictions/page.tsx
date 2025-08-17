@@ -97,7 +97,7 @@ async function getJurisdictionData() {
     .from('judges')
     .select('jurisdiction')
     .then(result => {
-      const stats = {}
+      const stats: Record<string, number> = {}
       result.data?.forEach(judge => {
         const jurisdiction = judge.jurisdiction
         if (jurisdiction) {

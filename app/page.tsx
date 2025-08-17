@@ -2,6 +2,7 @@ import { SearchSection } from '@/components/judges/SearchSection'
 import { PopularCourts } from '@/components/judges/PopularCourts'
 import { WhatYoullLearn } from '@/components/ui/WhatYoullLearn'
 import { WhyJudgeResearch } from '@/components/ui/WhyJudgeResearch'
+import Link from 'next/link'
 
 export default function HomePage() {
   return (
@@ -57,12 +58,18 @@ export default function HomePage() {
             Join thousands of legal professionals using data-driven insights to win cases
           </p>
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <button className="rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white transition hover:bg-blue-700">
+            <Link 
+              href="/signup" 
+              className="rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white transition hover:bg-blue-700 text-center"
+            >
               Start Free Trial
-            </button>
-            <button className="rounded-lg border border-gray-600 px-8 py-3 font-semibold text-white transition hover:bg-gray-800">
-              View Pricing
-            </button>
+            </Link>
+            <Link 
+              href="/judges" 
+              className="rounded-lg border border-gray-600 px-8 py-3 font-semibold text-white transition hover:bg-gray-800 text-center"
+            >
+              Browse Judges
+            </Link>
           </div>
         </div>
       </section>

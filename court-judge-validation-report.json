@@ -1,0 +1,106 @@
+{
+  "timestamp": "2025-08-17T20:47:11.461Z",
+  "summary": {
+    "total_tests": 7,
+    "passed_tests": 7,
+    "failed_tests": 0,
+    "warnings": 0,
+    "critical_errors": 0
+  },
+  "test_categories": {
+    "court_judge_relationships": {
+      "tests": [
+        {
+          "name": "Court  United States Court of Berlin - Data Consistency",
+          "status": "passed",
+          "timestamp": "2025-08-17T20:47:12.882Z",
+          "court_id": "74b66698-16b5-4277-8a95-0c2eb099151b",
+          "judges_count": 0,
+          "response_time_ms": 144
+        },
+        {
+          "name": "Court  United States Court of Berlin - Position Type Inference",
+          "status": "passed",
+          "timestamp": "2025-08-17T20:47:12.882Z",
+          "court_id": "74b66698-16b5-4277-8a95-0c2eb099151b",
+          "judges_with_positions": 0,
+          "total_judges": 0
+        }
+      ],
+      "status": "passed"
+    },
+    "california_judges_accessibility": {
+      "tests": [
+        {
+          "name": "California Judges Count",
+          "status": "passed",
+          "timestamp": "2025-08-17T20:47:11.650Z",
+          "found_judges": 1810,
+          "expected_minimum": 1810,
+          "response_time_ms": 185
+        },
+        {
+          "name": "Pagination Functionality",
+          "status": "passed",
+          "timestamp": "2025-08-17T20:47:12.354Z",
+          "pages_tested": 5,
+          "judges_accessible": 500,
+          "average_per_page": 100
+        },
+        {
+          "name": "Jurisdiction Filtering Accuracy",
+          "status": "passed",
+          "timestamp": "2025-08-17T20:47:12.354Z",
+          "sample_size": 100,
+          "all_ca_judges": true
+        }
+      ],
+      "status": "passed"
+    },
+    "api_endpoint_testing": {
+      "tests": [
+        {
+          "name": "Judges List - Core Structure",
+          "status": "passed",
+          "timestamp": "2025-08-17T20:47:12.475Z",
+          "response_time_ms": 120
+        },
+        {
+          "name": "Courts List - Core Structure",
+          "status": "passed",
+          "timestamp": "2025-08-17T20:47:12.547Z",
+          "response_time_ms": 72
+        }
+      ],
+      "status": "passed"
+    },
+    "data_integrity": {
+      "tests": [],
+      "status": "pending"
+    },
+    "performance_testing": {
+      "tests": [],
+      "status": "pending"
+    },
+    "frontend_integration": {
+      "tests": [],
+      "status": "pending"
+    }
+  },
+  "performance_metrics": {
+    "quick_validation_time": {
+      "value": 1420,
+      "threshold": null,
+      "status": "measured"
+    }
+  },
+  "recommendations": [
+    {
+      "category": "deployment",
+      "message": "System validation shows high success rate. Court-judge relationship system is ready for production use.",
+      "priority": "low",
+      "timestamp": "2025-08-17T20:47:12.882Z"
+    }
+  ],
+  "detailed_errors": []
+}

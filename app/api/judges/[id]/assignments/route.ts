@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@/lib/supabase/server'
 import { CurrentAssignment, AssignmentHistory } from '@/types'
 
 export async function GET(
@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createClient()
+    const supabase = await createServerClient()
     const { searchParams } = new URL(request.url)
     const includeHistory = searchParams.get('history') === 'true'
     const yearsBack = parseInt(searchParams.get('years') || '5')
@@ -77,7 +77,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createClient()
+    const supabase = await createServerClient()
     const body = await request.json()
 
     // Validate required fields

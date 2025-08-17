@@ -68,7 +68,15 @@
       "Bash(git add:*)",
       "Bash(git config:*)",
       "Bash(git commit:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm run lint)",
+      "mcp__adalovu-mcp-playwright__playwright_get",
+      "mcp__supabase-community-supabase-mcp__apply_migration",
+      "Bash(npm run validate:relationships:quick:*)",
+      "Bash(npm run validate:relationships:*)",
+      "mcp__mcp-memory__read_graph",
+      "mcp__mcp-memory__search_nodes"
     ],
     "deny": [],
     "ask": [],

@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { handleJudgeRedirects } from '@/lib/middleware/judge-redirects'
 
 export function middleware(request: NextRequest) {
+  // Handle judge name redirects first
+  const judgeRedirect = handleJudgeRedirects(request)
+  if (judgeRedirect) {
+    return judgeRedirect
+  }
+  
   // Add security headers
   const response = NextResponse.next()
   
@@ -13,11 +20,12 @@ export function middleware(request: NextRequest) {
   // Add CSP header for security
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.supabase.co https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' blob: data: *.supabase.co https://images.unsplash.com https://www.courtlistener.com",
-    "font-src 'self' data:",
-    "connect-src 'self' *.supabase.co wss://*.supabase.co https://api.openai.com https://www.courtlistener.com https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://www.googletagmanager.com",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.supabase.co https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://partner.googleadservices.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' blob: data: *.supabase.co https://images.unsplash.com https://www.courtlistener.com https://pagead2.googlesyndication.com https://www.google.com https://www.gstatic.com",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "connect-src 'self' *.supabase.co wss://*.supabase.co https://api.openai.com https://www.courtlistener.com https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://www.googletagmanager.com https://pagead2.googlesyndication.com",
+    "frame-src https://googleads.g.doubleclick.net https://www.google.com https://bid.g.doubleclick.net",
     "frame-ancestors 'none'",
   ].join('; ')
   

@@ -209,7 +209,7 @@ async function lookupCourt(slug: string): Promise<CourtLookupResult> {
 
   } catch (error) {
     console.error('Error in lookupCourt:', error)
-    await logQueryPerformance('court_error', Date.now() - startTime, { slug, error: error.message })
+    await logQueryPerformance('court_error', Date.now() - startTime, { slug, error: (error as Error).message })
     return {
       court: null,
       found_by: 'not_found'
@@ -302,6 +302,6 @@ async function logQueryPerformance(queryType: string, executionTime: number, par
       })
   } catch (error) {
     // Silent fail - don't impact user experience
-    console.log('Query performance logging failed:', error.message)
+    console.log('Query performance logging failed:', (error as Error).message)
   }
 }

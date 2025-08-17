@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { Menu, X, Search, User, ChevronDown } from 'lucide-react'
-import { CountySelector } from './CountySelector'
 import NavLogo from './NavLogo'
 
 export function Header() {
@@ -57,16 +56,13 @@ export function Header() {
             <Link href="/about" className="text-gray-300 hover:text-white">
               About
             </Link>
-                    <div className="hidden lg:flex lg:items-center lg:ml-6">
-            <CountySelector />
-          </div>
-        </nav>
+          </nav>
 
           {/* Desktop Actions */}
           <div className="hidden md:flex md:items-center md:space-x-4">
-            <button className="p-2 text-gray-300 hover:text-white">
+            <Link href="/search" className="p-2 text-gray-300 hover:text-white transition-colors">
               <Search className="h-5 w-5" />
-            </button>
+            </Link>
             <Link href="/login" className="flex items-center space-x-1 text-gray-300 hover:text-white">
               <User className="h-5 w-5" />
               <span>Login</span>

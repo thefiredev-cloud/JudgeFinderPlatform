@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Gavel, MapPin, Scale, Search, Loader2, Calendar, Users } from 'lucide-react'
 import Link from 'next/link'
 import type { Judge, JudgeDecisionSummary } from '@/types'
@@ -34,7 +34,7 @@ export default function JudgesPage() {
   // Use debounced search
   const { debouncedSearchQuery, isSearching } = useSearchDebounce(searchInput, 300)
 
-  const fetchJudges = async (page = 1, reset = false) => {
+  const fetchJudges = useCallback(async (page = 1, reset = false) => {
     if (reset) {
       setLoading(true)
     }
@@ -69,7 +69,7 @@ export default function JudgesPage() {
       setLoading(false)
       setInitialLoad(false)
     }
-  }
+  }, [debouncedSearchQuery, selectedJurisdiction])
 
   // Filter judges based on decisions toggle
   const filteredJudges = onlyWithDecisions 
@@ -78,7 +78,7 @@ export default function JudgesPage() {
 
   useEffect(() => {
     fetchJudges(1, true)
-  }, [debouncedSearchQuery, selectedJurisdiction])
+  }, [fetchJudges])
 
   const handleLoadMore = () => {
     if (hasMore && !loading) {

@@ -114,7 +114,7 @@ export async function GET(req: Request) {
       conversionRates,
       sourceMetrics: Object.entries(sourceMetrics || {}).map(([source, data]) => ({
         source,
-        ...data
+        ...(data as object)
       })),
       dailyTrends: Object.values(dailyTrends || {}),
       summary: {

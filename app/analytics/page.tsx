@@ -32,14 +32,14 @@ export default async function AnalyticsPage() {
   ])
 
   // Process jurisdiction statistics
-  const jurisdictionCounts = {}
-  jurisdictionStats?.forEach(judge => {
+  const jurisdictionCounts: Record<string, number> = {}
+  jurisdictionStats?.forEach((judge: any) => {
     const jurisdiction = judge.jurisdiction || 'Unknown'
     jurisdictionCounts[jurisdiction] = (jurisdictionCounts[jurisdiction] || 0) + 1
   })
 
   const topJurisdictions = Object.entries(jurisdictionCounts)
-    .sort(([,a], [,b]) => b - a)
+    .sort(([,a], [,b]) => (b as number) - (a as number))
     .slice(0, 5)
     .map(([name, count]) => ({ name, count }))
 
@@ -63,6 +63,12 @@ export default async function AnalyticsPage() {
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Live KPI Dashboard
+              </a>
+              <a 
+                href="/performance" 
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              >
+                Performance Monitor
               </a>
             </div>
           </div>
@@ -140,10 +146,10 @@ export default async function AnalyticsPage() {
                     <div className="w-24 bg-gray-200 rounded-full h-2 mr-3">
                       <div 
                         className="bg-blue-600 h-2 rounded-full" 
-                        style={{ width: `${(jurisdiction.count / topJurisdictions[0].count) * 100}%` }}
+                        style={{ width: `${((jurisdiction.count as number) / (topJurisdictions[0].count as number)) * 100}%` }}
                       ></div>
                     </div>
-                    <span className="text-gray-600 font-medium">{jurisdiction.count}</span>
+                    <span className="text-gray-600 font-medium">{jurisdiction.count as number}</span>
                   </div>
                 </div>
               ))}

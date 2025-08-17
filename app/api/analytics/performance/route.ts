@@ -59,9 +59,9 @@ export async function POST(request: NextRequest) {
     } catch (tableError) {
       // Table doesn't exist or other structural issue - silent fail
       // Only log once per session to avoid spam
-      if (!global.performanceTableWarningLogged) {
+      if (!(global as any).performanceTableWarningLogged) {
         console.log('Performance metrics table not available, analytics disabled')
-        global.performanceTableWarningLogged = true
+        ;(global as any).performanceTableWarningLogged = true
       }
     }
 

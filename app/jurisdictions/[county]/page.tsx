@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Building, MapPin, Users, Scale, Search, Loader2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
@@ -85,25 +85,9 @@ export default function CountyCourtsPage() {
 
   // Get jurisdiction info
   const jurisdictionInfo = jurisdictionMap[county]
-  
-  if (!jurisdictionInfo) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Jurisdiction Not Found</h1>
-          <p className="text-gray-600 mb-6">The requested jurisdiction could not be found.</p>
-          <Link 
-            href="/jurisdictions"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700"
-          >
-            ← Back to Jurisdictions
-          </Link>
-        </div>
-      </div>
-    )
-  }
 
-  const fetchCourts = async (page = 1, reset = false) => {
+  const fetchCourts = useCallback(async (page = 1, reset = false) => {
+    if (!jurisdictionInfo) return
     setLoading(true)
     try {
       const params = new URLSearchParams({
@@ -133,11 +117,28 @@ export default function CountyCourtsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [searchQuery, jurisdictionInfo])
 
   useEffect(() => {
     fetchCourts(1, true)
-  }, [searchQuery, county])
+  }, [fetchCourts])
+
+  if (!jurisdictionInfo) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Jurisdiction Not Found</h1>
+          <p className="text-gray-600 mb-6">The requested jurisdiction could not be found.</p>
+          <Link 
+            href="/jurisdictions"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700"
+          >
+            ← Back to Jurisdictions
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   const handleLoadMore = () => {
     if (hasMore && !loading) {

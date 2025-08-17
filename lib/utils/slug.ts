@@ -273,3 +273,13 @@ export function createCanonicalSlug(name: string): string {
 
   return generateSlug(parts.join(' '))
 }
+
+/**
+ * Alias for generateSlug to maintain backward compatibility
+ * 
+ * @param name - The judge's full name
+ * @returns A URL-friendly slug
+ */
+export function nameToSlug(name: string): string {
+  return generateSlug(name)
+}

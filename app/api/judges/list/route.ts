@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import { validateSearchParams, judgeSearchParamsSchema, sanitizeSearchQuery } from '@/lib/utils/validation'
-import type { Judge } from '@/types'
+import type { Judge, Court } from '@/types'
 
 interface YearlyDecisionCount {
   year: number
@@ -17,6 +17,7 @@ interface JudgeDecisionSummary {
 
 interface JudgeWithDecisions extends Judge {
   decision_summary?: JudgeDecisionSummary
+  court?: Court
 }
 
 export async function GET(request: NextRequest) {
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
       return validation.response
     }
     
-    const { q, limit, page, jurisdiction } = validation.data
+    const { q, limit, page, jurisdiction, court_id } = validation.data
     const sanitizedQuery = q ? sanitizeSearchQuery(q) : ''
     const includeDecisions = searchParams.get('include_decisions') !== 'false' // Default to true
     
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
       limit,
       page,
       jurisdiction,
+      court_id,
       includeDecisions
     })
 
@@ -49,7 +51,24 @@ export async function GET(request: NextRequest) {
 
     let queryBuilder = supabase
       .from('judges')
-      .select('id, name, court_name, jurisdiction, total_cases, profile_image_url', { count: 'exact' })
+      .select(`
+        id, 
+        name, 
+        court_id,
+        court_name, 
+        jurisdiction, 
+        appointed_date,
+        total_cases, 
+        profile_image_url,
+        courtlistener_id,
+        courts:court_id (
+          id,
+          name,
+          type,
+          jurisdiction,
+          address
+        )
+      `, { count: 'exact' })
       .order('name')
       .range(from, to)
 
@@ -61,6 +80,10 @@ export async function GET(request: NextRequest) {
     if (jurisdiction) {
       queryBuilder = queryBuilder.eq('jurisdiction', jurisdiction)
     }
+    
+    if (court_id) {
+      queryBuilder = queryBuilder.eq('court_id', court_id)
+    }
 
     // Execute judges query
     const { data: judgesData, error: judgesError, count } = await queryBuilder
@@ -69,6 +92,7 @@ export async function GET(request: NextRequest) {
       logger.error('Supabase error in judges list', { 
         query: sanitizedQuery,
         jurisdiction,
+        court_id,
         error: judgesError.message 
       })
       
@@ -78,7 +102,28 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const judges = (judgesData || []) as Judge[]
+    // Transform raw data to include court information
+    const judges = (judgesData || []).map((rawJudge: any) => {
+      const { courts, ...judgeData } = rawJudge
+      const judge: Judge = judgeData as Judge
+      
+      // Add court information if available
+      const court: Court | undefined = courts ? {
+        id: courts.id,
+        name: courts.name,
+        type: courts.type,
+        jurisdiction: courts.jurisdiction,
+        address: courts.address || '',
+        phone: '', // Not selected in query
+        website: '', // Not selected in query  
+        judge_count: 0, // Not selected in query
+        created_at: '', // Not selected in query
+        updated_at: '' // Not selected in query
+      } : undefined
+      
+      return { ...judge, court }
+    })
+    
     let judgesWithDecisions: JudgeWithDecisions[] = judges
 
     // Fetch decision summaries in parallel if requested
@@ -128,6 +173,7 @@ export async function GET(request: NextRequest) {
       resultsCount: judges.length,
       totalCount,
       hasQuery: !!sanitizedQuery.trim(),
+      hasCourtFilter: !!court_id,
       includedDecisions: includeDecisions
     })
     
