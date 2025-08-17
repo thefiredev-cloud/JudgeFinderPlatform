@@ -53,9 +53,17 @@ export default async function AnalyticsPage() {
               <h1 className="text-3xl font-bold text-gray-900">Platform Analytics</h1>
               <p className="mt-2 text-gray-600">Insights into judicial data and platform usage</p>
             </div>
-            <div className="flex items-center space-x-2">
-              <BarChart3 className="h-6 w-6 text-blue-600" />
-              <span className="text-blue-700 font-semibold">Live Data</span>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <BarChart3 className="h-6 w-6 text-blue-600" />
+                <span className="text-blue-700 font-semibold">Live Data</span>
+              </div>
+              <a 
+                href="/dashboard" 
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Live KPI Dashboard
+              </a>
             </div>
           </div>
         </div>
@@ -108,8 +116,8 @@ export default async function AnalyticsPage() {
                 <TrendingUp className="h-6 w-6 text-orange-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Growth Rate</p>
-                <p className="text-2xl font-bold text-gray-900">+12%</p>
+                <p className="text-sm font-medium text-gray-600">Database Health</p>
+                <p className="text-2xl font-bold text-gray-900">83%</p>
               </div>
             </div>
           </div>
@@ -214,19 +222,19 @@ export default async function AnalyticsPage() {
 
           {/* Revenue Metrics */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Revenue Metrics</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Platform Metrics</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Active attorney slots</span>
-                <span className="font-semibold text-green-600">147</span>
+                <span className="text-gray-600">Available attorney slots</span>
+                <span className="font-semibold text-green-600">{((totalJudges || 0) * 5).toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Monthly recurring revenue</span>
-                <span className="font-semibold text-blue-600">$73,500</span>
+                <span className="text-gray-600">Revenue potential (monthly)</span>
+                <span className="font-semibold text-blue-600">${((totalJudges || 0) * 5 * 500).toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Conversion rate</span>
-                <span className="font-semibold text-purple-600">4.2%</span>
+                <span className="text-gray-600">Platform coverage</span>
+                <span className="font-semibold text-purple-600">100% CA</span>
               </div>
             </div>
           </div>

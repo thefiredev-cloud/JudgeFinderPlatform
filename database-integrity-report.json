@@ -1,89 +1,83 @@
 {
-  "timestamp": "2025-08-16T03:46:00.209Z",
+  "timestamp": "2025-08-17T06:38:17.278Z",
   "summary": {
-    "total_issues": 5,
+    "total_issues": 4,
     "critical_issues": 0,
     "high_priority_issues": 3,
-    "medium_priority_issues": 2,
+    "medium_priority_issues": 1,
     "recommendations_count": 0,
-    "database_health_score": 81
+    "database_health_score": 83
   },
   "issues": [
     {
       "severity": "HIGH",
       "category": "DATA_COMPLETENESS",
-      "description": "293 judges are missing court_id",
-      "count": 293
+      "description": "62 judges are missing court_id",
+      "count": 62
     },
     {
       "severity": "MEDIUM",
       "category": "DATA_COMPLETENESS",
-      "description": "287 judges are missing court_name",
-      "count": 287
+      "description": "62 judges are missing court_name",
+      "count": 62
     },
     {
       "severity": "HIGH",
       "category": "ORPHANED_RECORDS",
-      "description": "614 judges are not assigned to any court",
-      "count": 614,
+      "description": "136 judges are not assigned to any court",
+      "count": 136,
       "details": [
-        {
-          "id": "140d844b-d2d9-4b05-96e3-0000128bc4d2",
-          "name": "Edward S. Smith",
-          "court_id": null
-        },
-        {
-          "id": "bd3037a3-de62-4dc6-aaf1-ca411d31f6d6",
-          "name": "Ursula A. Hall",
-          "court_id": null
-        },
-        {
-          "id": "a4d6d6bd-5793-42f5-a2c9-4bde20f0c916",
-          "name": "James M. Mosley",
-          "court_id": null
-        },
-        {
-          "id": "d4830932-bbef-49fe-aab6-0ea2eb912e08",
-          "name": "Chris Morton",
-          "court_id": null
-        },
-        {
-          "id": "22858587-aef2-4069-8404-37fe7e2844db",
-          "name": "Christopher Dean Morton",
-          "court_id": null
-        },
-        {
-          "id": "81461270-1d5a-47eb-8aee-ae87f3a4aba6",
-          "name": "Brad Morin",
-          "court_id": null
-        },
         {
           "id": "c9c1f8e3-0226-446a-9f3d-e6d40d63eefd",
           "name": "James Bradford Morin",
           "court_id": null
         },
         {
-          "id": "33636405-ab86-42df-b56c-ac5310d52ddf",
-          "name": "Mark A. Morefield",
+          "id": "d5b293e2-fbe6-4f29-9564-14856f5955e2",
+          "name": "Angel Kelley",
           "court_id": null
         },
         {
-          "id": "a52815c3-c754-41cd-9021-8a67f218eeca",
-          "name": "Regina La'Chae Moore",
+          "id": "bea681ac-58c4-40ce-bab2-b71d7ccde9b8",
+          "name": "Maricela Moore",
           "court_id": null
         },
         {
-          "id": "162c36c3-370c-40ce-a78e-ba2bb086af6a",
-          "name": "Michelle Denise Moore",
+          "id": "92828917-9f82-44b8-a498-dfb5d0bc21da",
+          "name": "William E. Moody",
+          "court_id": null
+        },
+        {
+          "id": "0f276c7d-879a-4a13-ae27-0fd82aadac95",
+          "name": "Louis Charles E. van Cleef",
+          "court_id": null
+        },
+        {
+          "id": "68b646c1-9884-466c-a9ec-0ca5d0df5c86",
+          "name": "Stephanie N. Mitchell Huff",
+          "court_id": null
+        },
+        {
+          "id": "2a2cd7dc-c345-4a2c-afc8-d512ae97c067",
+          "name": "Stuart M. Messer",
+          "court_id": null
+        },
+        {
+          "id": "022fefc6-86ac-4a80-a1ba-e19d420447d4",
+          "name": "Michael Merry Edward",
+          "court_id": null
+        },
+        {
+          "id": "659de050-8f10-447d-b25c-cf02f4a39b30",
+          "name": "Mary K. M. Medary",
+          "court_id": null
+        },
+        {
+          "id": "2c7a6d5e-a310-4f0f-acac-69cdb20cded7",
+          "name": "Gloria E. Lopez",
           "court_id": null
         }
       ]
-    },
-    {
-      "severity": "MEDIUM",
-      "category": "ORPHANED_RECORDS",
-      "description": "109 cases are not assigned to any judge",
-      "count": 109
     },
     {
       "severity": "HIGH",
@@ -110,7 +104,7 @@
   "statistics": {
     "judges_count": 1946,
     "courts_count": 909,
-    "cases_count": 149,
+    "cases_count": 300204,
     "users_count": 0,
     "attorneys_count": 0,
     "attorney_slots_count": 0,

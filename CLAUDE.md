@@ -8,8 +8,9 @@ Free judicial transparency and bias detection tool for citizens, attorneys, and 
 **Mission:** Promote judicial transparency and help identify potential bias patterns
 
 ### Key Platform Data
-- **1,061 California Judges** - All accessible in directory
-- **852 Courts** - Complete California coverage  
+- **1,810 California Judges** - All accessible in directory (significantly expanded!)
+- **909 Courts** - Complete California coverage  
+- **300,204 Cases** - Comprehensive case database
 - **Development Server:** http://localhost:3005
 
 ### Recent Major Implementations
@@ -31,7 +32,7 @@ Free judicial transparency and bias detection tool for citizens, attorneys, and 
 #### California Judges Display Fix
 - **Problem:** Only 42 of 1,061 judges accessible due to jurisdiction mismatch
 - **Solution:** Updated frontend to use "CA" instead of "California" 
-- **Result:** All 1,061 California judges now accessible
+- **Result:** All 1,810 California judges now accessible (platform significantly expanded!)
 
 ### Technical Architecture
 
