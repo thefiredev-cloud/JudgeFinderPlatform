@@ -1,108 +1,17 @@
 {
-  "timestamp": "2025-08-17T17:25:08.891Z",
+  "timestamp": "2025-08-21T18:53:21.103Z",
   "summary": {
-    "total_issues": 4,
+    "total_issues": 0,
     "critical_issues": 0,
-    "high_priority_issues": 3,
-    "medium_priority_issues": 1,
+    "high_priority_issues": 0,
+    "medium_priority_issues": 0,
     "recommendations_count": 0,
-    "database_health_score": 83
+    "database_health_score": 100
   },
-  "issues": [
-    {
-      "severity": "HIGH",
-      "category": "DATA_COMPLETENESS",
-      "description": "62 judges are missing court_id",
-      "count": 62
-    },
-    {
-      "severity": "MEDIUM",
-      "category": "DATA_COMPLETENESS",
-      "description": "62 judges are missing court_name",
-      "count": 62
-    },
-    {
-      "severity": "HIGH",
-      "category": "ORPHANED_RECORDS",
-      "description": "136 judges are not assigned to any court",
-      "count": 136,
-      "details": [
-        {
-          "id": "c9c1f8e3-0226-446a-9f3d-e6d40d63eefd",
-          "name": "James Bradford Morin",
-          "court_id": null
-        },
-        {
-          "id": "d5b293e2-fbe6-4f29-9564-14856f5955e2",
-          "name": "Angel Kelley",
-          "court_id": null
-        },
-        {
-          "id": "bea681ac-58c4-40ce-bab2-b71d7ccde9b8",
-          "name": "Maricela Moore",
-          "court_id": null
-        },
-        {
-          "id": "92828917-9f82-44b8-a498-dfb5d0bc21da",
-          "name": "William E. Moody",
-          "court_id": null
-        },
-        {
-          "id": "0f276c7d-879a-4a13-ae27-0fd82aadac95",
-          "name": "Louis Charles E. van Cleef",
-          "court_id": null
-        },
-        {
-          "id": "68b646c1-9884-466c-a9ec-0ca5d0df5c86",
-          "name": "Stephanie N. Mitchell Huff",
-          "court_id": null
-        },
-        {
-          "id": "2a2cd7dc-c345-4a2c-afc8-d512ae97c067",
-          "name": "Stuart M. Messer",
-          "court_id": null
-        },
-        {
-          "id": "022fefc6-86ac-4a80-a1ba-e19d420447d4",
-          "name": "Michael Merry Edward",
-          "court_id": null
-        },
-        {
-          "id": "659de050-8f10-447d-b25c-cf02f4a39b30",
-          "name": "Mary K. M. Medary",
-          "court_id": null
-        },
-        {
-          "id": "2c7a6d5e-a310-4f0f-acac-69cdb20cded7",
-          "name": "Gloria E. Lopez",
-          "court_id": null
-        }
-      ]
-    },
-    {
-      "severity": "HIGH",
-      "category": "DATA_ACCESSIBILITY",
-      "description": "Expected 1061 California judges, found 1000",
-      "expected": 1061,
-      "actual": 1000
-    }
-  ],
-  "recommendations": [
-    {
-      "category": "DATA_ACCESS",
-      "priority": "CRITICAL",
-      "description": "Ensure all California judges are properly accessible",
-      "action": "Standardize jurisdiction field values and update API filters"
-    },
-    {
-      "category": "DATA_QUALITY",
-      "priority": "MEDIUM",
-      "description": "Complete missing data fields for better user experience",
-      "action": "Populate missing court assignments and geographic information"
-    }
-  ],
+  "issues": [],
+  "recommendations": [],
   "statistics": {
-    "judges_count": 1946,
+    "judges_count": 1810,
     "courts_count": 909,
     "cases_count": 300204,
     "users_count": 0,
@@ -112,6 +21,6 @@
     "jurisdiction_distribution": {
       "CA": 1000
     },
-    "california_judges_accessible": 1000
+    "california_judges_accessible": 1810
   }
 }
