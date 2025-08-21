@@ -211,8 +211,8 @@ export default function JudgesPage() {
             </div>
           </div>
           
-          {/* Filter Toggle */}
-          <div className="mt-4">
+          {/* Filter Toggle and Advanced Search */}
+          <div className="mt-4 flex items-center justify-between">
             <label className="flex items-center">
               <input
                 type="checkbox"
@@ -224,6 +224,13 @@ export default function JudgesPage() {
                 Show only judges with recent decisions (2023-2025)
               </span>
             </label>
+            <Link
+              href="/judges/advanced-search"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 hover:border-blue-300 transition-colors"
+            >
+              <Search className="w-4 h-4 mr-2" />
+              Advanced Search
+            </Link>
           </div>
           
           {/* Results Summary */}
