@@ -3,6 +3,13 @@ import { Building, MapPin, Users, Scale, Phone, Globe, Gavel, Award, TrendingUp 
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import CourtJudgesSection from '@/components/courts/CourtJudgesSection'
+import { 
+  courtSlugToName, 
+  generateCourtNameVariations, 
+  generateCourtSlug, 
+  isCourtIdentifier,
+  normalizeCourtIdentifier 
+} from '@/lib/utils/slug'
 import type { Court } from '@/types'
 
 type Params = Promise<{ id: string }>
@@ -16,25 +23,116 @@ interface JudgeWithPosition {
   courtlistener_id: string | null
 }
 
-// Fetch court using direct database lookup
+// Fetch court using improved lookup strategy for both IDs and slugs
 async function getCourt(id: string): Promise<Court | null> {
   try {
     const supabase = await createServerClient()
     
-    const { data: court, error } = await supabase
-      .from('courts')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle()
+    // Decode the URL parameter in case it has URL encoding
+    const decodedId = decodeURIComponent(id)
+    console.log(`Looking up court: ${id} → ${decodedId}`)
+    
+    // Determine if this looks like a slug or an ID
+    const { isSlug, isId } = isCourtIdentifier(decodedId)
+    
+    let court = null
+    
+    // Strategy 1: Try slug lookup first if it looks like a slug
+    if (isSlug) {
+      console.log('Attempting slug lookup...')
+      const { data: courtBySlug } = await supabase
+        .from('courts')
+        .select('*')
+        .eq('slug', decodedId)
+        .maybeSingle()
+      
+      if (courtBySlug) {
+        court = courtBySlug
+        console.log('Found by slug')
+      }
+    }
+    
+    // Strategy 2: Try direct ID lookup if not found and looks like ID
+    if (!court && isId) {
+      console.log('Attempting ID lookup...')
+      const { data: courtById } = await supabase
+        .from('courts')
+        .select('*')
+        .eq('id', decodedId)
+        .maybeSingle()
+      
+      if (courtById) {
+        court = courtById
+        console.log('Found by ID')
+      }
+    }
+    
+    // Strategy 3: Generate slug from the identifier and try lookup
+    if (!court) {
+      console.log('Attempting generated slug lookup...')
+      const generatedSlug = generateCourtSlug(decodedId)
+      
+      if (generatedSlug && generatedSlug !== decodedId) {
+        const { data: courtByGeneratedSlug } = await supabase
+          .from('courts')
+          .select('*')
+          .eq('slug', generatedSlug)
+          .maybeSingle()
+        
+        if (courtByGeneratedSlug) {
+          court = courtByGeneratedSlug
+          console.log('Found by generated slug')
+        }
+      }
+    }
+    
+    // Strategy 4: Try name-based lookup (legacy support)
+    if (!court) {
+      console.log('Attempting name-based lookup...')
+      const nameFromSlug = courtSlugToName(decodedId)
+      const nameVariations = generateCourtNameVariations(nameFromSlug)
+      
+      for (const variation of nameVariations) {
+        const { data: courtByName } = await supabase
+          .from('courts')
+          .select('*')
+          .ilike('name', variation)
+          .maybeSingle()
+        
+        if (courtByName) {
+          court = courtByName
+          console.log(`Found by name variation: ${variation}`)
+          break
+        }
+      }
+    }
+    
+    // Strategy 5: Partial name matching as last resort
+    if (!court) {
+      console.log('Attempting partial name matching...')
+      const nameFromSlug = courtSlugToName(decodedId)
+      
+      const { data: courtByPartialName } = await supabase
+        .from('courts')
+        .select('*')
+        .ilike('name', `%${nameFromSlug}%`)
+        .limit(1)
+        .maybeSingle()
+      
+      if (courtByPartialName) {
+        court = courtByPartialName
+        console.log('Found by partial name match')
+      }
+    }
 
-    if (error || !court) {
-      console.log(`Court not found for ID: ${id}`)
+    if (!court) {
+      console.log(`Court not found for identifier: ${id} (decoded: ${decodedId})`)
       return null
     }
 
     return court as Court
   } catch (error) {
-    console.error('Error fetching court by ID:', error)
+    console.error('Error fetching court:', error)
     return null
   }
 }

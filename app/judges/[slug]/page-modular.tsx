@@ -44,7 +44,7 @@ function getCoordinatesForJurisdiction(jurisdiction: string): string {
 async function getJudge(slug: string): Promise<Judge | null> {
   try {
     const { createServerClient } = await import('@/lib/supabase/server')
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
     
     // Multiple query strategies for robust judge lookup
     const { data: judges, error } = await supabase
@@ -200,7 +200,8 @@ export default async function JudgePage({ params }: JudgePageProps) {
         <RelatedJudges 
           currentJudgeId={judge.id}
           jurisdiction={safeJurisdiction}
-          courtId={judge.court_id}
+          courtName={judge.court_name || 'Unknown Court'}
+          judgeName={judge.name || 'Unknown Judge'}
         />
       </div>
     </div>

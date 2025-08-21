@@ -2,11 +2,16 @@ import { SearchSection } from '@/components/judges/SearchSection'
 import { PopularCourts } from '@/components/judges/PopularCourts'
 import { WhatYoullLearn } from '@/components/ui/WhatYoullLearn'
 import { WhyJudgeResearch } from '@/components/ui/WhyJudgeResearch'
+import { StructuredData } from '@/components/seo/StructuredData'
 import Link from 'next/link'
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
+    <>
+      <StructuredData type="website" data={{}} />
+      <StructuredData type="organization" data={{}} />
+      
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
       {/* Hero Section with Search */}
       <section className="relative px-4 py-20 md:py-32">
         <div className="mx-auto max-w-7xl">
@@ -73,6 +78,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   )
 }

@@ -7,6 +7,7 @@ interface Court {
   name: string
   type: string
   jurisdiction: string
+  slug?: string
   address?: string | number
   phone?: string
   website?: string
@@ -25,7 +26,7 @@ async function getInitialCourts(): Promise<Court[]> {
     
     const { data, error } = await supabase
       .from('courts')
-      .select('id, name, type, jurisdiction, address, phone, website, judge_count')
+      .select('id, name, type, jurisdiction, slug, address, phone, website, judge_count')
       .eq('jurisdiction', 'CA') // Default to California
       .order('name')
       .limit(20)

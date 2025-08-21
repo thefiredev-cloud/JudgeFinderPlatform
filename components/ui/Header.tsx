@@ -2,12 +2,14 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { Menu, X, Search, User, ChevronDown } from 'lucide-react'
+import { Menu, X, Search, User, ChevronDown, Scale, Building2, BarChart3, Home, Settings } from 'lucide-react'
+import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
 import NavLogo from './NavLogo'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const { isSignedIn, user } = useUser()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-800/50 bg-slate-900/95 backdrop-blur-md supports-[backdrop-filter]:bg-slate-900/75">
@@ -63,16 +65,39 @@ export function Header() {
             <Link href="/search" className="p-2 text-gray-300 hover:text-white transition-colors">
               <Search className="h-5 w-5" />
             </Link>
-            <Link href="/login" className="flex items-center space-x-1 text-gray-300 hover:text-white">
-              <User className="h-5 w-5" />
-              <span>Login</span>
-            </Link>
-            <Link
-              href="/signup"
-              className="rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-2 text-sm font-medium text-white hover:shadow-lg hover:shadow-purple-500/25 transition-all"
-            >
-              Sign Up
-            </Link>
+            {isSignedIn ? (
+              <div className="flex items-center space-x-3">
+                <Link 
+                  href="/dashboard" 
+                  className="p-2 text-gray-300 hover:text-white transition-colors"
+                  title="Dashboard"
+                >
+                  <Home className="h-5 w-5" />
+                </Link>
+                <UserButton 
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-8 h-8"
+                    }
+                  }}
+                  afterSignOutUrl="/"
+                />
+              </div>
+            ) : (
+              <>
+                <SignInButton mode="modal">
+                  <button className="flex items-center space-x-1 text-gray-300 hover:text-white">
+                    <User className="h-5 w-5" />
+                    <span>Login</span>
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className="rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-2 text-sm font-medium text-white hover:shadow-lg hover:shadow-purple-500/25 transition-all">
+                    Sign Up
+                  </button>
+                </SignUpButton>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -87,29 +112,106 @@ export function Header() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-gray-800 bg-gray-900">
+        <div className="md:hidden border-t border-gray-800 bg-gray-900/95 backdrop-blur-md">
           <nav className="space-y-1 px-4 py-4">
-            <Link href="/judges" className="block py-2 text-gray-300 hover:text-white">
-              All Judges
-            </Link>
-            <Link href="/courts" className="block py-2 text-gray-300 hover:text-white">
-              Courts
-            </Link>
-            <Link href="/jurisdictions" className="block py-2 text-gray-300 hover:text-white">
-              Jurisdictions
-            </Link>
-            <Link href="/about" className="block py-2 text-gray-300 hover:text-white">
-              About
-            </Link>
-            <div className="pt-4 border-t border-gray-800">
-              <Link href="/login" className="block py-2 text-gray-300 hover:text-white">
-                Login
-              </Link>
-              <Link
-                href="/signup"
-                className="block mt-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-2 text-center font-medium text-white hover:shadow-lg hover:shadow-purple-500/25 transition-all"
+            {/* Browse Section */}
+            <div className="pb-2">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Browse</p>
+              <Link 
+                href="/judges" 
+                className="flex items-center py-2 text-gray-300 hover:text-white transition-colors"
+                onClick={() => setIsMenuOpen(false)}
               >
-                Sign Up
+                <Scale className="h-4 w-4 mr-3 text-blue-400" />
+                All Judges
+              </Link>
+              <Link 
+                href="/courts" 
+                className="flex items-center py-2 text-gray-300 hover:text-white transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Building2 className="h-4 w-4 mr-3 text-green-400" />
+                Courts
+              </Link>
+              <Link 
+                href="/search" 
+                className="flex items-center py-2 text-gray-300 hover:text-white transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Search className="h-4 w-4 mr-3 text-purple-400" />
+                Advanced Search
+              </Link>
+            </div>
+
+            {/* User Section */}
+            {isSignedIn ? (
+              <div className="pt-4 border-t border-gray-700">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Account</p>
+                <Link 
+                  href="/dashboard" 
+                  className="flex items-center py-2 text-gray-300 hover:text-white transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Home className="h-4 w-4 mr-3 text-blue-400" />
+                  Dashboard
+                </Link>
+                <Link 
+                  href="/profile" 
+                  className="flex items-center py-2 text-gray-300 hover:text-white transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Settings className="h-4 w-4 mr-3 text-purple-400" />
+                  Profile Settings
+                </Link>
+                <div className="mt-3">
+                  <UserButton 
+                    appearance={{
+                      elements: {
+                        avatarBox: "w-8 h-8"
+                      }
+                    }}
+                    afterSignOutUrl="/"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="pt-4 border-t border-gray-700 space-y-3">
+                <SignInButton mode="modal">
+                  <button 
+                    className="flex items-center w-full py-2 text-gray-300 hover:text-white transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <User className="h-4 w-4 mr-3" />
+                    Login
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button
+                    className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-3 text-center font-medium text-white hover:shadow-lg hover:shadow-purple-500/25 transition-all"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Sign Up
+                  </button>
+                </SignUpButton>
+              </div>
+            )}
+
+            {/* Additional Links */}
+            <div className="pt-4 border-t border-gray-700">
+              <Link 
+                href="/about" 
+                className="block py-2 text-gray-300 hover:text-white transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                About
+              </Link>
+              <Link 
+                href="/compare" 
+                className="flex items-center py-2 text-gray-300 hover:text-white transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <BarChart3 className="h-4 w-4 mr-3 text-orange-400" />
+                Compare Judges
               </Link>
             </div>
           </nav>

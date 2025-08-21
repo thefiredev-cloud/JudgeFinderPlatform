@@ -123,8 +123,9 @@ const NavLogo: React.FC<NavLogoProps> = ({ className = "" }) => {
                   height="20"
                   fill="url(#navGradient)"
                   animate={{
-                    height: isHovered ? 21 : 20,
+                    height: isHovered ? "21" : "20",
                   }}
+                  transition={{ duration: 0.3 }}
                 />
                 
                 {/* Top triangle */}
@@ -134,6 +135,7 @@ const NavLogo: React.FC<NavLogoProps> = ({ className = "" }) => {
                   animate={{
                     d: isHovered ? "M 20 9 L 16 6 L 24 6 Z" : "M 20 10 L 17 7 L 23 7 Z",
                   }}
+                  transition={{ duration: 0.3 }}
                 />
                 
                 {/* Balance beam */}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Gavel, Filter, Search, ChevronDown, Badge, Calendar, User } from 'lucide-react'
 import Link from 'next/link'
 
@@ -66,7 +66,7 @@ export default function CourtJudgesSection({ courtId, courtName, initialJudges =
   // Get unique position types from current judges
   const positionTypes = Array.from(new Set(judges.map(judge => judge.position_type))).sort()
 
-  const fetchJudges = async (pageNum: number = 1, reset: boolean = false) => {
+  const fetchJudges = useCallback(async (pageNum: number = 1, reset: boolean = false) => {
     setLoading(true)
     setError(null)
 
@@ -100,7 +100,7 @@ export default function CourtJudgesSection({ courtId, courtName, initialJudges =
     } finally {
       setLoading(false)
     }
-  }
+  }, [courtId, statusFilter, positionFilter])
 
   // Filter judges client-side by search query
   const filteredJudges = judges.filter(judge =>
@@ -110,7 +110,7 @@ export default function CourtJudgesSection({ courtId, courtName, initialJudges =
   // Refetch when filters change
   useEffect(() => {
     fetchJudges(1, true)
-  }, [statusFilter, positionFilter])
+  }, [statusFilter, positionFilter, fetchJudges])
 
   const loadMore = () => {
     if (!loading && hasMore) {

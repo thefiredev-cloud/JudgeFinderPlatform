@@ -5,12 +5,14 @@ import { Building, MapPin, Users, Scale, Search, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchDebounce } from '@/lib/hooks/useDebounce'
 import { CourtCardSkeleton } from '@/components/ui/Skeleton'
+import { generateCourtSlug } from '@/lib/utils/slug'
 
 interface Court {
   id: string
   name: string
   type: string
   jurisdiction: string
+  slug?: string
   address?: string | number
   phone?: string
   website?: string
@@ -206,7 +208,7 @@ export function CourtsSearch({ initialCourts, initialJurisdiction = 'CA' }: Cour
         {courts.map((court) => (
           <Link
             key={court.id}
-            href={`/courts/${court.id}`}
+            href={`/courts/${court.slug || generateCourtSlug(court.name)}`}
             className="group block"
           >
             <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow group-hover:shadow-md">

@@ -203,7 +203,7 @@ export function JudgeMainContent({
                 <Scale className="h-4 w-4 text-gray-400 mr-2" />
                 <span className="text-gray-600">Court Type:</span>
                 <span className="ml-auto font-medium">
-                  {judge.court?.type || 'State Court'}
+                  State Court
                 </span>
               </div>
               <div className="flex items-center text-sm">
