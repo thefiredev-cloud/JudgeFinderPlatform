@@ -77,7 +77,10 @@
       "Bash(npm run validate:relationships:*)",
       "mcp__mcp-memory__read_graph",
       "mcp__mcp-memory__search_nodes",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "mcp__wonderwhy-er-desktop-commander__list_processes",
+      "Bash(wmic:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": [],

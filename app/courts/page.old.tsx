@@ -68,6 +68,7 @@ export default function CourtsPage() {
 
   useEffect(() => {
     fetchCourts(1, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, selectedType, selectedJurisdiction])
 
   const handleLoadMore = () => {

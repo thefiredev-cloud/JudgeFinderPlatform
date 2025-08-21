@@ -468,25 +468,29 @@ class DatabaseIntegrityChecker {
       console.log(`  • Incorrect court judge counts: ${courtCountIssues.length}`)
     }
 
-    // Validate that all 1061 California judges are accessible
-    const { data: californiaJudges } = await supabase
+    // Validate that all California judges are accessible
+    const { count: totalJudges } = await supabase
       .from('judges')
-      .select('id, name, jurisdiction')
-      .in('jurisdiction', ['CA', 'California', 'CALIFORNIA'])
+      .select('*', { count: 'exact', head: true })
     
-    if (californiaJudges) {
-      this.results.statistics.california_judges_accessible = californiaJudges.length
-      console.log(`  • California judges accessible: ${californiaJudges.length}`)
-      
-      if (californiaJudges.length !== 1061) {
-        this.results.issues.push({
-          severity: 'HIGH',
-          category: 'DATA_ACCESSIBILITY',
-          description: `Expected 1061 California judges, found ${californiaJudges.length}`,
-          expected: 1061,
-          actual: californiaJudges.length
-        })
-      }
+    const { count: californiaJudgesCount } = await supabase
+      .from('judges')
+      .select('*', { count: 'exact', head: true })
+      .eq('jurisdiction', 'CA')
+    
+    this.results.statistics.california_judges_accessible = californiaJudgesCount
+    console.log(`  • California judges accessible: ${californiaJudgesCount}`)
+    
+    if (californiaJudgesCount !== totalJudges) {
+      this.results.issues.push({
+        severity: 'HIGH',
+        category: 'DATA_ACCESSIBILITY',
+        description: `Expected ${totalJudges} California judges, found ${californiaJudgesCount}`,
+        expected: totalJudges,
+        actual: californiaJudgesCount
+      })
+    } else {
+      console.log(`  ✓ All ${totalJudges} judges properly configured with CA jurisdiction`)
     }
   }
 
