@@ -113,14 +113,17 @@ export async function GET(
     return NextResponse.json({ 
       analytics,
       cached: false,
-      data_source: cases?.length > 0 ? 'case_analysis' : 'profile_estimation',
-      document_count: cases?.length || 0
+      data_source: (cases?.length ?? 0) > 0 ? 'case_analysis' : 'profile_estimation',
+      document_count: cases?.length ?? 0
     })
 
   } catch (error) {
     console.error('Analytics generation error:', error)
     return NextResponse.json(
-      { error: 'Failed to generate analytics', details: error.message },
+      { 
+        error: 'Failed to generate analytics', 
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     )
   }
@@ -141,7 +144,8 @@ async function generateAnalyticsFromCases(judge: any, cases: any[]): Promise<Cas
       try {
         return await enhanceAnalyticsWithAI(judge, cases, analytics)
       } catch (aiError) {
-        console.log(`⚠️ AI enhancement failed for ${judge.name}, using statistical analysis:`, aiError.message)
+        console.log(`⚠️ AI enhancement failed for ${judge.name}, using statistical analysis:`, 
+          aiError instanceof Error ? aiError.message : 'Unknown AI error')
         return analytics
       }
     }

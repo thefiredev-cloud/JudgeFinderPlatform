@@ -50,7 +50,7 @@ export async function GET(
       return queryValidation.response
     }
 
-    const { limit, page, status, position_type } = queryValidation.data
+    const { limit = 20, page = 1, status, position_type } = queryValidation.data
 
     logger.apiRequest('GET', `/api/courts/${courtId}/judges`, {
       limit,
@@ -141,8 +141,8 @@ export async function GET(
     const result: CourtJudgesResponse = {
       judges: judgesWithPosition,
       total_count: totalCount,
-      page,
-      per_page: limit,
+      page: page as number,
+      per_page: limit as number,
       has_more: hasMore,
       court_info: {
         id: courtData.id,

@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       return validation.response
     }
     
-    const { q, limit, page, jurisdiction, court_id } = validation.data
+    const { q, limit = 20, page = 1, jurisdiction, court_id } = validation.data
     const sanitizedQuery = q ? sanitizeSearchQuery(q) : ''
     const includeDecisions = searchParams.get('include_decisions') !== 'false' // Default to true
     
@@ -229,7 +229,7 @@ async function fetchDecisionSummaries(
   })
 
   // Count decisions by judge and year
-  data?.forEach(case_record => {
+  data?.forEach((case_record: any) => {
     if (!case_record.decision_date) return
     
     const year = new Date(case_record.decision_date).getFullYear()

@@ -37,10 +37,10 @@ export async function GET(
       current_assignments: currentAssignments || [],
       summary: {
         total_current_assignments: currentAssignments?.length || 0,
-        primary_court: currentAssignments?.find(a => a.assignment_type === 'primary')?.court_name,
-        total_workload_percentage: currentAssignments?.reduce((sum, a) => sum + (a.workload_percentage || 0), 0) || 0,
+        primary_court: currentAssignments?.find((a: any) => a.assignment_type === 'primary')?.court_name,
+        total_workload_percentage: currentAssignments?.reduce((sum: number, a: any) => sum + (a.workload_percentage || 0), 0) || 0,
         longest_current_assignment_days: currentAssignments?.length > 0 
-          ? Math.max(...currentAssignments.map(a => a.days_in_position))
+          ? Math.max(...currentAssignments.map((a: any) => a.days_in_position))
           : undefined
       }
     }

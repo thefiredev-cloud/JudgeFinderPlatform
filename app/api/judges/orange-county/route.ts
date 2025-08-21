@@ -84,14 +84,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate advertising slot availability
-    const judgesWithSlotInfo = filteredJudges.map(judge => ({
-      ...judge,
-      advertising_slots: {
-        total: 3, // Maximum slots per judge
-        occupied: includeSlots ? ((judge as any).attorney_slots?.length || 0) : 0,
-        available: includeSlots ? (3 - ((judge as any).attorney_slots?.length || 0)) : 3
+    const judgesWithSlotInfo = filteredJudges.map(judge => {
+      if (!judge || typeof judge !== 'object') return judge;
+      
+      return {
+        ...(judge as Record<string, any>),
+        advertising_slots: {
+          total: 3, // Maximum slots per judge
+          occupied: includeSlots ? ((judge as any).attorney_slots?.length || 0) : 0,
+          available: includeSlots ? (3 - ((judge as any).attorney_slots?.length || 0)) : 3
+        }
       }
-    }))
+    })
 
     return NextResponse.json({
       judges: judgesWithSlotInfo,
@@ -103,8 +107,8 @@ export async function GET(request: NextRequest) {
       revenue_potential: {
         target_judges: judgesWithSlotInfo.length,
         max_slots: judgesWithSlotInfo.length * 3,
-        available_slots: judgesWithSlotInfo.reduce((sum, judge) => sum + judge.advertising_slots.available, 0),
-        estimated_monthly_revenue: judgesWithSlotInfo.reduce((sum, judge) => sum + judge.advertising_slots.available, 0) * 500 // $500 per slot
+        available_slots: judgesWithSlotInfo.reduce((sum, judge) => sum + ((judge as any)?.advertising_slots?.available || 0), 0),
+        estimated_monthly_revenue: judgesWithSlotInfo.reduce((sum, judge) => sum + ((judge as any)?.advertising_slots?.available || 0), 0) * 500 // $500 per slot
       }
     })
 
