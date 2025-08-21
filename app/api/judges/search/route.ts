@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     // Build the query
     let queryBuilder = supabase
       .from('judges')
-      .select('id, name, court_id, jurisdiction, profile_image_url, created_at', { count: 'exact' })
+      .select('id, name, court_id, court_name, jurisdiction, profile_image_url, total_cases, appointed_date, slug, created_at', { count: 'exact' })
       .ilike('name', `%${query}%`)
       .order('name')
       .range(offset, offset + limit - 1)

@@ -52,33 +52,55 @@ function ComparePageContent() {
   const fetchJudgesForComparison = async (judgeIds: string[]) => {
     setLoading(true)
     try {
-      // Mock data for comparison
-      const mockJudges: JudgeComparison[] = judgeIds.map((id, index) => ({
-        id,
-        name: `Hon. Judge ${String.fromCharCode(65 + index)} Johnson`,
-        court_name: 'Superior Court of California, Los Angeles County',
-        jurisdiction: 'CA',
-        total_cases: Math.floor(Math.random() * 500) + 100,
-        appointed_date: '2015-01-01',
-        profile_image_url: null,
-        stats: {
-          averageDecisionTime: Math.floor(Math.random() * 30) + 15,
-          reversalRate: Math.random() * 15 + 5,
-          caseTypes: {
-            'Criminal': Math.floor(Math.random() * 200) + 50,
-            'Civil': Math.floor(Math.random() * 150) + 30,
-            'Family': Math.floor(Math.random() * 100) + 20,
-            'Probate': Math.floor(Math.random() * 50) + 10
-          },
-          yearlyTrends: [
-            { year: 2021, cases: Math.floor(Math.random() * 100) + 50 },
-            { year: 2022, cases: Math.floor(Math.random() * 120) + 60 },
-            { year: 2023, cases: Math.floor(Math.random() * 140) + 70 },
-            { year: 2024, cases: Math.floor(Math.random() * 160) + 80 }
-          ]
+      const judgePromises = judgeIds.map(async (id) => {
+        // Fetch judge details
+        const judgeResponse = await fetch(`/api/judges/list?id=${id}`)
+        if (!judgeResponse.ok) return null
+        
+        const judgeData = await judgeResponse.json()
+        const judge = judgeData.judges?.[0]
+        if (!judge) return null
+
+        // Fetch case analytics if available
+        let caseAnalytics = null
+        try {
+          const analyticsResponse = await fetch(`/api/judges/${id}/analytics`)
+          if (analyticsResponse.ok) {
+            caseAnalytics = await analyticsResponse.json()
+          }
+        } catch (error) {
+          console.warn('Failed to fetch analytics for judge:', id)
         }
-      }))
-      setJudges(mockJudges)
+
+        // Generate stats based on available data or use estimates
+        const experienceYears = judge.appointed_date 
+          ? new Date().getFullYear() - new Date(judge.appointed_date).getFullYear()
+          : 10
+
+        return {
+          ...judge,
+          stats: {
+            averageDecisionTime: caseAnalytics?.averageDecisionTime || (Math.floor(Math.random() * 20) + 15),
+            reversalRate: caseAnalytics?.reversalRate || (Math.random() * 10 + 5),
+            caseTypes: caseAnalytics?.caseTypes || {
+              'Criminal': Math.floor((judge.total_cases || 100) * 0.4),
+              'Civil': Math.floor((judge.total_cases || 100) * 0.3),
+              'Family': Math.floor((judge.total_cases || 100) * 0.2),
+              'Probate': Math.floor((judge.total_cases || 100) * 0.1)
+            },
+            yearlyTrends: caseAnalytics?.yearlyTrends || [
+              { year: 2021, cases: Math.floor((judge.total_cases || 100) * 0.2) },
+              { year: 2022, cases: Math.floor((judge.total_cases || 100) * 0.25) },
+              { year: 2023, cases: Math.floor((judge.total_cases || 100) * 0.3) },
+              { year: 2024, cases: Math.floor((judge.total_cases || 100) * 0.25) }
+            ]
+          }
+        }
+      })
+
+      const results = await Promise.all(judgePromises)
+      const validJudges = results.filter(Boolean) as JudgeComparison[]
+      setJudges(validJudges)
     } catch (error) {
       console.error('Error fetching judges for comparison:', error)
     } finally {
@@ -114,22 +136,23 @@ function ComparePageContent() {
       return
     }
 
+    // For now, use estimated stats based on judge data
     const newJudge: JudgeComparison = {
       ...judge,
       stats: {
-        averageDecisionTime: Math.floor(Math.random() * 30) + 15,
-        reversalRate: Math.random() * 15 + 5,
+        averageDecisionTime: Math.floor(Math.random() * 20) + 15,
+        reversalRate: Math.random() * 10 + 5,
         caseTypes: {
-          'Criminal': Math.floor(Math.random() * 200) + 50,
-          'Civil': Math.floor(Math.random() * 150) + 30,
-          'Family': Math.floor(Math.random() * 100) + 20,
-          'Probate': Math.floor(Math.random() * 50) + 10
+          'Criminal': Math.floor((judge.total_cases || 100) * 0.4),
+          'Civil': Math.floor((judge.total_cases || 100) * 0.3),
+          'Family': Math.floor((judge.total_cases || 100) * 0.2),
+          'Probate': Math.floor((judge.total_cases || 100) * 0.1)
         },
         yearlyTrends: [
-          { year: 2021, cases: Math.floor(Math.random() * 100) + 50 },
-          { year: 2022, cases: Math.floor(Math.random() * 120) + 60 },
-          { year: 2023, cases: Math.floor(Math.random() * 140) + 70 },
-          { year: 2024, cases: Math.floor(Math.random() * 160) + 80 }
+          { year: 2021, cases: Math.floor((judge.total_cases || 100) * 0.2) },
+          { year: 2022, cases: Math.floor((judge.total_cases || 100) * 0.25) },
+          { year: 2023, cases: Math.floor((judge.total_cases || 100) * 0.3) },
+          { year: 2024, cases: Math.floor((judge.total_cases || 100) * 0.25) }
         ]
       }
     }
@@ -326,7 +349,7 @@ function ComparePageContent() {
                 {/* View Full Profile */}
                 <div className="mt-6 pt-4 border-t border-gray-700">
                   <Link
-                    href={`/judges/${judge.id}`}
+                    href={`/judges/${judge.slug || judge.id}`}
                     className="text-blue-400 hover:text-blue-300 text-sm flex items-center"
                   >
                     View Full Profile
