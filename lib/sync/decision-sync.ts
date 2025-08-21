@@ -348,7 +348,7 @@ export class DecisionSyncManager {
       return new Set()
     }
 
-    return new Set(data?.map(d => d.courtlistener_id) || [])
+    return new Set(data?.map((d: any) => d.courtlistener_id) || [])
   }
 
   /**

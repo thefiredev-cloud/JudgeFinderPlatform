@@ -3,7 +3,7 @@
 // Phase 2 Case History Component for Judge Profiles
 // @ui sub-agent implementation
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -77,7 +77,7 @@ export default function Phase2CaseHistory({ judgeId, judgeName, courtName }: Pha
     const [selectedPracticeArea, setSelectedPracticeArea] = useState<string>('All');
     const [timeRange, setTimeRange] = useState<string>('2-years');
 
-    const practiceAreaColors = {
+    const practiceAreaColors: Record<string, string> = {
         'Personal Injury': '#ef4444',
         'Family Law': '#3b82f6',
         'Real Estate': '#10b981',
@@ -90,12 +90,7 @@ export default function Phase2CaseHistory({ judgeId, judgeName, courtName }: Pha
         'General Civil': '#6b7280'
     };
 
-    useEffect(() => {
-        fetchCaseHistory();
-        fetchJudgeAnalytics();
-    }, [judgeId, selectedPracticeArea, timeRange]);
-
-    const fetchCaseHistory = async () => {
+    const fetchCaseHistory = useCallback(async () => {
         try {
             const params = new URLSearchParams({
                 practice_area: selectedPracticeArea !== 'All' ? selectedPracticeArea : '',
@@ -114,9 +109,9 @@ export default function Phase2CaseHistory({ judgeId, judgeName, courtName }: Pha
         } finally {
             setLoading(false);
         }
-    };
+    }, [judgeId, selectedPracticeArea, timeRange]);
 
-    const fetchJudgeAnalytics = async () => {
+    const fetchJudgeAnalytics = useCallback(async () => {
         try {
             const response = await fetch(`/api/judges/${judgeId}/analytics`);
             if (response.ok) {
@@ -128,7 +123,12 @@ export default function Phase2CaseHistory({ judgeId, judgeName, courtName }: Pha
             // Use sample analytics for demonstration
             setAnalytics(generateSampleAnalytics());
         }
-    };
+    }, [judgeId]);
+
+    useEffect(() => {
+        fetchCaseHistory();
+        fetchJudgeAnalytics();
+    }, [judgeId, selectedPracticeArea, timeRange, fetchCaseHistory, fetchJudgeAnalytics]);
 
     const generateSampleCases = (): CaseData[] => {
         return [
@@ -380,7 +380,7 @@ export default function Phase2CaseHistory({ judgeId, judgeName, courtName }: Pha
                                     cx="50%"
                                     cy="50%"
                                     labelLine={false}
-                                    label={({ practice_area, percent }) => `${practice_area} (${(percent * 100).toFixed(0)}%)`}
+                                    label={({ practice_area, percent }) => `${practice_area} (${((percent ?? 0) * 100).toFixed(0)}%)`}
                                     outerRadius={80}
                                     fill="#8884d8"
                                     dataKey="total_cases"
@@ -448,8 +448,8 @@ export default function Phase2CaseHistory({ judgeId, judgeName, courtName }: Pha
                                         <Badge 
                                             variant="secondary"
                                             style={{ 
-                                                backgroundColor: practiceAreaColors[case_item.practice_area] + '20',
-                                                color: practiceAreaColors[case_item.practice_area]
+                                                backgroundColor: (practiceAreaColors[case_item.practice_area] || '#6b7280') + '20',
+                                                color: practiceAreaColors[case_item.practice_area] || '#6b7280'
                                             }}
                                         >
                                             {case_item.practice_area}

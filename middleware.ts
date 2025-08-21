@@ -1,13 +1,46 @@
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { handleJudgeRedirects } from '@/lib/middleware/judge-redirects'
 
-export function middleware(request: NextRequest) {
+const isProtectedRoute = createRouteMatcher([
+  '/profile(.*)',
+  '/settings(.*)',
+  '/dashboard(.*)',
+  '/welcome(.*)',
+])
+
+const isAdminRoute = createRouteMatcher([
+  '/admin(.*)',
+])
+
+export default clerkMiddleware(async (auth, request: NextRequest) => {
   // Handle judge name redirects first
   const judgeRedirect = handleJudgeRedirects(request)
   if (judgeRedirect) {
     return judgeRedirect
   }
+
+  // Protect routes that require authentication
+  if (isProtectedRoute(request)) {
+    await auth.protect()
+  }
+
+  // Protect admin routes with additional checks
+  if (isAdminRoute(request)) {
+    await auth.protect()
+    
+    // Additional admin check would happen in the actual route handler
+    // since middleware doesn't have access to full user data
+  }
+
+  return middleware(request)
+}, {
+  debug: process.env.NODE_ENV === 'development',
+  clockSkewInMs: 10000
+})
+
+function middleware(request: NextRequest) {
   
   // Add security headers
   const response = NextResponse.next()
@@ -20,12 +53,13 @@ export function middleware(request: NextRequest) {
   // Add CSP header for security
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.supabase.co https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://partner.googleadservices.com",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.supabase.co *.clerk.accounts.dev https://*.clerk.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://partner.googleadservices.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "img-src 'self' blob: data: *.supabase.co https://images.unsplash.com https://www.courtlistener.com https://pagead2.googlesyndication.com https://www.google.com https://www.gstatic.com",
+    "img-src 'self' blob: data: *.supabase.co https://img.clerk.com https://images.clerk.dev https://images.unsplash.com https://www.courtlistener.com https://pagead2.googlesyndication.com https://www.google.com https://www.gstatic.com",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' *.supabase.co wss://*.supabase.co https://api.openai.com https://www.courtlistener.com https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://www.googletagmanager.com https://pagead2.googlesyndication.com",
-    "frame-src https://googleads.g.doubleclick.net https://www.google.com https://bid.g.doubleclick.net",
+    "connect-src 'self' *.supabase.co wss://*.supabase.co https://*.clerk.accounts.dev https://*.clerk.com wss://*.clerk.accounts.dev https://api.openai.com https://www.courtlistener.com https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://www.googletagmanager.com https://pagead2.googlesyndication.com",
+    "frame-src https://*.clerk.accounts.dev https://*.clerk.com https://googleads.g.doubleclick.net https://www.google.com https://bid.g.doubleclick.net",
+    "worker-src 'self' blob:",
     "frame-ancestors 'none'",
   ].join('; ')
   
@@ -38,11 +72,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * But include protected API routes
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }

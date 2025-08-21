@@ -261,7 +261,13 @@ export class SyncQueueManager {
    * Run full sync (all data types)
    */
   async runFullSync(options: any = {}) {
-    const results = {
+    const results: {
+      court: any | null;
+      judge: any | null;
+      decision: any | null;
+      success: boolean;
+      duration: number;
+    } = {
       court: null,
       judge: null,
       decision: null,
@@ -288,7 +294,7 @@ export class SyncQueueManager {
       results.decision = await decisionSync.syncDecisions(options.decision || {})
 
       results.duration = Date.now() - startTime
-      results.success = results.court.success && results.judge.success && results.decision.success
+      results.success = !!(results.court?.success && results.judge?.success && results.decision?.success)
 
       return results
 
@@ -363,7 +369,7 @@ export class SyncQueueManager {
       total: data?.length || 0
     }
 
-    data?.forEach(job => {
+    data?.forEach((job: any) => {
       stats[job.status as keyof Omit<QueueStats, 'total'>]++
     })
 

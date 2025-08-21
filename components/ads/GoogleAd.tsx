@@ -23,7 +23,7 @@ export function GoogleAd({
   style = {},
   className = ''
 }: GoogleAdProps) {
-  const adRef = useRef<HTMLDivElement>(null)
+  const adRef = useRef<HTMLModElement>(null)
   const isLoaded = useRef(false)
 
   useEffect(() => {

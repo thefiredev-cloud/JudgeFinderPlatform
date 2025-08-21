@@ -1,6 +1,7 @@
 import { createServerClient as createSupabaseServerClient, type CookieOptions } from '@supabase/ssr'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { auth } from '@clerk/nextjs/server'
 
 export async function createServerClient(): Promise<SupabaseClient> {
   const cookieStore = await cookies()
@@ -23,6 +24,26 @@ export async function createServerClient(): Promise<SupabaseClient> {
             cookieStore.set({ name, value: '', ...options })
           } catch (error) {}
         },
+      },
+    }
+  )
+}
+
+export async function createClerkSupabaseServerClient(): Promise<SupabaseClient> {
+  const { getToken } = await auth()
+  const token = await getToken({ template: 'supabase' })
+
+  return createSupabaseServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      global: {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      },
+      cookies: {
+        get() { return '' },
+        set() {},
+        remove() {},
       },
     }
   )

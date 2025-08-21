@@ -275,6 +275,305 @@ export function createCanonicalSlug(name: string): string {
 }
 
 /**
+ * Generate all possible slug variations for a judge name
+ * This is crucial for SEO - we want to catch all possible searches
+ * 
+ * @param name - The judge's full name
+ * @returns Array of all possible slug variations
+ */
+export function generateSlugVariations(name: string): string[] {
+  const canonical = createCanonicalSlug(name)
+  const variations = new Set<string>([canonical])
+  const parsed = parseJudgeName(name)
+  
+  // Base name without titles
+  const baseName = name.replace(/^(judge|justice|the honorable|hon\.?)\s+/gi, '').trim()
+  variations.add(generateSlug(baseName))
+  
+  // With common title prefixes (how people search)
+  variations.add(generateSlug(`judge ${baseName}`))
+  variations.add(generateSlug(`justice ${baseName}`))
+  variations.add(generateSlug(`honorable ${baseName}`))
+  variations.add(generateSlug(`the honorable ${baseName}`))
+  variations.add(generateSlug(`hon ${baseName}`))
+  
+  // First and last name only (common search pattern)
+  if (parsed.firstName && parsed.lastName) {
+    const firstLast = `${parsed.firstName} ${parsed.lastName}`
+    variations.add(generateSlug(firstLast))
+    variations.add(generateSlug(`judge ${firstLast}`))
+    variations.add(generateSlug(`justice ${firstLast}`))
+  }
+  
+  // Name with initials in different formats
+  if (parsed.initials.length > 0) {
+    const nameWithInitials = `${parsed.firstName} ${parsed.initials.join(' ')} ${parsed.lastName}`
+    variations.add(generateSlug(nameWithInitials))
+    
+    const nameWithPeriodsInitials = `${parsed.firstName} ${parsed.initials.map(i => i + '.').join(' ')} ${parsed.lastName}`
+    variations.add(generateSlug(nameWithPeriodsInitials))
+  }
+  
+  // Without middle names/initials (how people often search)
+  if (parsed.firstName && parsed.lastName) {
+    variations.add(generateSlug(`${parsed.firstName} ${parsed.lastName}`))
+  }
+  
+  // Common variations with suffix
+  if (parsed.suffix) {
+    const withoutSuffix = `${parsed.firstName} ${parsed.lastName}`
+    variations.add(generateSlug(withoutSuffix))
+  }
+  
+  // Remove invalid variations and return as array
+  return Array.from(variations)
+    .filter(slug => isValidSlug(slug))
+    .filter(slug => slug.length > 0)
+    .sort((a, b) => a === canonical ? -1 : b === canonical ? 1 : a.localeCompare(b))
+}
+
+/**
+ * Check if a slug is a valid variation of a judge's canonical slug
+ * Used for redirect logic
+ * 
+ * @param slug - The slug to check
+ * @param judgeName - The judge's name
+ * @returns True if the slug is a valid variation
+ */
+export function isValidSlugVariation(slug: string, judgeName: string): boolean {
+  if (!isValidSlug(slug) || !judgeName) return false
+  
+  const variations = generateSlugVariations(judgeName)
+  return variations.includes(slug)
+}
+
+/**
+ * Get the redirect target for a non-canonical slug
+ * 
+ * @param slug - The current slug
+ * @param judgeName - The judge's name
+ * @returns The canonical slug to redirect to, or null if no redirect needed
+ */
+export function getSlugRedirectTarget(slug: string, judgeName: string): string | null {
+  const canonical = createCanonicalSlug(judgeName)
+  
+  if (slug === canonical) return null // No redirect needed
+  
+  if (isValidSlugVariation(slug, judgeName)) {
+    return canonical // Redirect to canonical
+  }
+  
+  return null // Not a valid variation
+}
+
+/**
+ * Generate SEO-friendly URL variations for sitemap generation
+ * Includes all the ways people might find this judge
+ * 
+ * @param judgeName - The judge's name
+ * @param baseUrl - The base URL (e.g., 'https://judgefinder.io')
+ * @returns Array of URL variations for this judge
+ */
+export function generateJudgeUrlVariations(judgeName: string, baseUrl: string = ''): string[] {
+  const slugVariations = generateSlugVariations(judgeName)
+  const canonical = createCanonicalSlug(judgeName)
+  
+  // Primary URL (canonical)
+  const urls = [`${baseUrl}/judges/${canonical}`]
+  
+  // Add top variations that people are likely to search
+  const topVariations = slugVariations
+    .filter(slug => slug !== canonical)
+    .slice(0, 3) // Limit to prevent sitemap bloat
+  
+  topVariations.forEach(slug => {
+    urls.push(`${baseUrl}/judges/${slug}`)
+  })
+  
+  return urls
+}
+
+/**
+ * Generate a URL-friendly slug from a court name
+ * Removes problematic characters like commas that cause URL encoding issues
+ * 
+ * @param name - The court's full name
+ * @returns A URL-friendly slug without special characters
+ */
+export function generateCourtSlug(name: string): string {
+  if (!name || typeof name !== 'string') {
+    console.warn('Invalid court name provided to generateCourtSlug:', name)
+    return 'unknown-court'
+  }
+
+  const slug = name
+    .trim()
+    .toLowerCase()
+    // Remove all special characters including commas to prevent URL encoding issues
+    .replace(/[^a-z0-9\s]/g, '')    // Only keep letters, numbers, and spaces
+    .replace(/\s+/g, '-')           // Convert spaces to hyphens
+    .replace(/(^-|-$)/g, '')        // Remove leading/trailing hyphens
+    .replace(/-+/g, '-')            // Replace multiple hyphens with single hyphen
+
+  if (!slug || slug === '' || slug === '-') {
+    console.warn('Generated empty slug for court name:', name)
+    return 'unknown-court'
+  }
+
+  return slug
+}
+
+/**
+ * Convert a court slug back to a readable name format
+ * Handles court-specific formatting like commas and proper capitalization
+ */
+export function courtSlugToName(slug: string): string {
+  if (!slug || typeof slug !== 'string') {
+    return ''
+  }
+
+  return slug
+    .split('-')
+    .map(word => {
+      // Handle single letters and abbreviations
+      if (word.length <= 2 && /^[a-z]+$/i.test(word)) {
+        return word.toUpperCase()
+      }
+      // Regular capitalization for other words
+      return word.charAt(0).toUpperCase() + word.slice(1)
+    })
+    .join(' ')
+    .replace(/,\s*/g, ', ') // Fix comma spacing in court names
+}
+
+/**
+ * Check if a court slug is valid
+ */
+export function isValidCourtSlug(slug: string): boolean {
+  if (!slug || typeof slug !== 'string') {
+    return false
+  }
+
+  // Only allow letters, numbers, and hyphens (no commas or special characters)
+  return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) && 
+         slug.length >= 2 && 
+         slug.length <= 150 && // Longer limit for court names
+         !slug.includes('--') // No consecutive hyphens
+}
+
+/**
+ * Generate multiple court name variations for database lookup
+ */
+export function generateCourtNameVariations(name: string): string[] {
+  const variations = [name]
+  
+  // Normalize spacing
+  const normalizedSpacing = name.replace(/\s+/g, ' ').trim()
+  if (normalizedSpacing !== name) {
+    variations.push(normalizedSpacing)
+  }
+  
+  // Try with different comma spacing
+  const withCommaSpace = name.replace(/,([^\s])/g, ', $1')
+  if (withCommaSpace !== name) {
+    variations.push(withCommaSpace)
+  }
+  
+  const withoutCommaSpace = name.replace(/,\s+/g, ',')
+  if (withoutCommaSpace !== name) {
+    variations.push(withoutCommaSpace)
+  }
+  
+  // Try with "Superior Court of California" variations
+  if (name.includes('Superior Court of California')) {
+    const withCounty = name.replace('Superior Court of California', 'Superior Court of California, County of')
+    variations.push(withCounty)
+    
+    const withoutCounty = name.replace(', County of', '')
+    variations.push(withoutCounty)
+  }
+  
+  // Remove duplicates and filter out empty names
+  return [...new Set(variations)]
+    .filter(variation => variation && variation.trim().length > 0)
+    .slice(0, 10) // Limit variations
+}
+
+/**
+ * Create canonical court slug for database storage
+ * This ensures consistent slug generation across the platform
+ */
+export function createCanonicalCourtSlug(name: string): string {
+  return generateCourtSlug(name)
+}
+
+/**
+ * Generate court slug variations for lookup
+ * Helps find courts when URL might use different formats
+ */
+export function generateCourtSlugVariations(name: string): string[] {
+  const canonical = createCanonicalCourtSlug(name)
+  const variations = new Set<string>([canonical])
+
+  // Add variations with different word combinations
+  const words = name.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/)
+  
+  // Try with key court words only
+  const courtKeywords = ['superior', 'court', 'california', 'county', 'municipal', 'district']
+  const filteredWords = words.filter(word => 
+    word.length > 2 && (courtKeywords.includes(word) || !courtKeywords.some(k => k !== word))
+  )
+  
+  if (filteredWords.length !== words.length) {
+    variations.add(filteredWords.join('-'))
+  }
+
+  // Add short version (remove common words)
+  const shortWords = words.filter(word => 
+    !['of', 'the', 'in', 'and', 'for'].includes(word) && word.length > 2
+  )
+  if (shortWords.length !== words.length && shortWords.length > 0) {
+    variations.add(shortWords.join('-'))
+  }
+
+  return Array.from(variations).filter(slug => isValidCourtSlug(slug))
+}
+
+/**
+ * Check if a given string could be a court identifier (ID or slug)
+ * This helps determine lookup strategy
+ */
+export function isCourtIdentifier(identifier: string): { isSlug: boolean; isId: boolean } {
+  if (!identifier || typeof identifier !== 'string') {
+    return { isSlug: false, isId: false }
+  }
+
+  const isSlug = isValidCourtSlug(identifier)
+  const isId = identifier.includes(',') || identifier.includes('.') || /[A-Z]/.test(identifier)
+
+  return { isSlug, isId }
+}
+
+/**
+ * Normalize court identifier for database lookup
+ * Handles both slug and ID formats
+ */
+export function normalizeCourtIdentifier(identifier: string): string {
+  if (!identifier) return ''
+  
+  // Decode URL encoding
+  const decoded = decodeURIComponent(identifier)
+  
+  // If it looks like a slug, return as-is
+  if (isValidCourtSlug(decoded)) {
+    return decoded
+  }
+  
+  // If it contains special characters, treat as ID and generate slug
+  return generateCourtSlug(decoded)
+}
+
+/**
  * Alias for generateSlug to maintain backward compatibility
  * 
  * @param name - The judge's full name

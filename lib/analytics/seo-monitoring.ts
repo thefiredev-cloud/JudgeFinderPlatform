@@ -88,12 +88,14 @@ export function trackCoreWebVitals() {
   try {
     new PerformanceObserver((list) => {
       list.getEntries().forEach((entry) => {
-        console.log('FID:', entry.processingStart - entry.startTime)
+        const fidEntry = entry as any // Cast to any for first-input entries
+        const fidValue = fidEntry.processingStart ? fidEntry.processingStart - entry.startTime : 0
+        console.log('FID:', fidValue)
         
         if (window.gtag) {
           window.gtag('event', 'web_vitals', {
             name: 'FID',
-            value: Math.round(entry.processingStart - entry.startTime),
+            value: Math.round(fidValue),
             event_category: 'Performance',
           })
         }
@@ -108,8 +110,9 @@ export function trackCoreWebVitals() {
     let clsValue = 0
     new PerformanceObserver((list) => {
       list.getEntries().forEach((entry) => {
-        if (!entry.hadRecentInput) {
-          clsValue += entry.value
+        const clsEntry = entry as any // Cast to any for layout-shift entries
+        if (!clsEntry.hadRecentInput) {
+          clsValue += clsEntry.value || 0
         }
       })
       
@@ -152,11 +155,13 @@ export function trackJudgePageEngagement(judgeName: string, source?: string) {
     
     if (scrollPercent > maxScroll && scrollPercent % 25 === 0) {
       maxScroll = scrollPercent
-      window.gtag('event', 'scroll', {
-        event_category: 'engagement',
-        event_label: `${scrollPercent}%`,
-        value: scrollPercent,
-      })
+      if (window.gtag) {
+        window.gtag('event', 'scroll', {
+          event_category: 'engagement',
+          event_label: `${scrollPercent}%`,
+          value: scrollPercent,
+        })
+      }
     }
   }
   
@@ -166,11 +171,13 @@ export function trackJudgePageEngagement(judgeName: string, source?: string) {
   const startTime = Date.now()
   window.addEventListener('beforeunload', () => {
     const timeOnPage = Math.round((Date.now() - startTime) / 1000)
-    window.gtag('event', 'timing_complete', {
-      name: 'time_on_page',
-      value: timeOnPage,
-      event_category: 'engagement',
-    })
+    if (window.gtag) {
+      window.gtag('event', 'timing_complete', {
+        name: 'time_on_page',
+        value: timeOnPage,
+        event_category: 'engagement',
+      })
+    }
   })
 }
 

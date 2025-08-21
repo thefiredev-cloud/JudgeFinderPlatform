@@ -27,8 +27,8 @@ export const jurisdictionSchema = z.string()
 // Judge API specific schemas
 export const judgeSearchParamsSchema = z.object({
   q: z.string().optional(),
-  limit: z.string().optional().transform(val => parseInt(val || '20') || 20).pipe(z.number().int().min(1).max(100)),
-  page: z.string().optional().transform(val => parseInt(val || '1') || 1).pipe(z.number().int().min(1)),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  page: z.coerce.number().int().min(1).default(1),
   jurisdiction: z.string().optional(),
   court_id: z.string().uuid('Invalid court ID format').optional()
 })
@@ -44,15 +44,15 @@ export const judgeIdParamsSchema = z.object({
 // Court API specific schemas
 export const courtSearchParamsSchema = z.object({
   q: z.string().optional(),
-  limit: z.string().optional().transform(val => parseInt(val || '20') || 20).pipe(z.number().int().min(1).max(100)),
-  page: z.string().optional().transform(val => parseInt(val || '1') || 1).pipe(z.number().int().min(1)),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  page: z.coerce.number().int().min(1).default(1),
   jurisdiction: z.string().optional(),
   court_type: z.string().max(50).optional()
 })
 
 export const courtJudgesSearchParamsSchema = z.object({
-  limit: z.string().optional().transform(val => parseInt(val || '20') || 20).pipe(z.number().int().min(1).max(100)),
-  page: z.string().optional().transform(val => parseInt(val || '1') || 1).pipe(z.number().int().min(1)),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  page: z.coerce.number().int().min(1).default(1),
   status: z.enum(['active', 'retired', 'inactive', 'all']).default('all'),
   position_type: z.string().max(50).optional()
 })
@@ -60,7 +60,7 @@ export const courtJudgesSearchParamsSchema = z.object({
 // Analytics API schemas
 export const analyticsParamsSchema = z.object({
   id: z.string().uuid('Invalid ID format'),
-  force: z.string().transform(val => val === 'true').optional()
+  force: z.coerce.boolean().optional()
 })
 
 // Validation helper function

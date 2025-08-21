@@ -131,34 +131,34 @@ export class CourtListenerClient {
 
         // For each opinion, fetch the cluster details
         for (const opinion of response.results) {
-          if (opinion.cluster_id) {
+          if (opinion.cluster) {
             try {
-              const cluster = await this.getClusterDetails(opinion.cluster_id)
+              const cluster = await this.getClusterDetails(opinion.cluster)
               
               // Combine opinion and cluster data
               const caseData = {
                 opinion_id: opinion.id,
-                cluster_id: opinion.cluster_id,
+                cluster_id: opinion.cluster,
                 case_name: cluster.case_name || 'Unknown Case',
                 date_filed: cluster.date_filed,
                 precedential_status: cluster.precedential_status,
-                author_id: opinion.author_id,
-                author_str: opinion.author_str,
-                date_created: opinion.date_created
+                author_id: null, // Not available in opinion object
+                author_str: null, // Not available in opinion object
+                date_created: opinion.date_filed // Use date_filed instead
               }
               
               allCases.push(caseData)
             } catch (clusterError) {
-              console.error(`Error fetching cluster ${opinion.cluster_id}:`, clusterError)
+              console.error(`Error fetching cluster ${opinion.cluster}:`, clusterError)
               // Add opinion without cluster details
               allCases.push({
                 opinion_id: opinion.id,
-                cluster_id: opinion.cluster_id,
+                cluster_id: opinion.cluster,
                 case_name: 'Unknown Case',
                 date_filed: null,
-                author_id: opinion.author_id,
-                author_str: opinion.author_str,
-                date_created: opinion.date_created
+                author_id: null, // Not available in opinion object
+                author_str: null, // Not available in opinion object
+                date_created: opinion.date_filed // Use date_filed instead
               })
             }
           }

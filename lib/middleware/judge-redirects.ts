@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createCanonicalSlug, generateSlug, isValidSlug } from '@/lib/utils/slug'
+import { 
+  createCanonicalSlug, 
+  generateSlug, 
+  isValidSlug, 
+  generateSlugVariations,
+  isValidSlugVariation,
+  getSlugRedirectTarget 
+} from '@/lib/utils/slug'
 
 // Common judge name patterns that should redirect to canonical URLs
 const JUDGE_NAME_PATTERNS = [
@@ -22,7 +29,7 @@ const ALTERNATIVE_PATTERNS = [
 ]
 
 export function handleJudgeRedirects(request: NextRequest): NextResponse | null {
-  const { pathname } = request.nextUrl
+  const { pathname, search } = request.nextUrl
   
   // Handle alternative URL patterns
   for (const { pattern, redirect } of ALTERNATIVE_PATTERNS) {
@@ -31,7 +38,8 @@ export function handleJudgeRedirects(request: NextRequest): NextResponse | null 
       const judgeName = match[1]
       const canonicalSlug = createCanonicalSlug(judgeName)
       const redirectUrl = redirect.replace('$1', canonicalSlug)
-      return NextResponse.redirect(new URL(redirectUrl, request.url), 301)
+      console.log(`SEO Redirect: ${pathname} -> ${redirectUrl}`)
+      return NextResponse.redirect(new URL(`${redirectUrl}${search}`, request.url), 301)
     }
   }
   
@@ -44,56 +52,115 @@ export function handleJudgeRedirects(request: NextRequest): NextResponse | null 
       
       // Only redirect if the slug format is different
       if (judgeName !== canonicalSlug) {
+        console.log(`SEO Redirect: ${pathname} -> /judges/${canonicalSlug}`)
         return NextResponse.redirect(
-          new URL(`/judges/${canonicalSlug}`, request.url), 
+          new URL(`/judges/${canonicalSlug}${search}`, request.url), 
           301
         )
       }
     }
   }
 
-  // Handle canonical URL validation for existing judge pages
+  // Handle judge profile URL standardization
   const judgePageMatch = pathname.match(/^\/judges\/(.+)$/)
   if (judgePageMatch) {
     const currentSlug = judgePageMatch[1]
     
-    // Skip if already a valid canonical slug
-    if (isValidSlug(currentSlug)) {
-      // Check if this needs to be converted to canonical format
-      // This is a simplified check - in production you'd want to validate against database
-      const potentialCanonical = createCanonicalSlug(currentSlug.replace(/-/g, ' '))
-      
-      // Only redirect if significantly different (avoid redirect loops)
-      if (potentialCanonical !== currentSlug && 
-          !currentSlug.includes('unknown') && 
-          potentialCanonical.length > 3) {
+    // Skip API routes and invalid slugs
+    if (currentSlug.startsWith('api/') || !isValidSlug(currentSlug)) {
+      return null
+    }
+    
+    // Enhanced redirect handling using slug variations
+    const nameFromSlug = currentSlug.replace(/-/g, ' ')
+    
+    // Check common title variations that should be normalized
+    const titleVariations = [
+      { pattern: /^judge-(.+)/, replacement: '$1' },
+      { pattern: /^justice-(.+)/, replacement: '$1' },
+      { pattern: /^honorable-(.+)/, replacement: '$1' },
+      { pattern: /^the-honorable-(.+)/, replacement: '$1' },
+      { pattern: /^hon-(.+)/, replacement: '$1' },
+      { pattern: /^(.+)-judge$/, replacement: '$1' },
+      { pattern: /^(.+)-justice$/, replacement: '$1' }
+    ]
+    
+    for (const { pattern, replacement } of titleVariations) {
+      if (pattern.test(currentSlug)) {
+        const normalizedSlug = currentSlug.replace(pattern, replacement)
+        const canonicalSlug = createCanonicalSlug(normalizedSlug.replace(/-/g, ' '))
         
-        // Additional validation: only redirect if it looks like a name normalization
-        const slugWords = currentSlug.split('-').length
-        const canonicalWords = potentialCanonical.split('-').length
-        
-        // Allow redirect if word count difference is reasonable (avoid false positives)
-        if (Math.abs(slugWords - canonicalWords) <= 2) {
+        if (canonicalSlug !== currentSlug && canonicalSlug.length > 0) {
+          console.log(`SEO Title Normalization: ${pathname} -> /judges/${canonicalSlug}`)
           return NextResponse.redirect(
-            new URL(`/judges/${potentialCanonical}`, request.url),
+            new URL(`/judges/${canonicalSlug}${search}`, request.url),
             301
           )
         }
+      }
+    }
+    
+    // Check for common spelling/formatting issues
+    const canonical = createCanonicalSlug(nameFromSlug)
+    if (canonical !== currentSlug && 
+        canonical.length > 2 && 
+        !currentSlug.includes('unknown')) {
+      
+      // Only redirect if the difference is meaningful (not just minor variations)
+      const currentWords = currentSlug.split('-').filter(w => w.length > 0)
+      const canonicalWords = canonical.split('-').filter(w => w.length > 0)
+      
+      // Allow redirect if word count is similar or if clear normalization is needed
+      if (Math.abs(currentWords.length - canonicalWords.length) <= 1 || 
+          currentSlug.includes('--') || 
+          currentSlug.startsWith('-') || 
+          currentSlug.endsWith('-')) {
+        
+        console.log(`SEO Canonicalization: ${pathname} -> /judges/${canonical}`)
+        return NextResponse.redirect(
+          new URL(`/judges/${canonical}${search}`, request.url),
+          301
+        )
       }
     }
   }
   
   // Handle query parameter redirects for judge searches
   const searchParams = request.nextUrl.searchParams
-  const judgeQuery = searchParams.get('judge') || searchParams.get('name')
+  const judgeQuery = searchParams.get('judge') || 
+                    searchParams.get('name') || 
+                    searchParams.get('q')
   
-  if (judgeQuery && pathname === '/search') {
+  if (judgeQuery && (pathname === '/search' || pathname === '/judges')) {
     // Redirect to direct judge search with canonical slug
     const canonicalSlug = createCanonicalSlug(judgeQuery)
+    console.log(`SEO Search Redirect: ${pathname}?${searchParams} -> /judges/${canonicalSlug}`)
     return NextResponse.redirect(
       new URL(`/judges/${canonicalSlug}`, request.url),
       302
     )
+  }
+  
+  // Handle common Google search patterns that might land on our site
+  if (pathname === '/' && searchParams.has('q')) {
+    const query = searchParams.get('q') || ''
+    const lowerQuery = query.toLowerCase()
+    
+    // If the query looks like a judge search, redirect to judge page
+    if (lowerQuery.includes('judge') || 
+        lowerQuery.includes('justice') || 
+        lowerQuery.includes('honorable')) {
+      
+      const cleanQuery = query.replace(/\b(judge|justice|the honorable|honorable)\b/gi, '').trim()
+      if (cleanQuery.length > 2) {
+        const canonicalSlug = createCanonicalSlug(cleanQuery)
+        console.log(`SEO Search Term Redirect: /?q=${query} -> /judges/${canonicalSlug}`)
+        return NextResponse.redirect(
+          new URL(`/judges/${canonicalSlug}`, request.url),
+          302
+        )
+      }
+    }
   }
   
   return null
