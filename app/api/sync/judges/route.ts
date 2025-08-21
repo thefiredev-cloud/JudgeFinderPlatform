@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { JudgeSyncManager } from '@/lib/sync/judge-sync'
 import { logger } from '@/lib/utils/logger'
+import { checkRateLimit, getRateLimitIdentifier } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 export const maxDuration = 300 // 5 minutes for judge sync
@@ -15,6 +16,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      )
+    }
+
+    // Check rate limit for sync operations
+    const identifier = getRateLimitIdentifier(request, undefined)
+    const rateLimitResult = await checkRateLimit(identifier, 'sync')
+
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded',
+          message: `Too many sync requests. Limit: ${rateLimitResult.limit} per window. Try again after ${new Date(rateLimitResult.reset).toLocaleTimeString()}.`,
+          retryAfter: Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
+        },
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': Math.ceil((rateLimitResult.reset - Date.now()) / 1000).toString(),
+          },
+        }
       )
     }
 

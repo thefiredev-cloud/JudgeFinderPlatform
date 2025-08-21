@@ -1,3 +1,5 @@
+const { withSentryConfig } = require('@sentry/nextjs')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -35,7 +37,7 @@ const nextConfig = {
     dangerouslyAllowSVG: false,
   },
 
-  // Compression and performance headers
+  // Enhanced security and performance headers
   async headers() {
     return [
       {
@@ -43,7 +45,21 @@ const nextConfig = {
         headers: [
           {
             key: 'Access-Control-Allow-Origin',
-            value: process.env.NEXT_PUBLIC_APP_URL || '*',
+            value: process.env.NODE_ENV === 'production' 
+              ? 'https://judgefinder.io'
+              : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3005',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET,HEAD,POST,OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type,Authorization,X-Requested-With',
+          },
+          {
+            key: 'X-RobotsTag',
+            value: 'noindex, nofollow',
           },
         ],
       },
@@ -63,9 +79,29 @@ const nextConfig = {
             value: 'nosniff'
           },
           {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin'
-          }
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), midi=()'
+          },
+          // Content Security Policy
+          {
+            key: 'Content-Security-Policy',
+            value: process.env.NODE_ENV === 'production' 
+              ? "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://www.clarity.ms https://api.courtlistener.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
+              : "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https: http:; frame-src 'none'; object-src 'none'"
+          },
+          // Production-only HSTS
+          ...(process.env.NODE_ENV === 'production' ? [{
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload'
+          }] : [])
         ],
       },
       {
@@ -130,4 +166,23 @@ const nextConfig = {
   output: process.env.BUILD_STANDALONE === 'true' ? 'standalone' : undefined,
 }
 
-module.exports = nextConfig
+// Sentry configuration options
+const sentryWebpackPluginOptions = {
+  // Additional config options for the Sentry Webpack plugin. Keep in mind that
+  // the following options are set automatically, and overriding them is not
+  // recommended:
+  //   release, url, org, project, authToken, configFile, stripPrefix,
+  //   urlPrefix, include, ignore
+
+  silent: true, // Suppresses all logs
+  
+  // Upload source maps to Sentry only in production
+  dryRun: process.env.NODE_ENV !== 'production',
+}
+
+// Only wrap with Sentry in production or when explicitly enabled
+const shouldUseSentry = process.env.NODE_ENV === 'production' || process.env.SENTRY_DEBUG === 'true'
+
+module.exports = shouldUseSentry 
+  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
+  : nextConfig

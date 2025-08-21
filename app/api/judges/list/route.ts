@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
       .select(`
         id, 
         name, 
+        slug,
         court_id,
         court_name, 
         jurisdiction, 

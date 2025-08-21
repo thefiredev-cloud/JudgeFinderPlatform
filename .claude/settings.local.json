@@ -80,7 +80,8 @@
       "Bash(git push:*)",
       "mcp__wonderwhy-er-desktop-commander__list_processes",
       "Bash(wmic:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": [],

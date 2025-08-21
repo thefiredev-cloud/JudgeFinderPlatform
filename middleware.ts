@@ -41,29 +41,69 @@ export default clerkMiddleware(async (auth, request: NextRequest) => {
 })
 
 function middleware(request: NextRequest) {
-  
-  // Add security headers
   const response = NextResponse.next()
   
+  // Enhanced Security Headers for Production
   response.headers.set('X-Frame-Options', 'DENY')
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('X-XSS-Protection', '1; mode=block')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set('X-DNS-Prefetch-Control', 'on')
   
-  // Add CSP header for security
+  // HSTS for HTTPS enforcement (production only)
+  if (process.env.NODE_ENV === 'production') {
+    response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
+  }
+  
+  // Permissions Policy to restrict browser APIs
+  const permissionsPolicy = [
+    'camera=()',
+    'microphone=()',
+    'geolocation=()',
+    'payment=()',
+    'usb=()',
+    'midi=()',
+    'sync-xhr=()',
+    'fullscreen=(self)',
+    'autoplay=()',
+  ].join(', ')
+  response.headers.set('Permissions-Policy', permissionsPolicy)
+  
+  // Enhanced CSP with production-ready security
+  const isDevelopment = process.env.NODE_ENV === 'development'
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.supabase.co *.clerk.accounts.dev https://*.clerk.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://partner.googleadservices.com",
+    isDevelopment 
+      ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.supabase.co *.clerk.accounts.dev https://*.clerk.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://pagead2.googlesyndication.com https://www.googleadservices.com https://partner.googleadservices.com"
+      : "script-src 'self' 'sha256-4RS22DYeB7U14dra4KcQYxmwt5HkOInieXK1NUMBmQI=' 'unsafe-inline' *.supabase.co *.clerk.accounts.dev https://*.clerk.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://pagead2.googlesyndication.com https://www.googleadservices.com https://partner.googleadservices.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "img-src 'self' blob: data: *.supabase.co https://img.clerk.com https://images.clerk.dev https://images.unsplash.com https://www.courtlistener.com https://pagead2.googlesyndication.com https://www.google.com https://www.gstatic.com",
+    "img-src 'self' blob: data: *.supabase.co https://img.clerk.com https://images.clerk.dev https://images.unsplash.com https://www.courtlistener.com https://pagead2.googlesyndication.com https://www.google.com https://www.gstatic.com https://c.bing.com",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' *.supabase.co wss://*.supabase.co https://*.clerk.accounts.dev https://*.clerk.com wss://*.clerk.accounts.dev https://api.openai.com https://www.courtlistener.com https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://www.googletagmanager.com https://pagead2.googlesyndication.com",
+    "connect-src 'self' *.supabase.co wss://*.supabase.co https://*.clerk.accounts.dev https://*.clerk.com wss://*.clerk.accounts.dev https://api.openai.com https://www.courtlistener.com https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://www.googletagmanager.com https://www.clarity.ms https://pagead2.googlesyndication.com",
     "frame-src https://*.clerk.accounts.dev https://*.clerk.com https://googleads.g.doubleclick.net https://www.google.com https://bid.g.doubleclick.net",
     "worker-src 'self' blob:",
     "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self' *.clerk.accounts.dev *.clerk.com",
+    "object-src 'none'",
+    "upgrade-insecure-requests",
+    "block-all-mixed-content"
   ].join('; ')
   
   response.headers.set('Content-Security-Policy', csp)
+  
+  // Cache control for different resource types
+  const { pathname } = request.nextUrl
+  if (pathname.startsWith('/api/')) {
+    // API responses - no cache for dynamic content
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+  } else if (pathname.includes('/_next/static/')) {
+    // Static assets - long cache
+    response.headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+  } else if (pathname.includes('/_next/image/')) {
+    // Optimized images - moderate cache
+    response.headers.set('Cache-Control', 'public, max-age=86400, s-maxage=31536000')
+  }
   
   return response
 }

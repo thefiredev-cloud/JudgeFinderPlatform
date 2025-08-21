@@ -20,6 +20,7 @@ import Link from 'next/link'
 interface JudgeComparison {
   id: string
   name: string
+  slug?: string
   court_name: string
   jurisdiction: string
   total_cases: number

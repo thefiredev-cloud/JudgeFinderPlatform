@@ -1,15 +1,15 @@
 {
-  "indexed_at": "2025-08-21T12:22:57.775066",
+  "indexed_at": "2025-08-21T16:16:12.835902",
   "root": ".",
   "project_structure": {
     "type": "tree",
     "root": ".",
     "tree": [
       ".",
-      "\u251c\u2500\u2500 app/ (88 files)",
+      "\u251c\u2500\u2500 app/ (92 files)",
       "\u2502   \u251c\u2500\u2500 about/ (1 files)",
       "\u2502   \u251c\u2500\u2500 admin/ (1 files)",
-      "\u2502   \u251c\u2500\u2500 api/ (47 files)",
+      "\u2502   \u251c\u2500\u2500 api/ (50 files)",
       "\u2502   \u2502   \u251c\u2500\u2500 admin/ (6 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 bias-analytics/ (1 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 migrate/ (1 files)",
@@ -36,6 +36,7 @@
       "\u2502   \u2502   \u251c\u2500\u2500 cron/ (2 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 daily-sync/ (1 files)",
       "\u2502   \u2502   \u2502   \u2514\u2500\u2500 weekly-sync/ (1 files)",
+      "\u2502   \u2502   \u251c\u2500\u2500 health/ (1 files)",
       "\u2502   \u2502   \u251c\u2500\u2500 judges/ (16 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 [id]/ (6 files)",
       "\u2502   \u2502   \u2502   \u2502   \u251c\u2500\u2500 analytics/ (1 files)",
@@ -57,6 +58,9 @@
       "\u2502   \u2502   \u251c\u2500\u2500 pricing/ (1 files)",
       "\u2502   \u2502   \u2502   \u2514\u2500\u2500 resolve/ (1 files)",
       "\u2502   \u2502   \u251c\u2500\u2500 search/ (1 files)",
+      "\u2502   \u2502   \u251c\u2500\u2500 security/ (2 files)",
+      "\u2502   \u2502   \u2502   \u251c\u2500\u2500 csp-report/ (1 files)",
+      "\u2502   \u2502   \u2502   \u2514\u2500\u2500 ct-report/ (1 files)",
       "\u2502   \u2502   \u251c\u2500\u2500 seo/ (1 files)",
       "\u2502   \u2502   \u2502   \u2514\u2500\u2500 search-console/ (1 files)",
       "\u2502   \u2502   \u251c\u2500\u2500 sync/ (3 files)",
@@ -86,8 +90,9 @@
       "\u2502   \u251c\u2500\u2500 features/ (1 files)",
       "\u2502   \u251c\u2500\u2500 forgot-password/ (1 files)",
       "\u2502   \u251c\u2500\u2500 integrations/ (1 files)",
-      "\u2502   \u251c\u2500\u2500 judges/ (3 files)",
-      "\u2502   \u2502   \u2514\u2500\u2500 [slug]/ (2 files)",
+      "\u2502   \u251c\u2500\u2500 judges/ (4 files)",
+      "\u2502   \u2502   \u251c\u2500\u2500 [slug]/ (2 files)",
+      "\u2502   \u2502   \u2514\u2500\u2500 advanced-search/ (1 files)",
       "\u2502   \u251c\u2500\u2500 jurisdictions/ (2 files)",
       "\u2502   \u2502   \u2514\u2500\u2500 [county]/ (1 files)",
       "\u2502   \u251c\u2500\u2500 legal-specialties/ (1 files)",
@@ -117,7 +122,7 @@
       "\u2502   \u251c\u2500\u2500 seo/ (4 files)",
       "\u2502   \u2514\u2500\u2500 ui/ (11 files)",
       "\u251c\u2500\u2500 la-county-data/ (1 files)",
-      "\u251c\u2500\u2500 lib/ (27 files)",
+      "\u251c\u2500\u2500 lib/ (29 files)",
       "\u2502   \u251c\u2500\u2500 ai/ (1 files)",
       "\u2502   \u251c\u2500\u2500 analytics/ (1 files)",
       "\u2502   \u251c\u2500\u2500 auth/ (1 files)",
@@ -127,12 +132,13 @@
       "\u2502   \u251c\u2500\u2500 hooks/ (1 files)",
       "\u2502   \u251c\u2500\u2500 middleware/ (1 files)",
       "\u2502   \u251c\u2500\u2500 monitoring/ (1 files)",
+      "\u2502   \u251c\u2500\u2500 security/ (1 files)",
       "\u2502   \u251c\u2500\u2500 seo/ (4 files)",
       "\u2502   \u251c\u2500\u2500 supabase/ (2 files)",
       "\u2502   \u251c\u2500\u2500 sync/ (4 files)",
       "\u2502   \u2514\u2500\u2500 utils/ (6 files)",
       "\u251c\u2500\u2500 public/ (1 files)",
-      "\u251c\u2500\u2500 scripts/ (83 files)",
+      "\u251c\u2500\u2500 scripts/ (87 files)",
       "\u251c\u2500\u2500 supabase/ (7 files)",
       "\u2502   \u2514\u2500\u2500 migrations/ (7 files)",
       "\u251c\u2500\u2500 types/ (3 files)",
@@ -201,6 +207,21 @@
       ],
       "architecture_hints": []
     },
+    "DEPLOYMENT_CHECKLIST.md": {
+      "sections": [
+        "JudgeFinder Platform - Production Deployment Checklist",
+        "Pre-Deployment Security Audit \u2705",
+        "Environment Variables",
+        "Database Security",
+        "Application Security",
+        "Authentication & Authorization",
+        "Performance & Monitoring",
+        "Caching Strategy",
+        "Analytics & Monitoring",
+        "Rate Limiting"
+      ],
+      "architecture_hints": []
+    },
     "DEPLOYMENT_STATUS.md": {
       "sections": [
         "JudgeFinder Platform - Deployment Status",
@@ -213,6 +234,21 @@
         "\ud83d\udcca **CURRENT PLATFORM STATUS**",
         "\u2705 Working Features",
         "\ud83d\udd27 Development Server"
+      ],
+      "architecture_hints": []
+    },
+    "ENVIRONMENT_SETUP_GUIDE.md": {
+      "sections": [
+        "\ud83d\udd27 Environment Setup Guide - JudgeFinder Platform",
+        "Quick Start",
+        "1. Development Setup",
+        "Copy environment template",
+        "Generate production secrets (for later use)",
+        "2. Required Environment Variables",
+        "Database (Supabase)",
+        "Authentication (Clerk)",
+        "Site Configuration",
+        "Generated Security Keys (use: node scripts/generate-production-secrets.js)"
       ],
       "architecture_hints": []
     },
@@ -297,6 +333,21 @@
       ],
       "architecture_hints": []
     },
+    "PRODUCTION_SETUP.md": {
+      "sections": [
+        "JudgeFinder Platform - Production Setup Guide",
+        "Environment Variables Configuration",
+        "1. Database & Authentication",
+        "Supabase Production Database",
+        "Clerk Production Authentication",
+        "2. Site Configuration",
+        "Production URL",
+        "Security Headers",
+        "3. API Keys & Services",
+        "CourtListener Production API"
+      ],
+      "architecture_hints": []
+    },
     "README.md": {
       "sections": [
         "JudgeFinder Platform",
@@ -309,6 +360,19 @@
         "Frontend",
         "Backend",
         "Data Sources"
+      ],
+      "architecture_hints": []
+    },
+    "RLS_IMPLEMENTATION_REPORT.md": {
+      "sections": [
+        "Row Level Security (RLS) Implementation Report",
+        "JudgeFinder Platform - Judicial Transparency Tool",
+        "Executive Summary",
+        "Database Analysis Results",
+        "Key Issues Identified & Resolved",
+        "Security Model Implementation",
+        "Implementation Files",
+        "Deployment Steps"
       ],
       "architecture_hints": []
     },
@@ -409,6 +473,7 @@
     "app\\docs": "Project documentation",
     "app\\legal-specialties": "Test specifications",
     "app\\api\\courts": "API routes and endpoints",
+    "app\\api\\health": "API routes and endpoints",
     "app\\api\\search": "API routes and endpoints",
     "app\\api\\admin\\bias-analytics": "API routes and endpoints",
     "app\\api\\admin\\migrate": "API routes and endpoints",
@@ -446,6 +511,8 @@
     "app\\api\\judges\\[id]\\recent-cases": "API routes and endpoints",
     "app\\api\\judges\\[id]\\slots": "API routes and endpoints",
     "app\\api\\pricing\\resolve": "API routes and endpoints",
+    "app\\api\\security\\csp-report": "API routes and endpoints",
+    "app\\api\\security\\ct-report": "API routes and endpoints",
     "app\\api\\seo\\search-console": "API routes and endpoints",
     "app\\api\\sync\\courts": "API routes and endpoints",
     "app\\api\\sync\\decisions": "API routes and endpoints",
@@ -461,18 +528,19 @@
     "supabase\\migrations": "Database migration files"
   },
   "stats": {
-    "total_files": 276,
-    "total_directories": 134,
+    "total_files": 291,
+    "total_directories": 140,
     "fully_parsed": {
-      "javascript": 74,
-      "typescript": 165
+      "typescript": 173,
+      "javascript": 75
     },
     "listed_only": {
       "json": 12,
-      "sql": 24,
-      "css": 1
+      "sql": 29,
+      "css": 1,
+      "shell": 1
     },
-    "markdown_files": 18
+    "markdown_files": 22
   },
   "files": {
     ".eslintrc.json": {
@@ -486,6 +554,35 @@
     "database-integrity-report.json": {
       "language": "json",
       "parsed": false
+    },
+    "deploy-rpc-function.sql": {
+      "language": "sql",
+      "parsed": false
+    },
+    "fix-rpc-function.sql": {
+      "language": "sql",
+      "parsed": false
+    },
+    "fixed-rpc-function.sql": {
+      "language": "sql",
+      "parsed": false
+    },
+    "instrumentation.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "functions": {
+        "register": {
+          "calls": [
+            "init"
+          ],
+          "signature": "async ()"
+        }
+      },
+      "classes": {},
+      "constants": {
+        "SENTRY_DSN": "value"
+      },
+      "call_graph": {}
     },
     "judge-slug-mappings.json": {
       "language": "json",
@@ -532,6 +629,8 @@
         "isAdminRoute",
         "judgeRedirect",
         "response",
+        "permissionsPolicy",
+        "isDevelopment",
         "csp",
         "config"
       ],
@@ -558,6 +657,11 @@
     "PROJECT_INDEX.json": {
       "language": "json",
       "parsed": false
+    },
+    "sentry.client.config.ts": {
+      "language": "typescript",
+      "parsed": false,
+      "purpose": "Configuration"
     },
     "tailwind.config.js": {
       "language": "javascript",
@@ -1583,6 +1687,36 @@
       ],
       "call_graph": {}
     },
+    "app\\api\\health\\route.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "purpose": "Route definitions",
+      "imports": [
+        "next/server",
+        "@/lib/supabase/server"
+      ],
+      "functions": {
+        "GET": {
+          "signature": "async (request: NextRequest)",
+          "called_by": [
+            "POST"
+          ]
+        }
+      },
+      "classes": {},
+      "variables": [
+        "startTime",
+        "checks",
+        "supabase",
+        "memoryUsage",
+        "memoryUsageMB",
+        "memoryLimitMB",
+        "unhealthyChecks",
+        "warningChecks",
+        "httpStatus"
+      ],
+      "call_graph": {}
+    },
     "app\\api\\judges\\advanced-search\\route.ts": {
       "language": "typescript",
       "parsed": true,
@@ -2015,7 +2149,9 @@
       "purpose": "Route definitions",
       "imports": [
         "next/server",
-        "@/lib/supabase/server"
+        "@/lib/supabase/server",
+        "@/lib/rate-limit",
+        "@clerk/nextjs/server"
       ],
       "functions": {
         "GET": {
@@ -2036,6 +2172,8 @@
       },
       "classes": {},
       "variables": [
+        "identifier",
+        "rateLimitResult",
         "query",
         "limit",
         "page",
@@ -2659,6 +2797,40 @@
       ],
       "call_graph": {}
     },
+    "app\\api\\security\\csp-report\\route.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "purpose": "Route definitions",
+      "imports": [
+        "next/server"
+      ],
+      "functions": {
+        "POST": "async (request: NextRequest)",
+        "OPTIONS": "async ()"
+      },
+      "classes": {},
+      "variables": [
+        "body"
+      ],
+      "call_graph": {}
+    },
+    "app\\api\\security\\ct-report\\route.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "purpose": "Route definitions",
+      "imports": [
+        "next/server"
+      ],
+      "functions": {
+        "POST": "async (request: NextRequest)",
+        "OPTIONS": "async ()"
+      },
+      "classes": {},
+      "variables": [
+        "body"
+      ],
+      "call_graph": {}
+    },
     "app\\api\\seo\\search-console\\route.ts": {
       "language": "typescript",
       "parsed": true,
@@ -2754,7 +2926,8 @@
       "imports": [
         "next/server",
         "@/lib/sync/judge-sync",
-        "@/lib/utils/logger"
+        "@/lib/utils/logger",
+        "@/lib/rate-limit"
       ],
       "functions": {
         "POST": "async (request: NextRequest)",
@@ -2771,6 +2944,8 @@
         "maxDuration",
         "startTime",
         "apiKey",
+        "identifier",
+        "rateLimitResult",
         "body",
         "options",
         "syncManager",
@@ -3056,6 +3231,15 @@
         "searchParams",
         "judgeIds",
         "fetchJudgesForComparison",
+        "judgePromises",
+        "judgeResponse",
+        "judgeData",
+        "judge",
+        "caseAnalytics",
+        "analyticsResponse",
+        "experienceYears",
+        "results",
+        "validJudges",
         "searchJudges",
         "response",
         "data",
@@ -3399,6 +3583,22 @@
         },
         "JudgesResponse": {}
       },
+      "call_graph": {}
+    },
+    "app\\judges\\advanced-search\\page.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "@/components/judges/EnhancedJudgeSearch",
+        "next"
+      ],
+      "functions": {
+        "AdvancedSearchPage": "()"
+      },
+      "classes": {},
+      "variables": [
+        "metadata"
+      ],
       "call_graph": {}
     },
     "app\\judges\\[slug]\\page-modular.tsx": {
@@ -5156,6 +5356,63 @@
       "language": "json",
       "parsed": false
     },
+    "lib\\rate-limit.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "@upstash/ratelimit",
+        "@upstash/redis"
+      ],
+      "functions": {
+        "checkRateLimit": {
+          "signature": "async (identifier: string, rateLimitType: keyof typeof rateLimits)",
+          "called_by": [
+            "withRateLimit",
+            "rateLimitMiddleware"
+          ]
+        },
+        "getRateLimitIdentifier": {
+          "signature": "(request: Request, userId?: string): string",
+          "called_by": [
+            "withRateLimit",
+            "rateLimitMiddleware"
+          ]
+        },
+        "withRateLimit": {
+          "calls": [
+            "checkRateLimit",
+            "getRateLimitIdentifier",
+            "rateLimitMiddleware"
+          ],
+          "signature": "(rateLimitType: keyof typeof rateLimits)"
+        },
+        "rateLimitMiddleware": {
+          "calls": [
+            "checkRateLimit",
+            "getRateLimitIdentifier"
+          ],
+          "signature": "async (request: Request, handler: (request: Request)",
+          "called_by": [
+            "withRateLimit"
+          ]
+        }
+      },
+      "classes": {},
+      "variables": [
+        "redis",
+        "isRateLimitingEnabled",
+        "rateLimits",
+        "rateLimit",
+        "forwarded",
+        "realIp",
+        "cfConnectingIp",
+        "ip",
+        "identifier",
+        "result",
+        "response"
+      ],
+      "call_graph": {}
+    },
     "lib\\stripe.ts": {
       "language": "typescript",
       "parsed": false
@@ -5564,6 +5821,41 @@
       ],
       "interfaces": {
         "PerformanceMetric": {}
+      },
+      "call_graph": {}
+    },
+    "lib\\security\\headers.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "functions": {
+        "generateCSP": {
+          "signature": "(config: SecurityConfig): string",
+          "called_by": [
+            "getSecurityHeaders"
+          ]
+        },
+        "getSecurityHeaders": {
+          "calls": [
+            "generateCSP"
+          ],
+          "signature": "(config: SecurityConfig)"
+        },
+        "getCacheHeaders": "(pathname: string): Record<string, string>",
+        "getCORSHeaders": "(config: SecurityConfig): Record<string, string>",
+        "createSecurityConfig": "(): SecurityConfig"
+      },
+      "classes": {},
+      "variables": [
+        "isDev",
+        "policies",
+        "allowedOrigins",
+        "environment",
+        "domain"
+      ],
+      "interfaces": {
+        "SecurityConfig": {
+          "doc": "Security headers configuration for JudgeFinder Platform"
+        }
       },
       "call_graph": {}
     },
@@ -6283,8 +6575,8 @@
             "error": {
               "signature": "(message: string, context?: Record<string, any>, error?: Error)",
               "called_by": [
-                "POST",
-                "GET"
+                "GET",
+                "POST"
               ]
             },
             "apiRequest": "(method: string, path: string, context?: Record<string, any>)",
@@ -7302,8 +7594,8 @@
             "updateCourtJudgeCounts": {
               "signature": "async ()",
               "called_by": [
-                "MinimalMigrationExecutor.run",
                 "PostManualMigration.run",
+                "MinimalMigrationExecutor.run",
                 "CompleteMigrationProcess.run"
               ]
             },
@@ -7916,11 +8208,11 @@
             "generateReport": {
               "signature": "async ()",
               "called_by": [
-                "DatabaseMigrationRunner.runMigrations",
-                "JudgeCourtDataMigrator.runMigration",
                 "CourtListenerJudgesSyncService.run",
+                "DatabaseMigrationRunner.runMigrations",
+                "CourtListenerSyncService.run",
                 "DatabaseIntegrityChecker.runAllChecks",
-                "CourtListenerSyncService.run"
+                "JudgeCourtDataMigrator.runMigration"
               ]
             },
             "calculateHealthScore": "()",
@@ -7997,6 +8289,10 @@
         "analytics"
       ],
       "call_graph": {}
+    },
+    "scripts\\deploy-rls-production.sh": {
+      "language": "shell",
+      "parsed": false
     },
     "scripts\\direct-migration.js": {
       "language": "javascript",
@@ -8212,8 +8508,8 @@
             "updateCourtJudgeCounts": {
               "signature": "async ()",
               "called_by": [
-                "MinimalMigrationExecutor.run",
                 "PostManualMigration.run",
+                "MinimalMigrationExecutor.run",
                 "CompleteMigrationProcess.run"
               ]
             },
@@ -8334,6 +8630,14 @@
       "language": "sql",
       "parsed": false
     },
+    "scripts\\generate-production-secrets.js": {
+      "language": "javascript",
+      "parsed": false
+    },
+    "scripts\\implement-rls-policies.sql": {
+      "language": "sql",
+      "parsed": false
+    },
     "scripts\\integrity-check-queries.sql": {
       "language": "sql",
       "parsed": false
@@ -8382,8 +8686,8 @@
             "checkCurrentState": {
               "signature": "async ()",
               "called_by": [
-                "MigrationCompletionGuide.run",
-                "ManualMigrationGuide.run"
+                "ManualMigrationGuide.run",
+                "MigrationCompletionGuide.run"
               ]
             },
             "generateMigrationSQL": {
@@ -8395,10 +8699,10 @@
             "createBackup": {
               "signature": "async ()",
               "called_by": [
-                "DatabaseMigrationRunner.runMigrations",
-                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "ManualMigrationGuide.run"
+                "DatabaseMigrationRunner.runMigrations",
+                "ManualMigrationGuide.run",
+                "CourtListenerJudgesSyncService.run"
               ]
             },
             "run": {
@@ -8556,19 +8860,19 @@
             "generateReport": {
               "signature": "async (dryRun = false)",
               "called_by": [
-                "DatabaseMigrationRunner.runMigrations",
-                "JudgeCourtDataMigrator.runMigration",
                 "CourtListenerJudgesSyncService.run",
+                "DatabaseMigrationRunner.runMigrations",
+                "CourtListenerSyncService.run",
                 "DatabaseIntegrityChecker.runAllChecks",
-                "CourtListenerSyncService.run"
+                "JudgeCourtDataMigrator.runMigration"
               ]
             },
             "sleep": {
               "signature": "async (ms)",
               "called_by": [
-                "JudgeCourtDataMigrator.runMigration",
+                "retryWithBackoff",
                 "CourtListenerJudgesTestService.testApiConnectivity",
-                "retryWithBackoff"
+                "JudgeCourtDataMigrator.runMigration"
               ]
             },
             "__init__": "()"
@@ -8622,8 +8926,8 @@
             "checkCurrentState": {
               "signature": "async ()",
               "called_by": [
-                "MigrationCompletionGuide.run",
-                "ManualMigrationGuide.run"
+                "ManualMigrationGuide.run",
+                "MigrationCompletionGuide.run"
               ]
             },
             "generateSQLScript": {
@@ -8836,8 +9140,8 @@
             "updateCourtJudgeCounts": {
               "signature": "async ()",
               "called_by": [
-                "MinimalMigrationExecutor.run",
                 "PostManualMigration.run",
+                "MinimalMigrationExecutor.run",
                 "CompleteMigrationProcess.run"
               ]
             },
@@ -8953,17 +9257,17 @@
             "createBackup": {
               "signature": "async ()",
               "called_by": [
-                "DatabaseMigrationRunner.runMigrations",
-                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "ManualMigrationGuide.run"
+                "DatabaseMigrationRunner.runMigrations",
+                "ManualMigrationGuide.run",
+                "CourtListenerJudgesSyncService.run"
               ]
             },
             "loadMigrationSQL": {
               "signature": "async (filename)",
               "called_by": [
-                "DatabaseMigrationRunner.executeRollback",
-                "DatabaseMigrationRunner.executeMigration"
+                "DatabaseMigrationRunner.executeMigration",
+                "DatabaseMigrationRunner.executeRollback"
               ]
             },
             "executeMigration": {
@@ -8999,11 +9303,11 @@
             "generateReport": {
               "signature": "async (results, backupPath)",
               "called_by": [
-                "DatabaseMigrationRunner.runMigrations",
-                "JudgeCourtDataMigrator.runMigration",
                 "CourtListenerJudgesSyncService.run",
+                "DatabaseMigrationRunner.runMigrations",
+                "CourtListenerSyncService.run",
                 "DatabaseIntegrityChecker.runAllChecks",
-                "CourtListenerSyncService.run"
+                "JudgeCourtDataMigrator.runMigration"
               ]
             },
             "__init__": "()"
@@ -9458,10 +9762,10 @@
             "createBackup": {
               "signature": "async ()",
               "called_by": [
-                "DatabaseMigrationRunner.runMigrations",
-                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "ManualMigrationGuide.run"
+                "DatabaseMigrationRunner.runMigrations",
+                "ManualMigrationGuide.run",
+                "CourtListenerJudgesSyncService.run"
               ]
             },
             "fetchAllCourts": {
@@ -9473,12 +9777,12 @@
             "makeApiRequest": {
               "signature": "async (url)",
               "called_by": [
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
-                "CourtJudgeValidator.validateCourtJudgeRelationships",
-                "CourtJudgeValidator.validatePerformance",
-                "CourtListenerJudgesTestService.testApiConnectivity",
                 "CourtJudgeValidator.validateFrontendIntegration",
-                "TestCourtListenerSync.testSync"
+                "CourtJudgeValidator.validateCourtJudgeRelationships",
+                "CourtListenerJudgesTestService.testApiConnectivity",
+                "TestCourtListenerSync.testSync",
+                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
+                "CourtJudgeValidator.validatePerformance"
               ]
             },
             "mapCourtData": {
@@ -9519,19 +9823,19 @@
             "generateReport": {
               "signature": "async ()",
               "called_by": [
-                "DatabaseMigrationRunner.runMigrations",
-                "JudgeCourtDataMigrator.runMigration",
                 "CourtListenerJudgesSyncService.run",
+                "DatabaseMigrationRunner.runMigrations",
+                "CourtListenerSyncService.run",
                 "DatabaseIntegrityChecker.runAllChecks",
-                "CourtListenerSyncService.run"
+                "JudgeCourtDataMigrator.runMigration"
               ]
             },
             "sleep": {
               "signature": "async (ms)",
               "called_by": [
-                "JudgeCourtDataMigrator.runMigration",
+                "retryWithBackoff",
                 "CourtListenerJudgesTestService.testApiConnectivity",
-                "retryWithBackoff"
+                "JudgeCourtDataMigrator.runMigration"
               ]
             },
             "run": {
@@ -9611,10 +9915,10 @@
             "createBackup": {
               "signature": "async ()",
               "called_by": [
-                "DatabaseMigrationRunner.runMigrations",
-                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "ManualMigrationGuide.run"
+                "DatabaseMigrationRunner.runMigrations",
+                "ManualMigrationGuide.run",
+                "CourtListenerJudgesSyncService.run"
               ]
             },
             "loadCourtMappings": {
@@ -9634,12 +9938,12 @@
             "makeApiRequest": {
               "signature": "async (url)",
               "called_by": [
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
-                "CourtJudgeValidator.validateCourtJudgeRelationships",
-                "CourtJudgeValidator.validatePerformance",
-                "CourtListenerJudgesTestService.testApiConnectivity",
                 "CourtJudgeValidator.validateFrontendIntegration",
-                "TestCourtListenerSync.testSync"
+                "CourtJudgeValidator.validateCourtJudgeRelationships",
+                "CourtListenerJudgesTestService.testApiConnectivity",
+                "TestCourtListenerSync.testSync",
+                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
+                "CourtJudgeValidator.validatePerformance"
               ]
             },
             "mapJudgeData": {
@@ -9687,19 +9991,19 @@
             "generateReport": {
               "signature": "async ()",
               "called_by": [
-                "DatabaseMigrationRunner.runMigrations",
-                "JudgeCourtDataMigrator.runMigration",
                 "CourtListenerJudgesSyncService.run",
+                "DatabaseMigrationRunner.runMigrations",
+                "CourtListenerSyncService.run",
                 "DatabaseIntegrityChecker.runAllChecks",
-                "CourtListenerSyncService.run"
+                "JudgeCourtDataMigrator.runMigration"
               ]
             },
             "sleep": {
               "signature": "async (ms)",
               "called_by": [
-                "JudgeCourtDataMigrator.runMigration",
+                "retryWithBackoff",
                 "CourtListenerJudgesTestService.testApiConnectivity",
-                "retryWithBackoff"
+                "JudgeCourtDataMigrator.runMigration"
               ]
             },
             "run": {
@@ -9791,9 +10095,9 @@
             "sleep": {
               "signature": "async (ms)",
               "called_by": [
-                "JudgeCourtDataMigrator.runMigration",
+                "retryWithBackoff",
                 "CourtListenerJudgesTestService.testApiConnectivity",
-                "retryWithBackoff"
+                "JudgeCourtDataMigrator.runMigration"
               ]
             },
             "makeRequest": "async (endpoint, params = {})",
@@ -10042,8 +10346,8 @@
               "called_by": [
                 "AutomatedSyncTester.testQueueManagement",
                 "AutomatedSyncTester.testAdminDashboard",
-                "AutomatedSyncTester.testWebhookEndpoint",
-                "AutomatedSyncTester.testDatabaseSetup"
+                "AutomatedSyncTester.testDatabaseSetup",
+                "AutomatedSyncTester.testWebhookEndpoint"
               ]
             },
             "printSummary": {
@@ -10116,20 +10420,20 @@
             "sleep": {
               "signature": "async (ms)",
               "called_by": [
-                "JudgeCourtDataMigrator.runMigration",
+                "retryWithBackoff",
                 "CourtListenerJudgesTestService.testApiConnectivity",
-                "retryWithBackoff"
+                "JudgeCourtDataMigrator.runMigration"
               ]
             },
             "makeApiRequest": {
               "signature": "async (url)",
               "called_by": [
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
-                "CourtJudgeValidator.validateCourtJudgeRelationships",
-                "CourtJudgeValidator.validatePerformance",
-                "CourtListenerJudgesTestService.testApiConnectivity",
                 "CourtJudgeValidator.validateFrontendIntegration",
-                "TestCourtListenerSync.testSync"
+                "CourtJudgeValidator.validateCourtJudgeRelationships",
+                "CourtListenerJudgesTestService.testApiConnectivity",
+                "TestCourtListenerSync.testSync",
+                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
+                "CourtJudgeValidator.validatePerformance"
               ]
             },
             "testCourtMappings": {
@@ -10235,12 +10539,12 @@
             "makeApiRequest": {
               "signature": "async (url)",
               "called_by": [
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
-                "CourtJudgeValidator.validateCourtJudgeRelationships",
-                "CourtJudgeValidator.validatePerformance",
-                "CourtListenerJudgesTestService.testApiConnectivity",
                 "CourtJudgeValidator.validateFrontendIntegration",
-                "TestCourtListenerSync.testSync"
+                "CourtJudgeValidator.validateCourtJudgeRelationships",
+                "CourtListenerJudgesTestService.testApiConnectivity",
+                "TestCourtListenerSync.testSync",
+                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
+                "CourtJudgeValidator.validatePerformance"
               ]
             },
             "testSync": {
@@ -10488,9 +10792,9 @@
             "sleep": {
               "signature": "async (ms)",
               "called_by": [
-                "JudgeCourtDataMigrator.runMigration",
+                "retryWithBackoff",
                 "CourtListenerJudgesTestService.testApiConnectivity",
-                "retryWithBackoff"
+                "JudgeCourtDataMigrator.runMigration"
               ]
             },
             "makeRequest": "async (endpoint, params = {})",
@@ -10580,8 +10884,8 @@
             "isValidSlug": {
               "signature": "(slug)",
               "called_by": [
-                "isValidSlugVariation",
-                "generateSlugVariations"
+                "generateSlugVariations",
+                "isValidSlugVariation"
               ]
             },
             "__init__": "()"
@@ -10646,8 +10950,8 @@
             "log": {
               "signature": "(message, level = 'info')",
               "called_by": [
-                "ValidationReporter.generateReport",
-                "CourtJudgeValidator.validateCourtJudgeRelationships"
+                "CourtJudgeValidator.validateCourtJudgeRelationships",
+                "ValidationReporter.generateReport"
               ]
             },
             "addTest": {
@@ -10673,11 +10977,11 @@
               ],
               "signature": "async ()",
               "called_by": [
-                "DatabaseMigrationRunner.runMigrations",
-                "JudgeCourtDataMigrator.runMigration",
                 "CourtListenerJudgesSyncService.run",
+                "DatabaseMigrationRunner.runMigrations",
+                "CourtListenerSyncService.run",
                 "DatabaseIntegrityChecker.runAllChecks",
-                "CourtListenerSyncService.run"
+                "JudgeCourtDataMigrator.runMigration"
               ]
             },
             "printSummary": {
@@ -10697,12 +11001,12 @@
             "makeApiRequest": {
               "signature": "async (url, options = {})",
               "called_by": [
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
-                "CourtJudgeValidator.validateCourtJudgeRelationships",
-                "CourtJudgeValidator.validatePerformance",
-                "CourtListenerJudgesTestService.testApiConnectivity",
                 "CourtJudgeValidator.validateFrontendIntegration",
-                "TestCourtListenerSync.testSync"
+                "CourtJudgeValidator.validateCourtJudgeRelationships",
+                "CourtListenerJudgesTestService.testApiConnectivity",
+                "TestCourtListenerSync.testSync",
+                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
+                "CourtJudgeValidator.validatePerformance"
               ]
             },
             "validateCourtJudgeRelationships": {
@@ -10871,6 +11175,10 @@
         "supabase"
       ],
       "call_graph": {}
+    },
+    "scripts\\verify-rls-policies.sql": {
+      "language": "sql",
+      "parsed": false
     },
     "scripts\\verify-slug-migration.js": {
       "language": "javascript",
@@ -11129,6 +11437,10 @@
       "@/lib/sync/queue-manager",
       "@/lib/utils/logger"
     ],
+    "app\\api\\health\\route.ts": [
+      "next/server",
+      "@/lib/supabase/server"
+    ],
     "app\\api\\judges\\advanced-search\\route.ts": [
       "next/server",
       "@/lib/supabase/server",
@@ -11176,7 +11488,9 @@
     ],
     "app\\api\\judges\\search\\route.ts": [
       "next/server",
-      "@/lib/supabase/server"
+      "@/lib/supabase/server",
+      "@/lib/rate-limit",
+      "@clerk/nextjs/server"
     ],
     "app\\api\\judges\\[id]\\analytics\\route.ts": [
       "next/server",
@@ -11215,6 +11529,12 @@
       "@/lib/utils/logger",
       "@/lib/utils/validation"
     ],
+    "app\\api\\security\\csp-report\\route.ts": [
+      "next/server"
+    ],
+    "app\\api\\security\\ct-report\\route.ts": [
+      "next/server"
+    ],
     "app\\api\\seo\\search-console\\route.ts": [
       "next/server"
     ],
@@ -11231,7 +11551,8 @@
     "app\\api\\sync\\judges\\route.ts": [
       "next/server",
       "@/lib/sync/judge-sync",
-      "@/lib/utils/logger"
+      "@/lib/utils/logger",
+      "@/lib/rate-limit"
     ],
     "app\\api\\user\\activity\\route.ts": [
       "next/server",
@@ -11334,6 +11655,10 @@
       "@/lib/utils/slug",
       "@/lib/hooks/useDebounce",
       "@/components/ui/Skeleton"
+    ],
+    "app\\judges\\advanced-search\\page.tsx": [
+      "@/components/judges/EnhancedJudgeSearch",
+      "next"
     ],
     "app\\judges\\[slug]\\page-modular.tsx": [
       "next",
@@ -11621,6 +11946,10 @@
     ],
     "components\\ui\\WhatYoullLearn.tsx": [
       "lucide-react"
+    ],
+    "lib\\rate-limit.ts": [
+      "@upstash/ratelimit",
+      "@upstash/redis"
     ],
     "lib\\ai\\judicial-analytics.js": [
       "@google/generative-ai",
@@ -11969,5 +12298,5 @@
       "@supabase/supabase-js"
     ]
   },
-  "staleness_check": 1755199384.296072
+  "staleness_check": 1755213382.674248
 }
