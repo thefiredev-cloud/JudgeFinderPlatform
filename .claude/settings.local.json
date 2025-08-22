@@ -90,7 +90,9 @@
       "mcp__sequential-thinking__sequentialthinking",
       "mcp__filesystem__search_files",
       "Bash(npm audit:*)",
-      "Bash(del .new-keys-1755844915386.env)"
+      "Bash(del .new-keys-1755844915386.env)",
+      "Bash(git log:*)",
+      "Bash(git filter-branch:*)"
     ],
     "deny": [],
     "ask": [],

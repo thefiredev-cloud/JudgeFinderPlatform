@@ -1,5 +1,5 @@
 {
-  "indexed_at": "2025-08-21T23:11:18.130358",
+  "indexed_at": "2025-08-22T00:10:48.115530",
   "root": ".",
   "project_structure": {
     "type": "tree",
@@ -138,9 +138,9 @@
       "\u2502   \u251c\u2500\u2500 sync/ (4 files)",
       "\u2502   \u2514\u2500\u2500 utils/ (6 files)",
       "\u251c\u2500\u2500 public/ (1 files)",
-      "\u251c\u2500\u2500 scripts/ (114 files)",
-      "\u251c\u2500\u2500 supabase/ (8 files)",
-      "\u2502   \u2514\u2500\u2500 migrations/ (8 files)",
+      "\u251c\u2500\u2500 scripts/ (106 files)",
+      "\u251c\u2500\u2500 supabase/ (9 files)",
+      "\u2502   \u2514\u2500\u2500 migrations/ (9 files)",
       "\u251c\u2500\u2500 types/ (3 files)",
       "\u251c\u2500\u2500 package.json",
       "\u2514\u2500\u2500 README.md"
@@ -159,6 +159,18 @@
         "Core AI Agents",
         "1. Judicial Analytics Agent (Primary)",
         "2. OpenAI Fallback Agent"
+      ],
+      "architecture_hints": []
+    },
+    "BUILD_WITHOUT_CLERK.md": {
+      "sections": [
+        "Building Without Clerk Keys",
+        "Option 1: Skip Build Checks (Quickest)",
+        "For development",
+        "The app will run but authentication won't work",
+        "Option 2: Get Free Clerk Dev Keys",
+        "Option 3: Disable Clerk Temporarily",
+        "For Production Deployment"
       ],
       "architecture_hints": []
     },
@@ -192,21 +204,6 @@
       ],
       "architecture_hints": []
     },
-    "CLERK_SETUP_GUIDE.md": {
-      "sections": [
-        "Clerk Authentication Setup Guide",
-        "\ud83d\udd10 Production Authentication Configuration",
-        "Step 1: Create Clerk Production Account",
-        "Step 2: Configure Application Settings",
-        "Step 3: Enable Authentication Methods",
-        "Step 4: Configure OAuth Providers (Optional)",
-        "Step 5: Get Production Keys",
-        "Step 6: Configure Webhooks",
-        "Step 7: Update Production Environment",
-        "Clerk Production Keys"
-      ],
-      "architecture_hints": []
-    },
     "COMPREHENSIVE_MIGRATION_GUIDE.md": {
       "sections": [
         "JudgeFinder Platform - Comprehensive Migration Guide",
@@ -234,6 +231,21 @@
         "Courts Table Additions",
         "Judges Table Additions",
         "New Judge-Court Positions Table"
+      ],
+      "architecture_hints": []
+    },
+    "DEPLOYMENT.md": {
+      "sections": [
+        "JudgeFinder Platform - Deployment Guide",
+        "Netlify Deployment via GitHub",
+        "Prerequisites",
+        "Step 1: Prepare GitHub Repository",
+        "Step 2: Connect GitHub to Netlify",
+        "Step 3: Configure Environment Variables",
+        "Required Variables",
+        "Database",
+        "Authentication",
+        "AI Services"
       ],
       "architecture_hints": []
     },
@@ -396,15 +408,15 @@
     "README.md": {
       "sections": [
         "JudgeFinder Platform",
-        "\ud83c\udfaf Current Status: Pre-Launch Sprint",
-        "\ud83d\udccb Launch Checklist",
-        "\ud83d\udcb0 Revenue Model",
-        "\ud83d\uddfa\ufe0f Geographic Coverage",
-        "\u2705 Active Counties (1,130 judges)",
-        "\ud83d\udcca Market Intelligence",
-        "\ud83c\udfd7\ufe0f Architecture & Tech Stack",
+        "Overview",
+        "Key Features",
+        "Architecture & Tech Stack",
         "Frontend",
-        "Backend"
+        "Backend",
+        "AI & Data Integration",
+        "Infrastructure",
+        "Installation & Setup",
+        "Prerequisites"
       ],
       "architecture_hints": []
     },
@@ -418,6 +430,21 @@
         "Security Model Implementation",
         "Implementation Files",
         "Deployment Steps"
+      ],
+      "architecture_hints": []
+    },
+    "SECURITY_FIX_INSTRUCTIONS.md": {
+      "sections": [
+        "\ud83d\udea8 URGENT: Security Fix Instructions",
+        "\u26a0\ufe0f CRITICAL: Your API Keys Have Been Exposed",
+        "1. OpenAI API Key",
+        "2. Google AI (Gemini) API Key",
+        "3. CourtListener API Key",
+        "4. Supabase Service Role Key",
+        "\u2705 Security Fixes Already Applied",
+        "\ud83d\udd10 New Secure Keys Generated",
+        "\ud83d\udccb Next Steps (In Order)",
+        "Today (Day 0) - Security Fixes"
       ],
       "architecture_hints": []
     },
@@ -573,38 +600,22 @@
     "supabase\\migrations": "Database migration files"
   },
   "stats": {
-    "total_files": 322,
+    "total_files": 292,
     "total_directories": 140,
     "fully_parsed": {
       "typescript": 174,
-      "javascript": 89
+      "javascript": 73
     },
     "listed_only": {
-      "json": 25,
-      "sql": 32,
+      "json": 10,
+      "sql": 33,
       "css": 1,
       "shell": 1
     },
-    "markdown_files": 25
+    "markdown_files": 27
   },
   "files": {
     ".eslintrc.json": {
-      "language": "json",
-      "parsed": false
-    },
-    "ca-judges-analysis.json": {
-      "language": "json",
-      "parsed": false
-    },
-    "ca-validation-report.json": {
-      "language": "json",
-      "parsed": false
-    },
-    "court-judge-validation-report.json": {
-      "language": "json",
-      "parsed": false
-    },
-    "database-integrity-report.json": {
       "language": "json",
       "parsed": false
     },
@@ -887,6 +898,9 @@
         }
       },
       "classes": {},
+      "constants": {
+        "ADMIN_USER_IDS": "value"
+      },
       "variables": [
         "dynamic",
         "jurisdiction",
@@ -6669,8 +6683,7 @@
             "JudgeCourtDataMigrator.runMigration",
             "CAJudgeDecisionsSync.sleep",
             "CAJudgeDecisionsSync.makeApiRequest",
-            "CAJudgeDecisionsSync.fetchDocketsForJudge",
-            "CourtListenerJudgesTestService.testApiConnectivity"
+            "CAJudgeDecisionsSync.fetchDocketsForJudge"
           ]
         },
         "chunkArray": "(array: T[], size: number): T[][]",
@@ -8169,30 +8182,6 @@
       ],
       "call_graph": {}
     },
-    "scripts\\courts-backup-1755820742358.json": {
-      "language": "json",
-      "parsed": false
-    },
-    "scripts\\courts-backup-1755821853010.json": {
-      "language": "json",
-      "parsed": false
-    },
-    "scripts\\courts-backup-1755822453041.json": {
-      "language": "json",
-      "parsed": false
-    },
-    "scripts\\courts-backup-1755822946916.json": {
-      "language": "json",
-      "parsed": false
-    },
-    "scripts\\courts-backup-1755834390015.json": {
-      "language": "json",
-      "parsed": false
-    },
-    "scripts\\courts-backup-1755839902144.json": {
-      "language": "json",
-      "parsed": false
-    },
     "scripts\\create-analytics-cache-table.js": {
       "language": "javascript",
       "parsed": true,
@@ -8281,8 +8270,8 @@
             "checkTableExists": {
               "signature": "async ()",
               "called_by": [
-                "main",
-                "PositionsTableCreator.run"
+                "PositionsTableCreator.run",
+                "main"
               ]
             },
             "createTableViaSQL": "async ()",
@@ -8368,8 +8357,8 @@
             "isValidURL": {
               "signature": "(string)",
               "called_by": [
-                "isCourt",
-                "isJudge"
+                "isJudge",
+                "isCourt"
               ]
             },
             "isValidPhone": "(phone)",
@@ -8549,11 +8538,11 @@
             "generateReport": {
               "signature": "async ()",
               "called_by": [
-                "JudgeCourtDataMigrator.runMigration",
-                "DatabaseMigrationRunner.runMigrations",
-                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "DatabaseIntegrityChecker.runAllChecks"
+                "DatabaseMigrationRunner.runMigrations",
+                "DatabaseIntegrityChecker.runAllChecks",
+                "JudgeCourtDataMigrator.runMigration",
+                "CourtListenerJudgesSyncService.run"
               ]
             },
             "calculateHealthScore": "()",
@@ -8689,8 +8678,8 @@
             "checkTableExists": {
               "signature": "async (tableName)",
               "called_by": [
-                "main",
-                "PositionsTableCreator.run"
+                "PositionsTableCreator.run",
+                "main"
               ]
             },
             "verifyMigrationState": {
@@ -8935,154 +8924,6 @@
       "language": "sql",
       "parsed": false
     },
-    "scripts\\fix-cases-constraint.js": {
-      "language": "javascript",
-      "parsed": true,
-      "imports": [
-        "@supabase/supabase-js"
-      ],
-      "functions": {
-        "fixCasesConstraint": "async ()"
-      },
-      "classes": {},
-      "variables": [
-        "supabase",
-        "testCase"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\fix-court-schema.js": {
-      "language": "javascript",
-      "parsed": true,
-      "imports": [
-        "@supabase/supabase-js"
-      ],
-      "functions": {
-        "fixCourtSchema": "async ()"
-      },
-      "classes": {},
-      "variables": [
-        "supabase"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\fix-dynamic-routes.js": {
-      "language": "javascript",
-      "parsed": true,
-      "purpose": "Route definitions",
-      "imports": [
-        "fs",
-        "path"
-      ],
-      "functions": {
-        "addDynamicExport": {
-          "signature": "(filePath)",
-          "called_by": [
-            "main"
-          ]
-        },
-        "findApiRoutes": {
-          "calls": [
-            "traverse"
-          ],
-          "signature": "(dir)",
-          "called_by": [
-            "main"
-          ]
-        },
-        "traverse": {
-          "calls": [
-            "traverse"
-          ],
-          "signature": "(currentDir)",
-          "called_by": [
-            "findApiRoutes",
-            "traverse"
-          ]
-        },
-        "main": {
-          "calls": [
-            "addDynamicExport",
-            "findApiRoutes"
-          ],
-          "signature": "()"
-        }
-      },
-      "classes": {},
-      "variables": [
-        "fs",
-        "path",
-        "content",
-        "lines",
-        "importEndIndex",
-        "i",
-        "dynamic",
-        "routes",
-        "items",
-        "fullPath",
-        "stat",
-        "apiDir",
-        "fixed"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\fix-judge-court-assignments.js": {
-      "language": "javascript",
-      "parsed": true,
-      "imports": [
-        "@supabase/supabase-js"
-      ],
-      "functions": {
-        "fixJudgeCourtAssignments": {
-          "signature": "async ()",
-          "called_by": [
-            "main"
-          ]
-        },
-        "fixCaliforniaJudgesAccessibility": {
-          "signature": "async ()",
-          "called_by": [
-            "main"
-          ]
-        },
-        "main": {
-          "calls": [
-            "fixCaliforniaJudgesAccessibility",
-            "fixJudgeCourtAssignments"
-          ],
-          "signature": "async ()"
-        }
-      },
-      "classes": {},
-      "variables": [
-        "supabaseUrl",
-        "supabaseKey",
-        "supabase",
-        "fixedCount",
-        "matchedByName",
-        "matchedByJurisdiction",
-        "matchedCourt",
-        "updatedCount"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\fix-orphaned-cases.js": {
-      "language": "javascript",
-      "parsed": true,
-      "imports": [
-        "@supabase/supabase-js"
-      ],
-      "functions": {
-        "fixOrphanedCases": "async ()"
-      },
-      "classes": {},
-      "variables": [
-        "supabaseUrl",
-        "supabaseKey",
-        "supabase"
-      ],
-      "call_graph": {}
-    },
     "scripts\\fix-rpc-function.sql": {
       "language": "sql",
       "parsed": false
@@ -9096,6 +8937,10 @@
       "parsed": false
     },
     "scripts\\generate-production-secrets.js": {
+      "language": "javascript",
+      "parsed": false
+    },
+    "scripts\\generate-secure-keys.js": {
       "language": "javascript",
       "parsed": false
     },
@@ -9127,26 +8972,6 @@
       ],
       "call_graph": {}
     },
-    "scripts\\judges-backup-1755821638842.json": {
-      "language": "json",
-      "parsed": false
-    },
-    "scripts\\judges-backup-1755821764943.json": {
-      "language": "json",
-      "parsed": false
-    },
-    "scripts\\judges-backup-1755823993242.json": {
-      "language": "json",
-      "parsed": false
-    },
-    "scripts\\judges-backup-1755835174764.json": {
-      "language": "json",
-      "parsed": false
-    },
-    "scripts\\judges-backup-1755839890146.json": {
-      "language": "json",
-      "parsed": false
-    },
     "scripts\\manual-migration-via-insert.js": {
       "language": "javascript",
       "parsed": true,
@@ -9171,8 +8996,8 @@
             "checkCurrentState": {
               "signature": "async ()",
               "called_by": [
-                "ManualMigrationGuide.run",
-                "MigrationCompletionGuide.run"
+                "MigrationCompletionGuide.run",
+                "ManualMigrationGuide.run"
               ]
             },
             "generateMigrationSQL": {
@@ -9184,9 +9009,9 @@
             "createBackup": {
               "signature": "async ()",
               "called_by": [
-                "ManualMigrationGuide.run",
-                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
+                "CourtListenerJudgesSyncService.run",
+                "ManualMigrationGuide.run",
                 "DatabaseMigrationRunner.runMigrations"
               ]
             },
@@ -9345,22 +9170,21 @@
             "generateReport": {
               "signature": "async (dryRun = false)",
               "called_by": [
-                "JudgeCourtDataMigrator.runMigration",
-                "DatabaseMigrationRunner.runMigrations",
-                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "DatabaseIntegrityChecker.runAllChecks"
+                "DatabaseMigrationRunner.runMigrations",
+                "DatabaseIntegrityChecker.runAllChecks",
+                "JudgeCourtDataMigrator.runMigration",
+                "CourtListenerJudgesSyncService.run"
               ]
             },
             "sleep": {
               "signature": "async (ms)",
               "called_by": [
                 "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "JudgeCourtDataMigrator.runMigration",
-                "retryWithBackoff",
                 "CAJudgeDecisionsSync.sleep",
+                "JudgeCourtDataMigrator.runMigration",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "CourtListenerJudgesTestService.testApiConnectivity"
+                "retryWithBackoff"
               ]
             },
             "__init__": "()"
@@ -9414,8 +9238,8 @@
             "checkCurrentState": {
               "signature": "async ()",
               "called_by": [
-                "ManualMigrationGuide.run",
-                "MigrationCompletionGuide.run"
+                "MigrationCompletionGuide.run",
+                "ManualMigrationGuide.run"
               ]
             },
             "generateSQLScript": {
@@ -9537,8 +9361,7 @@
         "testEndpoint": {
           "signature": "async (endpoint)",
           "called_by": [
-            "runPerformanceTests",
-            "runAPITests"
+            "runPerformanceTests"
           ]
         },
         "runPerformanceTests": {
@@ -9745,6 +9568,10 @@
       ],
       "call_graph": {}
     },
+    "scripts\\remove-console-logs.js": {
+      "language": "javascript",
+      "parsed": false
+    },
     "scripts\\remove-status-constraint.sql": {
       "language": "sql",
       "parsed": false
@@ -9774,9 +9601,9 @@
             "createBackup": {
               "signature": "async ()",
               "called_by": [
-                "ManualMigrationGuide.run",
-                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
+                "CourtListenerJudgesSyncService.run",
+                "ManualMigrationGuide.run",
                 "DatabaseMigrationRunner.runMigrations"
               ]
             },
@@ -9820,11 +9647,11 @@
             "generateReport": {
               "signature": "async (results, backupPath)",
               "called_by": [
-                "JudgeCourtDataMigrator.runMigration",
-                "DatabaseMigrationRunner.runMigrations",
-                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "DatabaseIntegrityChecker.runAllChecks"
+                "DatabaseMigrationRunner.runMigrations",
+                "DatabaseIntegrityChecker.runAllChecks",
+                "JudgeCourtDataMigrator.runMigration",
+                "CourtListenerJudgesSyncService.run"
               ]
             },
             "__init__": "()"
@@ -9954,8 +9781,8 @@
             "checkTableExists": {
               "signature": "async (tableName)",
               "called_by": [
-                "main",
-                "PositionsTableCreator.run"
+                "PositionsTableCreator.run",
+                "main"
               ]
             },
             "performCompleteVerification": {
@@ -10275,11 +10102,10 @@
               "signature": "async (ms)",
               "called_by": [
                 "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "JudgeCourtDataMigrator.runMigration",
-                "retryWithBackoff",
                 "CAJudgeDecisionsSync.sleep",
+                "JudgeCourtDataMigrator.runMigration",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "CourtListenerJudgesTestService.testApiConnectivity"
+                "retryWithBackoff"
               ]
             },
             "makeApiRequest": {
@@ -10290,15 +10116,13 @@
               ],
               "signature": "async (url)",
               "called_by": [
-                "TestCourtListenerSync.testSync",
                 "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
-                "CourtJudgeValidator.validatePerformance",
                 "CAJudgeDecisionsSync.sleep",
+                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
+                "CourtJudgeValidator.validateCourtJudgeRelationships",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "CourtJudgeValidator.validateFrontendIntegration",
-                "CourtListenerJudgesTestService.testApiConnectivity",
-                "CourtJudgeValidator.validateCourtJudgeRelationships"
+                "CourtJudgeValidator.validatePerformance",
+                "CourtJudgeValidator.validateFrontendIntegration"
               ]
             },
             "fetchDecisionsForJudge": {
@@ -10358,6 +10182,9 @@
         "url",
         "data",
         "casesToSave",
+        "caseNumbers",
+        "existingCaseNumbers",
+        "newCases",
         "caseTypes",
         "decisions",
         "cases",
@@ -10402,9 +10229,9 @@
             "createBackup": {
               "signature": "async ()",
               "called_by": [
-                "ManualMigrationGuide.run",
-                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
+                "CourtListenerJudgesSyncService.run",
+                "ManualMigrationGuide.run",
                 "DatabaseMigrationRunner.runMigrations"
               ]
             },
@@ -10417,15 +10244,13 @@
             "makeApiRequest": {
               "signature": "async (url)",
               "called_by": [
-                "TestCourtListenerSync.testSync",
                 "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
-                "CourtJudgeValidator.validatePerformance",
                 "CAJudgeDecisionsSync.sleep",
+                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
+                "CourtJudgeValidator.validateCourtJudgeRelationships",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "CourtJudgeValidator.validateFrontendIntegration",
-                "CourtListenerJudgesTestService.testApiConnectivity",
-                "CourtJudgeValidator.validateCourtJudgeRelationships"
+                "CourtJudgeValidator.validatePerformance",
+                "CourtJudgeValidator.validateFrontendIntegration"
               ]
             },
             "mapCourtData": {
@@ -10434,10 +10259,7 @@
                 "isLocalCourt",
                 "normalizeJurisdiction"
               ],
-              "signature": "(courtData)",
-              "called_by": [
-                "TestCourtListenerSync.testSync"
-              ]
+              "signature": "(courtData)"
             },
             "normalizeJurisdiction": {
               "signature": "(clJurisdiction)",
@@ -10466,22 +10288,21 @@
             "generateReport": {
               "signature": "async ()",
               "called_by": [
-                "JudgeCourtDataMigrator.runMigration",
-                "DatabaseMigrationRunner.runMigrations",
-                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "DatabaseIntegrityChecker.runAllChecks"
+                "DatabaseMigrationRunner.runMigrations",
+                "DatabaseIntegrityChecker.runAllChecks",
+                "JudgeCourtDataMigrator.runMigration",
+                "CourtListenerJudgesSyncService.run"
               ]
             },
             "sleep": {
               "signature": "async (ms)",
               "called_by": [
                 "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "JudgeCourtDataMigrator.runMigration",
-                "retryWithBackoff",
                 "CAJudgeDecisionsSync.sleep",
+                "JudgeCourtDataMigrator.runMigration",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "CourtListenerJudgesTestService.testApiConnectivity"
+                "retryWithBackoff"
               ]
             },
             "run": {
@@ -10561,9 +10382,9 @@
             "createBackup": {
               "signature": "async ()",
               "called_by": [
-                "ManualMigrationGuide.run",
-                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
+                "CourtListenerJudgesSyncService.run",
+                "ManualMigrationGuide.run",
                 "DatabaseMigrationRunner.runMigrations"
               ]
             },
@@ -10584,15 +10405,13 @@
             "makeApiRequest": {
               "signature": "async (url)",
               "called_by": [
-                "TestCourtListenerSync.testSync",
                 "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
-                "CourtJudgeValidator.validatePerformance",
                 "CAJudgeDecisionsSync.sleep",
+                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
+                "CourtJudgeValidator.validateCourtJudgeRelationships",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "CourtJudgeValidator.validateFrontendIntegration",
-                "CourtListenerJudgesTestService.testApiConnectivity",
-                "CourtJudgeValidator.validateCourtJudgeRelationships"
+                "CourtJudgeValidator.validatePerformance",
+                "CourtJudgeValidator.validateFrontendIntegration"
               ]
             },
             "mapJudgeData": {
@@ -10640,22 +10459,21 @@
             "generateReport": {
               "signature": "async ()",
               "called_by": [
-                "JudgeCourtDataMigrator.runMigration",
-                "DatabaseMigrationRunner.runMigrations",
-                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "DatabaseIntegrityChecker.runAllChecks"
+                "DatabaseMigrationRunner.runMigrations",
+                "DatabaseIntegrityChecker.runAllChecks",
+                "JudgeCourtDataMigrator.runMigration",
+                "CourtListenerJudgesSyncService.run"
               ]
             },
             "sleep": {
               "signature": "async (ms)",
               "called_by": [
                 "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "JudgeCourtDataMigrator.runMigration",
-                "retryWithBackoff",
                 "CAJudgeDecisionsSync.sleep",
+                "JudgeCourtDataMigrator.runMigration",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "CourtListenerJudgesTestService.testApiConnectivity"
+                "retryWithBackoff"
               ]
             },
             "run": {
@@ -10748,11 +10566,10 @@
               "signature": "async (ms)",
               "called_by": [
                 "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "JudgeCourtDataMigrator.runMigration",
-                "retryWithBackoff",
                 "CAJudgeDecisionsSync.sleep",
+                "JudgeCourtDataMigrator.runMigration",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "CourtListenerJudgesTestService.testApiConnectivity"
+                "retryWithBackoff"
               ]
             },
             "makeRequest": "async (endpoint, params = {})",
@@ -10804,706 +10621,6 @@
         "chunk",
         "newCaseCountMap",
         "judgesWithCases"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\test-all-api-endpoints.js": {
-      "language": "javascript",
-      "parsed": true,
-      "purpose": "Test file",
-      "imports": [
-        "axios"
-      ],
-      "functions": {
-        "testEndpoint": {
-          "signature": "async (endpoint)",
-          "called_by": [
-            "runPerformanceTests",
-            "runAPITests"
-          ]
-        },
-        "testPage": {
-          "signature": "async (page)",
-          "called_by": [
-            "runAPITests"
-          ]
-        },
-        "runAPITests": {
-          "calls": [
-            "testEndpoint",
-            "testPage"
-          ],
-          "signature": "async ()"
-        }
-      },
-      "classes": {},
-      "constants": {
-        "BASE_URL": "str",
-        "TEST_TIMEOUT": "number",
-        "API_ENDPOINTS": "collection",
-        "PAGES_TO_TEST": "collection"
-      },
-      "variables": [
-        "axios",
-        "url",
-        "startTime",
-        "response",
-        "responseTime",
-        "dataSize",
-        "hasContent",
-        "passedTests",
-        "failedTests",
-        "results",
-        "result",
-        "apiResults",
-        "avgResponseTime",
-        "slowestEndpoint",
-        "fastestEndpoint",
-        "dataEndpoints",
-        "judgeListResult",
-        "kpiResult"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\test-analytics-api.js": {
-      "language": "javascript",
-      "parsed": true,
-      "purpose": "Test file",
-      "imports": [
-        "@supabase/supabase-js"
-      ],
-      "functions": {
-        "testAnalyticsAPI": "async ()"
-      },
-      "classes": {},
-      "variables": [
-        "supabase",
-        "judgeId",
-        "judgeName",
-        "stats",
-        "caseType",
-        "outcome",
-        "summary"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\test-analytics.js": {
-      "language": "javascript",
-      "parsed": true,
-      "purpose": "Test file",
-      "imports": [
-        "@supabase/supabase-js"
-      ],
-      "functions": {
-        "testAnalytics": "async ()"
-      },
-      "classes": {},
-      "variables": [
-        "supabase",
-        "judgeId",
-        "judgeName",
-        "casesByType",
-        "casesByStatus",
-        "casesDecided",
-        "type",
-        "status"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\test-automated-sync.js": {
-      "language": "javascript",
-      "parsed": true,
-      "purpose": "Test file",
-      "imports": [
-        "@supabase/supabase-js",
-        "dotenv",
-        "url",
-        "path",
-        "fs"
-      ],
-      "functions": {
-        "main": {
-          "calls": [
-            "runAllTests"
-          ],
-          "signature": "async ()"
-        }
-      },
-      "classes": {
-        "AutomatedSyncTester": {
-          "methods": {
-            "constructor": "()",
-            "runAllTests": {
-              "calls": [
-                "printSummary",
-                "testAdminDashboard",
-                "testCronEndpoints",
-                "testDatabaseSetup",
-                "testQueueManagement",
-                "testSyncEndpoints",
-                "testWebhookEndpoint"
-              ],
-              "signature": "async ()",
-              "called_by": [
-                "main"
-              ]
-            },
-            "testDatabaseSetup": {
-              "calls": [
-                "addResult"
-              ],
-              "signature": "async ()",
-              "called_by": [
-                "AutomatedSyncTester.runAllTests"
-              ]
-            },
-            "testSyncEndpoints": {
-              "signature": "async ()",
-              "called_by": [
-                "AutomatedSyncTester.runAllTests"
-              ]
-            },
-            "testQueueManagement": {
-              "calls": [
-                "addResult"
-              ],
-              "signature": "async ()",
-              "called_by": [
-                "AutomatedSyncTester.runAllTests"
-              ]
-            },
-            "testAdminDashboard": {
-              "calls": [
-                "addResult"
-              ],
-              "signature": "async ()",
-              "called_by": [
-                "AutomatedSyncTester.runAllTests"
-              ]
-            },
-            "testWebhookEndpoint": {
-              "calls": [
-                "addResult"
-              ],
-              "signature": "async ()",
-              "called_by": [
-                "AutomatedSyncTester.runAllTests"
-              ]
-            },
-            "testCronEndpoints": {
-              "signature": "async ()",
-              "called_by": [
-                "AutomatedSyncTester.runAllTests"
-              ]
-            },
-            "addResult": {
-              "signature": "(category, test, passed)",
-              "called_by": [
-                "AutomatedSyncTester.testDatabaseSetup",
-                "AutomatedSyncTester.testWebhookEndpoint",
-                "AutomatedSyncTester.testAdminDashboard",
-                "AutomatedSyncTester.testQueueManagement"
-              ]
-            },
-            "printSummary": {
-              "signature": "()",
-              "called_by": [
-                "AutomatedSyncTester.runAllTests"
-              ]
-            },
-            "__init__": "()"
-          },
-          "doc": "Test Automated Sync System"
-        }
-      },
-      "constants": {
-        "SYNC_API_KEY": "value"
-      },
-      "variables": [
-        "sqlPath",
-        "tables",
-        "endpoints",
-        "getResponse",
-        "data",
-        "postResponse",
-        "testJob",
-        "response",
-        "verifyResponse",
-        "challenge",
-        "cronEndpoints",
-        "categories",
-        "totalPassed",
-        "totalTests",
-        "categoryResults",
-        "passed",
-        "total",
-        "icon",
-        "tester"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\test-courtlistener-judges-sync.js": {
-      "language": "javascript",
-      "parsed": true,
-      "purpose": "Test file",
-      "imports": [
-        "@supabase/supabase-js"
-      ],
-      "functions": {
-        "main": {
-          "calls": [
-            "run"
-          ],
-          "signature": "async ()"
-        }
-      },
-      "classes": {
-        "CourtListenerJudgesTestService": {
-          "methods": {
-            "constructor": "()",
-            "validateEnvironment": "()",
-            "testApiConnectivity": {
-              "calls": [
-                "makeApiRequest",
-                "sleep"
-              ],
-              "signature": "async ()",
-              "called_by": [
-                "CourtListenerJudgesTestService.run"
-              ]
-            },
-            "sleep": {
-              "signature": "async (ms)",
-              "called_by": [
-                "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "JudgeCourtDataMigrator.runMigration",
-                "retryWithBackoff",
-                "CAJudgeDecisionsSync.sleep",
-                "CAJudgeDecisionsSync.makeApiRequest",
-                "CourtListenerJudgesTestService.testApiConnectivity"
-              ]
-            },
-            "makeApiRequest": {
-              "signature": "async (url)",
-              "called_by": [
-                "TestCourtListenerSync.testSync",
-                "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
-                "CourtJudgeValidator.validatePerformance",
-                "CAJudgeDecisionsSync.sleep",
-                "CAJudgeDecisionsSync.makeApiRequest",
-                "CourtJudgeValidator.validateFrontendIntegration",
-                "CourtListenerJudgesTestService.testApiConnectivity",
-                "CourtJudgeValidator.validateCourtJudgeRelationships"
-              ]
-            },
-            "testCourtMappings": {
-              "calls": [
-                "forEach"
-              ],
-              "signature": "async ()",
-              "called_by": [
-                "CourtListenerJudgesTestService.run"
-              ]
-            },
-            "analyzeSampleJudges": {
-              "signature": "async (sampleData)",
-              "called_by": [
-                "CourtListenerJudgesTestService.run"
-              ]
-            },
-            "hasJudgePositions": "(person)",
-            "isJudgePosition": "(position)",
-            "buildFullName": {
-              "signature": "(personData)",
-              "called_by": [
-                "CourtListenerJudgesSyncService.mapJudgeData"
-              ]
-            },
-            "testDatabaseConnectivity": {
-              "signature": "async ()",
-              "called_by": [
-                "CourtListenerJudgesTestService.run"
-              ]
-            },
-            "run": {
-              "calls": [
-                "analyzeSampleJudges",
-                "forEach",
-                "testApiConnectivity",
-                "testCourtMappings",
-                "testDatabaseConnectivity"
-              ],
-              "signature": "async ()",
-              "called_by": [
-                "main"
-              ]
-            },
-            "__init__": "()"
-          },
-          "doc": "Test CourtListener Judges Sync Script"
-        }
-      },
-      "variables": [
-        "required",
-        "missing",
-        "url",
-        "response",
-        "firstPerson",
-        "positionUrl",
-        "positionData",
-        "detailedPositions",
-        "posData",
-        "headers",
-        "fetch",
-        "errorText",
-        "judgeCount",
-        "positionCount",
-        "positionTypes",
-        "allPositionTypes",
-        "educationCount",
-        "hasJudgePositions",
-        "fullName",
-        "parties",
-        "ratings",
-        "judgeTypes",
-        "parts",
-        "courtMappingCount",
-        "sampleData",
-        "analysis",
-        "ready",
-        "issues",
-        "testService",
-        "result"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\test-courtlistener-sync.js": {
-      "language": "javascript",
-      "parsed": true,
-      "purpose": "Test file",
-      "imports": [
-        "@supabase/supabase-js"
-      ],
-      "functions": {
-        "main": {
-          "calls": [
-            "testSync"
-          ],
-          "signature": "async ()"
-        }
-      },
-      "classes": {
-        "TestCourtListenerSync": {
-          "methods": {
-            "constructor": "()",
-            "makeApiRequest": {
-              "signature": "async (url)",
-              "called_by": [
-                "TestCourtListenerSync.testSync",
-                "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
-                "CourtJudgeValidator.validatePerformance",
-                "CAJudgeDecisionsSync.sleep",
-                "CAJudgeDecisionsSync.makeApiRequest",
-                "CourtJudgeValidator.validateFrontendIntegration",
-                "CourtListenerJudgesTestService.testApiConnectivity",
-                "CourtJudgeValidator.validateCourtJudgeRelationships"
-              ]
-            },
-            "testSync": {
-              "calls": [
-                "makeApiRequest",
-                "mapCourtData"
-              ],
-              "signature": "async ()",
-              "called_by": [
-                "main"
-              ]
-            },
-            "mapCourtData": {
-              "signature": "(courtData)",
-              "called_by": [
-                "TestCourtListenerSync.testSync"
-              ]
-            },
-            "normalizeJurisdiction": {
-              "signature": "(clJurisdiction)",
-              "called_by": [
-                "CourtListenerSyncService.mapCourtData"
-              ]
-            },
-            "isLocalCourt": {
-              "signature": "(courtData)",
-              "called_by": [
-                "CourtListenerSyncService.mapCourtData"
-              ]
-            },
-            "buildAddress": {
-              "signature": "(courtData)",
-              "called_by": [
-                "CourtListenerSyncService.mapCourtData"
-              ]
-            },
-            "__init__": "()"
-          },
-          "doc": "Test CourtListener Courts Sync Script"
-        }
-      },
-      "variables": [
-        "headers",
-        "fetch",
-        "response",
-        "url",
-        "testCourt",
-        "mappedData",
-        "jurisdiction",
-        "courtType",
-        "address",
-        "map",
-        "indicators",
-        "name",
-        "parts",
-        "tester",
-        "result"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\test-courtlistener.js": {
-      "language": "javascript",
-      "parsed": true,
-      "purpose": "Test file",
-      "imports": [
-        "dotenv",
-        "url",
-        "path"
-      ],
-      "functions": {
-        "main": {
-          "calls": [
-            "testJudgeOpinions"
-          ],
-          "signature": "async ()"
-        }
-      },
-      "classes": {
-        "SimpleCourtListenerClient": {
-          "methods": {
-            "constructor": "()",
-            "testJudgeOpinions": {
-              "signature": "async (judgeId, judgeName)",
-              "called_by": [
-                "main"
-              ]
-            },
-            "__init__": "()"
-          },
-          "doc": "Test CourtListener API Integration"
-        }
-      },
-      "variables": [
-        "url",
-        "headers",
-        "response",
-        "errorText",
-        "data",
-        "caseName",
-        "caseId",
-        "date",
-        "client",
-        "testJudges"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\test-database-connection.js": {
-      "language": "javascript",
-      "parsed": true,
-      "purpose": "Test file",
-      "imports": [
-        "@supabase/supabase-js",
-        "fs"
-      ],
-      "functions": {},
-      "classes": {
-        "DatabaseTester": {
-          "methods": {
-            "constructor": "()",
-            "createClient": "(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY): null\n    \n    this.anonClient = SUPABASE_URL && SUPABASE_ANON_KEY ? \n      createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null\n  }\n\n  log(message, level = 'info')",
-            "addTest": {
-              "signature": "(name, status, details = {})",
-              "called_by": [
-                "DatabaseTester.testAnonymousAccess",
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
-                "CourtJudgeValidator.validatePerformance",
-                "CourtJudgeValidator.validateFrontendIntegration",
-                "DatabaseTester.testBasicConnection",
-                "CourtJudgeValidator.validateCourtJudgeRelationships"
-              ]
-            },
-            "testEnvironmentVariables": "async ()",
-            "testBasicConnection": {
-              "calls": [
-                "addTest"
-              ],
-              "signature": "async ()"
-            },
-            "testTableExistence": "async ()",
-            "testAnonymousAccess": {
-              "calls": [
-                "addTest"
-              ],
-              "signature": "async ()"
-            },
-            "testRPCFunctions": "async ()",
-            "testPerformance": "async ()",
-            "run": {
-              "signature": "async ()",
-              "called_by": [
-                "main"
-              ]
-            },
-            "__init__": "()"
-          },
-          "doc": "Database Connection Test Script"
-        }
-      },
-      "constants": {
-        "SUPABASE_URL": "value"
-      },
-      "variables": [
-        "icons",
-        "test",
-        "missingVars",
-        "startTime",
-        "latency",
-        "requiredTables",
-        "rpcFunctions",
-        "tests",
-        "status",
-        "fs",
-        "tester"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\test-judge-url.js": {
-      "language": "javascript",
-      "parsed": true,
-      "purpose": "Test file",
-      "imports": [
-        "@supabase/supabase-js",
-        "../lib/utils/slug.ts"
-      ],
-      "functions": {
-        "testJudgeUrls": "async ()"
-      },
-      "classes": {},
-      "variables": [
-        "supabase",
-        "generatedSlug",
-        "dbSlug"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\test-missing-columns.js": {
-      "language": "javascript",
-      "parsed": true,
-      "purpose": "Test file",
-      "imports": [
-        "@supabase/supabase-js"
-      ],
-      "functions": {
-        "testMissingColumns": "async ()"
-      },
-      "classes": {},
-      "variables": [
-        "supabase"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\test-seed-cases.js": {
-      "language": "javascript",
-      "parsed": true,
-      "purpose": "Test file",
-      "imports": [
-        "@supabase/supabase-js"
-      ],
-      "functions": {
-        "testSeedCases": {
-          "calls": [
-            "generateUniqueCase"
-          ],
-          "signature": "async ()"
-        },
-        "generateUniqueCase": {
-          "signature": "(judgeId, index)",
-          "called_by": [
-            "testSeedCases"
-          ]
-        }
-      },
-      "classes": {},
-      "variables": [
-        "supabase",
-        "generateUniqueCase",
-        "caseTypes",
-        "caseType",
-        "outcomes",
-        "names",
-        "randomName1",
-        "randomName2",
-        "now",
-        "filingDate",
-        "decisionDate",
-        "timestamp",
-        "judgeShort",
-        "caseNumber",
-        "status",
-        "outcome",
-        "cases",
-        "i",
-        "batchSize",
-        "batch"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\test-seed-small.js": {
-      "language": "javascript",
-      "parsed": true,
-      "purpose": "Test file",
-      "imports": [
-        "@supabase/supabase-js",
-        "./seed-judge-cases.js"
-      ],
-      "functions": {
-        "testSeedSmall": "async ()"
-      },
-      "classes": {},
-      "variables": [
-        "supabase",
-        "totalCasesCreated",
-        "casesPerJudge",
-        "cases",
-        "j"
-      ],
-      "call_graph": {}
-    },
-    "scripts\\test-single-analytics.js": {
-      "language": "javascript",
-      "parsed": true,
-      "purpose": "Test file",
-      "imports": [
-        "@supabase/supabase-js"
-      ],
-      "functions": {
-        "testSingleAnalytics": "async ()"
-      },
-      "classes": {},
-      "variables": [
-        "supabase",
-        "testJudge",
-        "response",
-        "analyticsData",
-        "isWorking"
       ],
       "call_graph": {}
     },
@@ -11569,11 +10686,10 @@
               "signature": "async (ms)",
               "called_by": [
                 "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "JudgeCourtDataMigrator.runMigration",
-                "retryWithBackoff",
                 "CAJudgeDecisionsSync.sleep",
+                "JudgeCourtDataMigrator.runMigration",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "CourtListenerJudgesTestService.testApiConnectivity"
+                "retryWithBackoff"
               ]
             },
             "makeRequest": "async (endpoint, params = {})",
@@ -11736,12 +10852,10 @@
             "addTest": {
               "signature": "(category, testName, status, details = {})",
               "called_by": [
-                "DatabaseTester.testAnonymousAccess",
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
                 "CourtJudgeValidator.validatePerformance",
                 "CourtJudgeValidator.validateFrontendIntegration",
-                "DatabaseTester.testBasicConnection",
-                "CourtJudgeValidator.validateCourtJudgeRelationships"
+                "CourtJudgeValidator.validateCourtJudgeRelationships",
+                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility"
               ]
             },
             "addPerformanceMetric": {
@@ -11758,19 +10872,14 @@
               ],
               "signature": "async ()",
               "called_by": [
-                "JudgeCourtDataMigrator.runMigration",
-                "DatabaseMigrationRunner.runMigrations",
-                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "DatabaseIntegrityChecker.runAllChecks"
+                "DatabaseMigrationRunner.runMigrations",
+                "DatabaseIntegrityChecker.runAllChecks",
+                "JudgeCourtDataMigrator.runMigration",
+                "CourtListenerJudgesSyncService.run"
               ]
             },
-            "printSummary": {
-              "signature": "()",
-              "called_by": [
-                "AutomatedSyncTester.runAllTests"
-              ]
-            },
+            "printSummary": "()",
             "__init__": "()"
           },
           "doc": "Comprehensive Court-Judge Relationship Validation Script"
@@ -11782,15 +10891,13 @@
             "makeApiRequest": {
               "signature": "async (url, options = {})",
               "called_by": [
-                "TestCourtListenerSync.testSync",
                 "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
-                "CourtJudgeValidator.validatePerformance",
                 "CAJudgeDecisionsSync.sleep",
+                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
+                "CourtJudgeValidator.validateCourtJudgeRelationships",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "CourtJudgeValidator.validateFrontendIntegration",
-                "CourtListenerJudgesTestService.testApiConnectivity",
-                "CourtJudgeValidator.validateCourtJudgeRelationships"
+                "CourtJudgeValidator.validatePerformance",
+                "CourtJudgeValidator.validateFrontendIntegration"
               ]
             },
             "validateCourtJudgeRelationships": {
@@ -12072,6 +11179,10 @@
       "parsed": false
     },
     "supabase\\migrations\\20250822_001_orphaned_judges_function.sql": {
+      "language": "sql",
+      "parsed": false
+    },
+    "supabase\\migrations\\20250822_002_add_cases_unique_constraint.sql": {
       "language": "sql",
       "parsed": false
     },
@@ -12943,22 +12054,6 @@
       "@supabase/supabase-js",
       "fs"
     ],
-    "scripts\\fix-cases-constraint.js": [
-      "@supabase/supabase-js"
-    ],
-    "scripts\\fix-court-schema.js": [
-      "@supabase/supabase-js"
-    ],
-    "scripts\\fix-dynamic-routes.js": [
-      "fs",
-      "path"
-    ],
-    "scripts\\fix-judge-court-assignments.js": [
-      "@supabase/supabase-js"
-    ],
-    "scripts\\fix-orphaned-cases.js": [
-      "@supabase/supabase-js"
-    ],
     "scripts\\investigate-ca-judges.js": [
       "@supabase/supabase-js"
     ],
@@ -13053,54 +12148,6 @@
       "url",
       "path"
     ],
-    "scripts\\test-all-api-endpoints.js": [
-      "axios"
-    ],
-    "scripts\\test-analytics-api.js": [
-      "@supabase/supabase-js"
-    ],
-    "scripts\\test-analytics.js": [
-      "@supabase/supabase-js"
-    ],
-    "scripts\\test-automated-sync.js": [
-      "@supabase/supabase-js",
-      "dotenv",
-      "url",
-      "path",
-      "fs"
-    ],
-    "scripts\\test-courtlistener-judges-sync.js": [
-      "@supabase/supabase-js"
-    ],
-    "scripts\\test-courtlistener-sync.js": [
-      "@supabase/supabase-js"
-    ],
-    "scripts\\test-courtlistener.js": [
-      "dotenv",
-      "url",
-      "path"
-    ],
-    "scripts\\test-database-connection.js": [
-      "@supabase/supabase-js",
-      "fs"
-    ],
-    "scripts\\test-judge-url.js": [
-      "@supabase/supabase-js",
-      "lib/utils/slug.ts"
-    ],
-    "scripts\\test-missing-columns.js": [
-      "@supabase/supabase-js"
-    ],
-    "scripts\\test-seed-cases.js": [
-      "@supabase/supabase-js"
-    ],
-    "scripts\\test-seed-small.js": [
-      "@supabase/supabase-js",
-      "scripts/seed-judge-cases.js"
-    ],
-    "scripts\\test-single-analytics.js": [
-      "@supabase/supabase-js"
-    ],
     "scripts\\update-ca-courts.js": [
       "@supabase/supabase-js"
     ],
@@ -13134,5 +12181,5 @@
       "@supabase/supabase-js"
     ]
   },
-  "staleness_check": 1755238287.754941
+  "staleness_check": 1755241856.861129
 }
