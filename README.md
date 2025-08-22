@@ -194,7 +194,24 @@ npm run db:generate     # Generate Prisma client
 
 ## Deployment
 
-### Vercel Deployment
+### Netlify Deployment (Recommended)
+
+1. **Fork this repository** to your GitHub account
+
+2. **Set up environment variables** in Netlify:
+   - See [NETLIFY_ENV_SETUP.md](./NETLIFY_ENV_SETUP.md) for detailed instructions
+   - Add all required environment variables in Netlify dashboard
+
+3. **Deploy from GitHub**:
+   - Connect your GitHub repository to Netlify
+   - Netlify will auto-deploy on push to main branch
+
+4. **Run database migrations**:
+   ```bash
+   npx supabase db push
+   ```
+
+### Vercel Deployment (Alternative)
 ```bash
 # Install Vercel CLI
 npm i -g vercel
