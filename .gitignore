@@ -95,20 +95,41 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variable files
+# Environment Variables
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
+.env.production.safe
+.env.production.template
+.new-keys-*.env
 
-# JudgeFinder Platform - Security
+# Security & Secrets
 PRODUCTION_KEYS.txt
 .production-keys-*.txt
-.env.production
 secrets.txt
 *.keys
 *-keys.txt
+CLERK_SETUP_GUIDE.md
+
+# Backup Files
+*-backup-*.json
+courts-backup-*.json
+judges-backup-*.json
+
+# Analysis Reports
+*-analysis.json
+*-validation-report.json
+database-integrity-report.json
+court-judge-validation-report.json
+
+# Temporary Scripts
+scripts/test-*.js
+scripts/fix-*.js
+scripts/temp-*.js
+nul
 
 # parcel-bundler cache
 .cache
