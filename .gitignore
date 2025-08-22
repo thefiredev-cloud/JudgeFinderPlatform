@@ -113,6 +113,9 @@ secrets.txt
 *.keys
 *-keys.txt
 CLERK_SETUP_GUIDE.md
+SECURITY_FIX_INSTRUCTIONS.md
+.env.production.safe
+.env.production.template
 
 # Backup Files
 *-backup-*.json
