@@ -81,7 +81,16 @@
       "mcp__wonderwhy-er-desktop-commander__list_processes",
       "Bash(wmic:*)",
       "Bash(dir:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "mcp__filesystem__write_file",
+      "mcp__filesystem__edit_file",
+      "mcp__filesystem__list_allowed_directories",
+      "mcp__filesystem__read_text_file",
+      "mcp__filesystem__list_directory",
+      "mcp__sequential-thinking__sequentialthinking",
+      "mcp__filesystem__search_files",
+      "Bash(npm audit:*)",
+      "Bash(del .new-keys-1755844915386.env)"
     ],
     "deny": [],
     "ask": [],

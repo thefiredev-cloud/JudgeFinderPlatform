@@ -3,6 +3,8 @@ import { SyncQueueManager } from '@/lib/sync/queue-manager'
 import { logger } from '@/lib/utils/logger'
 import crypto from 'crypto'
 
+export const dynamic = 'force-dynamic'
+
 export const runtime = 'nodejs'
 export const maxDuration = 120 // 2 minutes for webhook processing
 

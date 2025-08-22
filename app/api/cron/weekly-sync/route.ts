@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { SyncQueueManager } from '@/lib/sync/queue-manager'
 import { logger } from '@/lib/utils/logger'
 
+export const dynamic = 'force-dynamic'
+
 export const runtime = 'nodejs'
 export const maxDuration = 60 // 1 minute to queue jobs
 

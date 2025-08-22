@@ -12,6 +12,8 @@ import type {
   SearchSuggestion
 } from '@/types/search'
 
+export const dynamic = 'force-dynamic'
+
 // Predefined jurisdictions for search
 const PREDEFINED_JURISDICTIONS: JurisdictionSearchResult[] = [
   {

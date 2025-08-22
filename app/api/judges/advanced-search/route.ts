@@ -4,6 +4,8 @@ import { logger } from '@/lib/utils/logger'
 import { sanitizeSearchQuery } from '@/lib/utils/validation'
 import type { Judge } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 interface AdvancedJudgeFilters {
   case_types?: string[]
   min_experience?: number

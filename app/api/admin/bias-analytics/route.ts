@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { createServerClient } from '@/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
+
 interface BiasAnalyticsData {
   overview: {
     total_judges: number
@@ -54,10 +56,17 @@ export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth()
     
-    // For demo purposes, we'll allow access. In production, add admin role check:
-    // if (!userId || !isAdmin) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-    // }
+    // Check for admin role - SECURITY CRITICAL
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized - Authentication required' }, { status: 401 })
+    }
+    
+    // TODO: Implement proper admin role check with Clerk
+    // For now, add a temporary admin whitelist
+    const ADMIN_USER_IDS = process.env.ADMIN_USER_IDS?.split(',') || []
+    if (!ADMIN_USER_IDS.includes(userId)) {
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
+    }
 
     const { searchParams } = new URL(request.url)
     const jurisdiction = searchParams.get('jurisdiction')

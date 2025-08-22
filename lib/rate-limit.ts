@@ -114,14 +114,16 @@ export async function checkRateLimit(
       }
     }
   } catch (error) {
-    // Log the error but don't block the request if rate limiting fails
+    // Log the error and block the request for security (fail closed)
     console.error('Rate limiting error:', error)
     return {
-      success: true, // Allow request if rate limiting fails
+      success: false, // SECURITY: Fail closed - block request if rate limiting fails
       limit: 0,
-      reset: 0,
+      reset: Date.now() + 60000, // Reset in 1 minute
       remaining: 0,
-      headers: {}
+      headers: {
+        'X-RateLimit-Error': 'Rate limiting service unavailable'
+      }
     }
   }
 }

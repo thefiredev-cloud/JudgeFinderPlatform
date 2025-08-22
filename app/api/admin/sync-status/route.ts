@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 import { SyncQueueManager } from '@/lib/sync/queue-manager'
 import { logger } from '@/lib/utils/logger'
 
+export const dynamic = 'force-dynamic'
+
 export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {

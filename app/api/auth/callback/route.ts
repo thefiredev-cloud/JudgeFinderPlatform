@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   // This route exists only to give Supabase a redirect URL; the auth cookie will be set by Supabase
   const url = new URL(request.url)

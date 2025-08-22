@@ -103,9 +103,12 @@ jspm_packages/
 .env.production.local
 
 # JudgeFinder Platform - Security
+PRODUCTION_KEYS.txt
 .production-keys-*.txt
 .env.production
 secrets.txt
+*.keys
+*-keys.txt
 
 # parcel-bundler cache
 .cache

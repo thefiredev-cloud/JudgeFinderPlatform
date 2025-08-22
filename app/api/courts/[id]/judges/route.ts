@@ -5,6 +5,8 @@ import { validateParams, validateSearchParams, courtJudgesSearchParamsSchema } f
 import { z } from 'zod'
 import type { Judge } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 // Validation schemas
 const courtIdParamsSchema = z.object({
   id: z.string().uuid('Invalid court ID format')

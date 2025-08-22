@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { SupabaseConnectionHelper } from '@/lib/supabase/connection-helper'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
@@ -20,19 +23,30 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Check database connectivity
-    const supabase = await createServerClient()
-    const { data, error } = await supabase
-      .from('judges')
-      .select('id')
-      .limit(1)
-      .single()
+    // Check database connectivity using connection helper
+    const connectionHelper = SupabaseConnectionHelper.getInstance()
+    const healthCheck = await connectionHelper.healthCheck()
 
-    if (error) {
-      checks.checks.database = 'unhealthy'
+    if (healthCheck.status === 'healthy') {
+      checks.checks.database = 'healthy'
+    } else if (healthCheck.status === 'degraded') {
+      checks.checks.database = 'degraded'
       checks.status = 'degraded'
     } else {
-      checks.checks.database = 'healthy'
+      checks.checks.database = 'unhealthy'
+      checks.status = 'degraded'
+    }
+
+    // Add database performance metrics
+    checks.performance = {
+      ...checks.performance,
+      databaseLatency: healthCheck.checks.latency,
+      databaseConnection: healthCheck.checks.connection,
+      databaseQuery: healthCheck.checks.query
+    }
+
+    if (healthCheck.error) {
+      checks.performance.databaseError = healthCheck.error
     }
 
     // Check memory usage

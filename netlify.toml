@@ -46,6 +46,7 @@
 [context.branch-deploy]
   command = "npm run build"
 
-# Edge Functions for better performance
-[edge_functions]
-  directory = "netlify/edge-functions"
+# Edge Functions directory (commented out until functions are created)
+# [[edge_functions]]
+#   path = "/api/*"
+#   function = "api-handler"

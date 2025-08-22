@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import type { Judge } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 interface JudgesByState {
   [state: string]: {
     count: number

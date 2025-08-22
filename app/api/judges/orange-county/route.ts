@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * Orange County specific judge API endpoint
  * Supports the $78.5K/month revenue pipeline with targeted data access

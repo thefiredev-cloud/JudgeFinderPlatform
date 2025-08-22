@@ -4,6 +4,8 @@ import { generateSlug, isValidSlug } from '@/lib/utils/slug'
 import { cache } from '@/lib/cache/simple-cache'
 import type { Court } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 interface CourtLookupResult {
   court: Court | null
   found_by: string

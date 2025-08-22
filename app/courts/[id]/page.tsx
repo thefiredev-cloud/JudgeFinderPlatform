@@ -12,6 +12,8 @@ import {
 } from '@/lib/utils/slug'
 import type { Court } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 type Params = Promise<{ id: string }>
 
 interface JudgeWithPosition {

@@ -2,6 +2,8 @@ import { auth } from '@clerk/nextjs/server'
 import { isAdmin } from '@/lib/auth/admin'
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: Request) {
   try {
     const { userId } = await auth()

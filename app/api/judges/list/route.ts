@@ -4,6 +4,8 @@ import { logger } from '@/lib/utils/logger'
 import { validateSearchParams, judgeSearchParamsSchema, sanitizeSearchQuery } from '@/lib/utils/validation'
 import type { Judge, Court } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 interface YearlyDecisionCount {
   year: number
   count: number

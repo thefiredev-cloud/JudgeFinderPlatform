@@ -6,6 +6,8 @@ import { logger } from '@/lib/utils/logger'
 import { isJudge, isJudgeArray, validateStringLength } from '@/lib/utils/type-guards'
 import type { Judge, JudgeLookupResult } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * Enhanced judge lookup API with multiple fallback strategies
  * Provides detailed information about how the judge was found

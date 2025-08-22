@@ -5,8 +5,6 @@ import { RecentDecisions } from '@/components/judges/RecentDecisions'
 import { AttorneySlots } from '@/components/judges/AttorneySlots'
 import { JudgeFAQ } from '@/components/judges/JudgeFAQ'
 import AnalyticsSliders from '@/components/judges/AnalyticsSliders'
-import { BiasPatternAnalysis } from '@/components/judges/BiasPatternAnalysis'
-import { CaseOutcomeStatistics } from '@/components/judges/CaseOutcomeStatistics'
 import { BookmarkButton } from '@/components/judges/BookmarkButton'
 import { LazyGoogleAd } from '@/components/ads/GoogleAd'
 import { SEOBreadcrumbs } from '@/components/seo/SEOBreadcrumbs'
@@ -18,6 +16,8 @@ import { generateJudgeMetadata } from '@/lib/seo/metadata-generator'
 import { generateJudgeStructuredData } from '@/lib/seo/structured-data'
 import { generateUniqueJudgeContent, generateRelatedJudges } from '@/lib/seo/content-generator'
 import type { Judge, JudgeLookupResult } from '@/types'
+
+export const dynamic = 'force-dynamic'
 
 /**
  * Fetch judge using the enhanced API endpoint
@@ -340,8 +340,6 @@ export default async function JudgePage({ params }: JudgePageProps) {
             </div>
             
             <AnalyticsSliders judgeId={judge.id} judgeName={safeName} />
-            <BiasPatternAnalysis judge={judge} />
-            <CaseOutcomeStatistics judge={judge} />
             <RecentDecisions judgeId={judge.id} />
           </div>
 

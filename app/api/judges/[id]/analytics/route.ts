@@ -4,6 +4,8 @@ import { createServerClient } from '@/lib/supabase/server'
 // Import AI analytics pipeline
 const { generateJudicialAnalytics, generateAnalyticsWithOpenAI } = require('@/lib/ai/judicial-analytics')
 
+export const dynamic = 'force-dynamic'
+
 interface CaseAnalytics {
   civil_plaintiff_favor: number
   civil_defendant_favor: number

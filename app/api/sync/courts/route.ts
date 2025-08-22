@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { CourtSyncManager } from '@/lib/sync/court-sync'
 import { logger } from '@/lib/utils/logger'
 
+export const dynamic = 'force-dynamic'
+
 export const runtime = 'nodejs'
 export const maxDuration = 300 // 5 minutes for court sync
 

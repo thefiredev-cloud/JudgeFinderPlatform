@@ -4,6 +4,8 @@ import { checkRateLimit, getRateLimitIdentifier } from '@/lib/rate-limit'
 import { auth } from '@clerk/nextjs/server'
 import type { Judge, SearchResult } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     // Check rate limit

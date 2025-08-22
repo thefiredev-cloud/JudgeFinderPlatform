@@ -649,61 +649,49 @@ class CourtJudgeValidator {
     this.reporter.log('Validating Database Integrity', 'info')
 
     try {
-      // Check for orphaned judges (judges without valid courts)
-      // First get all court IDs
-      const { data: validCourts, error: courtsError } = await this.supabase
-        .from('courts')
-        .select('id')
+      // Check for orphaned judges using SQL join instead of large IN clause
+      const { data: orphanedJudges, error: orphanError } = await this.supabase
+        .rpc('find_orphaned_judges')
 
-      if (courtsError) {
-        this.reporter.addTest(
-          'data_integrity',
-          'Orphaned Judges Check',
-          'failed',
-          {
-            error: courtsError.message,
-            severity: 'high'
-          }
-        )
-      } else {
-        const validCourtIds = validCourts.map(c => c.id)
-        
-        const { data: orphanedJudges, error: orphanError } = await this.supabase
+      if (orphanError) {
+        // Fallback to simple count query if RPC function doesn't exist
+        const { count: orphanedCount, error: countError } = await this.supabase
           .from('judges')
-          .select('id, name, court_id')
+          .select('*', { count: 'exact', head: true })
           .not('court_id', 'is', null)
-          .not('court_id', 'in', validCourtIds)
+          .filter('court_id', 'not.in', '(select id from courts)')
 
-        if (orphanError) {
+        if (countError) {
           this.reporter.addTest(
             'data_integrity',
             'Orphaned Judges Check',
             'failed',
             {
-              error: orphanError.message,
+              error: countError.message,
               severity: 'high'
-            }
-          )
-        } else if (orphanedJudges.length > 0) {
-          this.reporter.addTest(
-            'data_integrity',
-            'Orphaned Judges Check',
-            'failed',
-            {
-              orphaned_count: orphanedJudges.length,
-              severity: 'medium'
             }
           )
         } else {
           this.reporter.addTest(
             'data_integrity',
             'Orphaned Judges Check',
-            'passed',
+            orphanedCount > 0 ? 'failed' : 'passed',
             {
-              orphaned_count: 0
+              orphaned_count: orphanedCount,
+              severity: orphanedCount > 0 ? 'medium' : undefined
             }
           )
         }
+      } else {
+        this.reporter.addTest(
+          'data_integrity',
+          'Orphaned Judges Check',
+          orphanedJudges.length > 0 ? 'failed' : 'passed',
+          {
+            orphaned_count: orphanedJudges.length,
+            severity: orphanedJudges.length > 0 ? 'medium' : undefined
+          }
+        )
       }
 
       // Check for judges with null court_id

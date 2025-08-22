@@ -233,7 +233,7 @@ class CourtListenerSyncService {
         website: null, // CourtListener doesn't provide website URLs
         phone: null,   // CourtListener doesn't provide phone numbers
         courtlistener_id: courtData.id.toString(),
-        courthouse_metadata: metadata,
+        // courthouse_metadata: metadata, // Temporarily disabled - column missing
         updated_at: new Date().toISOString()
       }
     } catch (error) {
@@ -335,7 +335,7 @@ class CourtListenerSyncService {
               type: mappedData.type,
               jurisdiction: mappedData.jurisdiction,
               address: mappedData.address,
-              courthouse_metadata: mappedData.courthouse_metadata,
+              // courthouse_metadata: mappedData.courthouse_metadata, // Temporarily disabled - column missing
               updated_at: mappedData.updated_at
             })
             .eq('id', existingCourt.id)
