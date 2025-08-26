@@ -22,7 +22,12 @@ class MinimalMigrationExecutor {
     console.log('Only 2 columns need to be added to complete the migration.')
     console.log('')
     console.log('🔗 Supabase SQL Editor URL:')
-    console.log(`${process.env.NEXT_PUBLIC_SUPABASE_URL.replace('/rest/v1', '')}/project/${process.env.NEXT_PUBLIC_SUPABASE_URL.split('/')[3]}/sql`)
+    // Only show URL in development mode, not during builds
+    if (process.env.NODE_ENV !== 'production' && !process.env.NETLIFY_BUILD && !process.env.NETLIFY) {
+      console.log(`${process.env.NEXT_PUBLIC_SUPABASE_URL.replace('/rest/v1', '')}/project/${process.env.NEXT_PUBLIC_SUPABASE_URL.split('/')[3]}/sql`)
+    } else {
+      console.log('[URL hidden in production/build mode]')
+    }
     console.log('')
     console.log('📋 Execute these SQL statements:')
     console.log('=' .repeat(50))

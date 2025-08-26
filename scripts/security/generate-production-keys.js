@@ -2,8 +2,19 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔐 GENERATING PRODUCTION SECURITY KEYS\n');
-console.log('=' .repeat(60));
+// Prevent execution during Netlify builds
+if (process.env.NETLIFY_BUILD === 'true' || process.env.NETLIFY === 'true') {
+  console.log('⏭️ Skipping security key generation during Netlify build');
+  process.exit(0);
+}
+
+// Only log in development environment
+const isDevelopment = process.env.NODE_ENV !== 'production';
+
+if (isDevelopment) {
+  console.log('🔐 GENERATING PRODUCTION SECURITY KEYS\n');
+  console.log('=' .repeat(60));
+}
 
 // Generate secure random keys
 const keys = {
@@ -15,10 +26,12 @@ const keys = {
   SESSION_SECRET: crypto.randomBytes(32).toString('hex')
 };
 
-// Display keys
-console.log('\n📋 Generated Security Keys:\n');
-for (const [key, value] of Object.entries(keys)) {
-  console.log(`${key}=${value}`);
+// Display keys only in development
+if (isDevelopment) {
+  console.log('\n📋 Generated Security Keys:\n');
+  for (const [key, value] of Object.entries(keys)) {
+    console.log(`${key}=${value}`);
+  }
 }
 
 // Create production keys file
@@ -40,9 +53,11 @@ ${Object.entries(keys).map(([k, v]) => `${k}=${v}`).join('\n')}
 
 fs.writeFileSync(productionKeysPath, content);
 
-console.log('\n✅ Keys saved to PRODUCTION_KEYS.txt');
-console.log('📌 Next steps:');
-console.log('1. Copy these keys to your production environment');
-console.log('2. Update .env.production with these values');
-console.log('3. Configure remaining service keys from their dashboards');
-console.log('\n⚠️ SECURITY REMINDER: Never commit these keys to git!');
+if (isDevelopment) {
+  console.log('\n✅ Keys saved to PRODUCTION_KEYS.txt');
+  console.log('📌 Next steps:');
+  console.log('1. Copy these keys to your production environment');
+  console.log('2. Update .env.production with these values');
+  console.log('3. Configure remaining service keys from their dashboards');
+  console.log('\n⚠️ SECURITY REMINDER: Never commit these keys to git!');
+}

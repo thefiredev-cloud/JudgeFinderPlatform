@@ -16,6 +16,12 @@ const path = require('path');
 const crypto = require('crypto');
 const readline = require('readline');
 
+// Prevent execution during Netlify builds
+if (process.env.NETLIFY_BUILD === 'true' || process.env.NETLIFY === 'true') {
+  console.log('⏭️ Skipping emergency key rotation during Netlify build');
+  process.exit(0);
+}
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout

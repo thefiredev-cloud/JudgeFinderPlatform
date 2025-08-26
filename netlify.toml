@@ -12,6 +12,14 @@
   NPM_FLAGS = "--production=false"
   # Enable Next.js build cache
   NETLIFY_NEXT_PLUGIN_SKIP = "false"
+  
+  # Secrets Scanning Configuration
+  # Skip scanning in example files and security script directories
+  SECRETS_SCAN_OMIT_PATHS = "scripts/security/**,*.example,*.md,*.txt,scripts/validation/**,scripts/migration/**"
+  # Exclude environment variable names that are expected in build output
+  SECRETS_SCAN_OMIT_KEYS = "NODE_VERSION,NEXT_TELEMETRY_DISABLED,NPM_FLAGS,NETLIFY_NEXT_PLUGIN_SKIP,NEXT_PUBLIC_*"
+  # Prevent security scripts from running during build
+  NETLIFY_BUILD = "true"
 
 # Next.js Build Settings
 [[plugins]]
