@@ -104,7 +104,11 @@
       "mcp__playwright__browser_type",
       "mcp__playwright__browser_close",
       "Bash(npm ls:*)",
-      "mcp__github__search_repositories"
+      "mcp__github__search_repositories",
+      "mcp__clerk__getUserId",
+      "mcp__convex__status",
+      "mcp__stripe__retrieve_balance",
+      "Bash(stripe listen:*)"
     ],
     "deny": [],
     "ask": [],

@@ -109,6 +109,7 @@ jspm_packages/
 .env.staging
 *.env
 .new-keys-*.env
+.env.mcp
 
 # Security & Secrets - CRITICAL: Contains API keys
 PRODUCTION_KEYS.txt
