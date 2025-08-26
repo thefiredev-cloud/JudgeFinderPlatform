@@ -4,6 +4,9 @@ import { stripe } from '@/lib/stripe'
 import { createServerClient } from '@/lib/supabase/server'
 import Stripe from 'stripe'
 
+export const dynamic = 'force-dynamic'
+
+
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET || ''
 
 export async function POST(request: NextRequest) {

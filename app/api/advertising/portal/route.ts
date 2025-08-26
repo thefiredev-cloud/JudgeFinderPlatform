@@ -4,6 +4,9 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getOrCreateAdvertiserProfile } from '@/lib/auth/roles'
 import { createCustomerPortalSession } from '@/lib/stripe'
 
+export const dynamic = 'force-dynamic'
+
+
 // POST - Create a Stripe Customer Portal session for managing subscriptions
 export async function POST(request: NextRequest) {
   try {

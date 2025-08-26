@@ -3,6 +3,9 @@ import { auth, currentUser } from '@clerk/nextjs/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { updateUserRole } from '@/lib/auth/roles'
 
+export const dynamic = 'force-dynamic'
+
+
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()

@@ -4,6 +4,9 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getOrCreateAdvertiserProfile } from '@/lib/auth/roles'
 import { cancelSubscription, getSubscription } from '@/lib/stripe'
 
+export const dynamic = 'force-dynamic'
+
+
 // GET - List all subscriptions for the current advertiser
 export async function GET(request: NextRequest) {
   try {
