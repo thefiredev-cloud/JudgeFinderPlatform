@@ -1,11 +1,17 @@
 # Netlify Configuration for JudgeFinder Platform
 [build]
-  command = "npm run build"
+  # Force installation of all dependencies including devDependencies
+  command = "npm ci --production=false && npm run build"
   publish = ".next"
 
 [build.environment]
-  NODE_VERSION = "18"
+  # Use Node 20 LTS for better compatibility
+  NODE_VERSION = "20"
   NEXT_TELEMETRY_DISABLED = "1"
+  # Ensure all dependencies are installed
+  NPM_FLAGS = "--production=false"
+  # Enable Next.js build cache
+  NETLIFY_NEXT_PLUGIN_SKIP = "false"
 
 # Next.js Build Settings
 [[plugins]]
@@ -24,13 +30,13 @@
 
 # Environment-specific configurations
 [context.production]
-  command = "npm run build"
+  command = "npm ci --production=false && npm run build"
   
 [context.deploy-preview]
-  command = "npm run build"
+  command = "npm ci --production=false && npm run build"
 
 [context.branch-deploy]
-  command = "npm run build"
+  command = "npm ci --production=false && npm run build"
 
 # Edge Functions directory (commented out until functions are created)
 # [[edge_functions]]
