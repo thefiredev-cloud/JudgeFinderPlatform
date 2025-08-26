@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getOrCreateAdvertiserProfile } from '@/lib/auth/roles'
-import { createCustomerPortalSession } from '@/lib/stripe'
+import { createCustomerPortalSession, stripe } from '@/lib/stripe'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,10 +36,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!process.env.STRIPE_SECRET_KEY) {
+    if (!stripe) {
       return NextResponse.json(
-        { error: 'Payment system is not configured' },
-        { status: 500 }
+        { error: 'Payment system is not configured. Please set STRIPE_SECRET_KEY.' },
+        { status: 503 }
       )
     }
 

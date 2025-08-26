@@ -15,6 +15,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing priceId, judgeId or slotId' }, { status: 400 })
     }
 
+    if (!stripe) {
+      console.error('[Attorney Slots] Stripe is not configured')
+      return NextResponse.json({ error: 'Payment system is not configured' }, { status: 503 })
+    }
+
     const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
 
     const tier = priceId === (process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_FEDERAL || '') ? 'federal' : 'state_local'

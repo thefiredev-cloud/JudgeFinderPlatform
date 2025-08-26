@@ -1,10 +1,17 @@
 import Stripe from 'stripe'
 
-// Initialize Stripe with your secret key
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-07-30.basil',
-  typescript: true,
-})
+// Get the API key from environment variables
+const stripeKey = process.env.STRIPE_SECRET_KEY
+
+// Only initialize if we have a valid key (not empty or placeholder)
+export const stripe = stripeKey && 
+  stripeKey !== '' && 
+  stripeKey !== 'CONFIGURE_IN_NETLIFY'
+    ? new Stripe(stripeKey, {
+        apiVersion: '2025-07-30.basil',
+        typescript: true,
+      })
+    : null as Stripe | null
 
 // Helper function to create a checkout session for ad spot subscriptions
 export async function createAdSpotCheckoutSession({
@@ -22,6 +29,9 @@ export async function createAdSpotCheckoutSession({
   cancelUrl: string
   metadata?: Record<string, string>
 }) {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Please set STRIPE_SECRET_KEY.')
+  }
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
@@ -60,6 +70,9 @@ export async function getOrCreateAdSpotProduct({
   entityType: 'judge' | 'court'
   courtLevel?: 'state' | 'federal'
 }) {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Please set STRIPE_SECRET_KEY.')
+  }
   const productName = `Ad Spot - ${entityName}`
   const productDescription = entityType === 'judge' 
     ? `Monthly advertising spot on ${entityName}'s profile page${courtLevel ? ` (${courtLevel} court)` : ''}`
@@ -98,6 +111,9 @@ export async function getOrCreateAdSpotPrice({
   monthlyAmount: number
   currency?: string
 }) {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Please set STRIPE_SECRET_KEY.')
+  }
   // Check for existing price
   const existingPrices = await stripe.prices.list({
     product: productId,
@@ -128,12 +144,18 @@ export async function getOrCreateAdSpotPrice({
 
 // Helper function to cancel a subscription
 export async function cancelSubscription(subscriptionId: string) {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Please set STRIPE_SECRET_KEY.')
+  }
   const subscription = await stripe.subscriptions.cancel(subscriptionId)
   return subscription
 }
 
 // Helper function to retrieve a subscription
 export async function getSubscription(subscriptionId: string) {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Please set STRIPE_SECRET_KEY.')
+  }
   const subscription = await stripe.subscriptions.retrieve(subscriptionId)
   return subscription
 }
@@ -146,6 +168,9 @@ export async function createCustomerPortalSession({
   customerId: string
   returnUrl: string
 }) {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Please set STRIPE_SECRET_KEY.')
+  }
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
     return_url: returnUrl,
