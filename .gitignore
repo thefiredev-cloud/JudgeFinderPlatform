@@ -95,38 +95,58 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# Environment Variables
+# Environment Variables - CRITICAL: Never commit these!
 .env
+.env.*
+!.env.example
 .env.local
+.env.development
 .env.development.local
+.env.test
 .env.test.local
-.env.production.local
 .env.production
-.env.production.safe
-.env.production.template
+.env.production.local
+.env.staging
+*.env
 .new-keys-*.env
 
-# Security & Secrets
+# Security & Secrets - CRITICAL: Contains API keys
 PRODUCTION_KEYS.txt
 .production-keys-*.txt
 secrets.txt
+secrets.json
 *.keys
+*.key
 *-keys.txt
+*-keys.md
+KEY_ROTATION_TRACKER.md
 CLERK_SETUP_GUIDE.md
 SECURITY_FIX_INSTRUCTIONS.md
-.env.production.safe
-.env.production.template
+credentials.json
+credentials.txt
+config.secret.js
+config.secret.json
+
+# API Key Files
+**/api-keys/
+**/secrets/
+**/credentials/
+.secrets/
+.credentials/
 
 # Backup Files
 *-backup-*.json
 courts-backup-*.json
 judges-backup-*.json
 
-# Analysis Reports
+# Analysis Reports and Data Files
 *-analysis.json
 *-validation-report.json
 database-integrity-report.json
 court-judge-validation-report.json
+/data/*.json
+!/data/PROJECT_INDEX.json
+/reports/
 
 # Temporary Scripts
 scripts/test-*.js
