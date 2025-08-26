@@ -1,0 +1,59 @@
+{
+  "timestamp": "2025-08-25T03:28:39.300Z",
+  "platform_status": "HEALTHY",
+  "data_quality": {
+    "database_stats": {
+      "total_judges": 1810,
+      "california_judges": 1810,
+      "total_courts": 3461,
+      "total_cases": 441614,
+      "analytics_entries": 0
+    },
+    "judge_quality": {
+      "judges_missing_court": 0,
+      "judges_no_cases": 0,
+      "test_data_entries": 0,
+      "quality_score": 100
+    },
+    "relationships": {
+      "judges_without_courts": 0,
+      "orphaned_cases": 0,
+      "relationship_integrity": "GOOD"
+    }
+  },
+  "analytics_coverage": {
+    "total_judges": 1810,
+    "judges_with_analytics": 0,
+    "coverage_percentage": 0,
+    "fresh_analytics": 0,
+    "stale_analytics": 0,
+    "high_confidence": 0,
+    "low_confidence": 0
+  },
+  "api_health": {
+    "total_endpoints": 3,
+    "healthy": 3,
+    "failed": 0,
+    "health_percentage": 100
+  },
+  "issues_found": [
+    {
+      "type": "WARNING",
+      "message": "Analytics coverage is only 0% (target: 90%+)"
+    }
+  ],
+  "recommendations": [
+    "Run analytics regeneration for judges without analytics",
+    "Regenerate analytics for all judges to improve coverage"
+  ],
+  "summary": {
+    "platform_status": "HEALTHY",
+    "total_issues": 1,
+    "critical_issues": 0,
+    "errors": 0,
+    "warnings": 1,
+    "data_completeness": 0,
+    "api_health": 100,
+    "overall_score": 67
+  }
+}

@@ -7,7 +7,7 @@ interface AttorneyDirectoryBannerProps {
 
 export function AttorneyDirectoryBanner({ jurisdiction }: AttorneyDirectoryBannerProps) {
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+    <div className="bg-gradient-to-r from-enterprise-primary to-enterprise-deep text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">

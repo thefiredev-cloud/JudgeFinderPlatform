@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Building, MapPin, Users, Scale, Search, Loader2 } from 'lucide-react'
+import { Building, MapPin, Users, Scale, Search, Loader2, ArrowRight, Sparkles } from 'lucide-react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { useSearchDebounce } from '@/lib/hooks/useDebounce'
 import { CourtCardSkeleton } from '@/components/ui/Skeleton'
 import { generateCourtSlug } from '@/lib/utils/slug'
@@ -126,31 +127,36 @@ export function CourtsSearch({ initialCourts, initialJurisdiction = 'CA' }: Cour
   return (
     <div className="space-y-6">
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <motion.div 
+        className="bg-card rounded-xl border border-border p-6 shadow-sm backdrop-blur-sm"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="space-y-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search courts by name..."
-              className="w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-10 text-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-border bg-background py-3 pl-10 pr-10 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
             {isSearching && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
               </div>
             )}
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Jurisdiction
               </label>
               <select
-                className="w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border bg-background py-2.5 px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 value={selectedJurisdiction}
                 onChange={(e) => setSelectedJurisdiction(e.target.value)}
               >
@@ -163,11 +169,11 @@ export function CourtsSearch({ initialCourts, initialJurisdiction = 'CA' }: Cour
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Court Type
               </label>
               <select
-                className="w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border bg-background py-2.5 px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
               >
@@ -180,70 +186,102 @@ export function CourtsSearch({ initialCourts, initialJurisdiction = 'CA' }: Cour
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <div className="text-red-800">{error}</div>
-        </div>
+        <motion.div 
+          className="bg-destructive/10 border border-destructive/30 rounded-lg p-4"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <div className="text-destructive">{error}</div>
+        </motion.div>
       )}
 
       {/* Results Summary */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-600">
+      <motion.div 
+        className="flex items-center justify-between"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        <p className="text-sm text-muted-foreground flex items-center gap-2">
           {loading && courts.length === 0 ? (
             <span className="flex items-center">
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <Loader2 className="h-4 w-4 animate-spin mr-2 text-primary" />
               Loading courts...
             </span>
           ) : (
-            `Showing ${courts.length} of ${totalCount.toLocaleString()} courts`
+            <>
+              <Sparkles className="h-4 w-4 text-primary" />
+              Showing {courts.length} of {totalCount.toLocaleString()} courts
+            </>
           )}
         </p>
-      </div>
+      </motion.div>
 
       {/* Courts Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {courts.map((court) => (
-          <Link
+        {courts.map((court, index) => (
+          <motion.div
             key={court.id}
-            href={`/courts/${court.slug || generateCourtSlug(court.name)}`}
-            className="group block"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05, duration: 0.5 }}
+            whileHover={{ scale: 1.02 }}
+            className="group"
           >
-            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow group-hover:shadow-md">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Building className="h-5 w-5 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-600">
-                      {court.type}
-                    </span>
-                  </div>
-                  
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                    {court.name}
-                  </h3>
-                  
-                  <div className="mt-2 space-y-1">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <MapPin className="h-4 w-4" />
-                      <span>{court.jurisdiction}</span>
+            <Link
+              href={`/courts/${court.slug || generateCourtSlug(court.name)}`}
+              className="block h-full"
+            >
+              <div className="relative h-full rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:bg-accent/5 group-hover:border-primary/30">
+                {/* Gradient overlay on hover */}
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-enterprise-primary to-enterprise-deep opacity-0 group-hover:opacity-5 transition-opacity duration-300" />
+                
+                <div className="relative flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                        <Building className="h-4 w-4" />
+                      </div>
+                      <span className="text-sm font-medium text-primary">
+                        {court.type}
+                      </span>
                     </div>
                     
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Users className="h-4 w-4" />
-                      <span>{court.judge_count} judges</span>
+                    <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors mb-3">
+                      {court.name}
+                    </h3>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5" />
+                        <span>{court.jurisdiction}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Users className="h-3.5 w-3.5" />
+                        <span>{court.judge_count} judges</span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 flex items-center gap-1 text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-sm font-medium">View Details</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </div>
+                  </div>
+                  
+                  <div className="ml-4">
+                    <div className="p-2 rounded-lg bg-muted/50 group-hover:bg-primary/10 transition-colors">
+                      <Scale className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
                   </div>
                 </div>
-                
-                <div className="ml-4">
-                  <Scale className="h-8 w-8 text-gray-400 group-hover:text-blue-600 transition-colors" />
-                </div>
               </div>
-            </div>
-          </Link>
+            </Link>
+          </motion.div>
         ))}
         
         {/* Show skeleton cards while loading more */}
@@ -267,11 +305,16 @@ export function CourtsSearch({ initialCourts, initialJurisdiction = 'CA' }: Cour
 
       {/* Load More Button */}
       {hasMore && courts.length > 0 && (
-        <div className="text-center">
+        <motion.div 
+          className="text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
           <button
             onClick={handleLoadMore}
             disabled={loading}
-            className="bg-gray-100 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-primary/10 text-primary px-8 py-3 rounded-lg font-medium hover:bg-primary hover:text-primary-foreground transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
@@ -282,7 +325,7 @@ export function CourtsSearch({ initialCourts, initialJurisdiction = 'CA' }: Cour
               'Load More Courts'
             )}
           </button>
-        </div>
+        </motion.div>
       )}
     </div>
   )

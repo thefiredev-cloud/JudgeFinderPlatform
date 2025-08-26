@@ -1,5 +1,5 @@
-import { CourtsSearch } from '@/components/courts/CourtsSearch'
 import { createServerClient } from '@/lib/supabase/server'
+import { CourtsPageClient } from '@/components/courts/CourtsPageClient'
 import type { Metadata } from 'next'
 
 interface Court {
@@ -44,25 +44,5 @@ async function getInitialCourts(): Promise<Court[]> {
 export default async function CourtsPage() {
   const initialCourts = await getInitialCourts()
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header Section */}
-      <div className="bg-gradient-to-b from-gray-900 to-gray-800 px-4 py-12 text-white">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-4 text-sm font-medium text-gray-300">
-            Home / Courts
-          </div>
-          <h1 className="mb-2 text-4xl font-bold">California Courts Directory</h1>
-          <p className="text-xl text-gray-300">
-            Browse 852+ courts across California. Search by type, jurisdiction, and location.
-          </p>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="mx-auto max-w-7xl px-4 py-12">
-        <CourtsSearch initialCourts={initialCourts} initialJurisdiction="CA" />
-      </div>
-    </div>
-  )
+  return <CourtsPageClient initialCourts={initialCourts} />
 }

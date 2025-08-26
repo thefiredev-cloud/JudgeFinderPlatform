@@ -50,6 +50,17 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        // Enterprise brand colors
+        enterprise: {
+          primary: '#2563eb',
+          deep: '#1e40af',
+          'slate-black': '#0f172a',
+          'slate-800': '#1e293b',
+          accent: '#3b82f6',
+          light: '#60a5fa',
+          'light-accent': '#93c5fd',
+          'light-pale': '#dbeafe',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

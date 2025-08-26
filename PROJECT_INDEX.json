@@ -1,15 +1,15 @@
 {
-  "indexed_at": "2025-08-22T00:10:48.115530",
+  "indexed_at": "2025-08-24T21:00:43.846714",
   "root": ".",
   "project_structure": {
     "type": "tree",
     "root": ".",
     "tree": [
       ".",
-      "\u251c\u2500\u2500 app/ (92 files)",
+      "\u251c\u2500\u2500 app/ (106 files)",
       "\u2502   \u251c\u2500\u2500 about/ (1 files)",
       "\u2502   \u251c\u2500\u2500 admin/ (1 files)",
-      "\u2502   \u251c\u2500\u2500 api/ (50 files)",
+      "\u2502   \u251c\u2500\u2500 api/ (59 files)",
       "\u2502   \u2502   \u251c\u2500\u2500 admin/ (6 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 bias-analytics/ (1 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 migrate/ (1 files)",
@@ -17,7 +17,14 @@
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 sync/ (1 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 sync-status/ (1 files)",
       "\u2502   \u2502   \u2502   \u2514\u2500\u2500 verification/ (1 files)",
-      "\u2502   \u2502   \u251c\u2500\u2500 analytics/ (5 files)",
+      "\u2502   \u2502   \u251c\u2500\u2500 advertising/ (3 files)",
+      "\u2502   \u2502   \u2502   \u251c\u2500\u2500 advertiser/ (1 files)",
+      "\u2502   \u2502   \u2502   \u2502   \u2514\u2500\u2500 create/ (1 files)",
+      "\u2502   \u2502   \u2502   \u2514\u2500\u2500 spots/ (2 files)",
+      "\u2502   \u2502   \u2502       \u251c\u2500\u2500 available/ (1 files)",
+      "\u2502   \u2502   \u2502       \u2514\u2500\u2500 book/ (1 files)",
+      "\u2502   \u2502   \u251c\u2500\u2500 analytics/ (6 files)",
+      "\u2502   \u2502   \u2502   \u251c\u2500\u2500 chat-funnel/ (1 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 conversion/ (1 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 kpi/ (1 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 performance/ (1 files)",
@@ -28,6 +35,7 @@
       "\u2502   \u2502   \u251c\u2500\u2500 auth/ (2 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 callback/ (1 files)",
       "\u2502   \u2502   \u2502   \u2514\u2500\u2500 test/ (1 files)",
+      "\u2502   \u2502   \u251c\u2500\u2500 chat/ (1 files)",
       "\u2502   \u2502   \u251c\u2500\u2500 courts/ (4 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 [id]/ (1 files)",
       "\u2502   \u2502   \u2502   \u2502   \u2514\u2500\u2500 judges/ (1 files)",
@@ -37,7 +45,7 @@
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 daily-sync/ (1 files)",
       "\u2502   \u2502   \u2502   \u2514\u2500\u2500 weekly-sync/ (1 files)",
       "\u2502   \u2502   \u251c\u2500\u2500 health/ (1 files)",
-      "\u2502   \u2502   \u251c\u2500\u2500 judges/ (16 files)",
+      "\u2502   \u2502   \u251c\u2500\u2500 judges/ (17 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 [id]/ (6 files)",
       "\u2502   \u2502   \u2502   \u2502   \u251c\u2500\u2500 analytics/ (1 files)",
       "\u2502   \u2502   \u2502   \u2502   \u251c\u2500\u2500 assignments/ (1 files)",
@@ -48,6 +56,7 @@
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 advanced-search/ (1 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 by-slug/ (1 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 by-state/ (1 files)",
+      "\u2502   \u2502   \u2502   \u251c\u2500\u2500 chat-search/ (1 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 la-county/ (1 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 list/ (1 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 orange-county/ (1 files)",
@@ -63,6 +72,10 @@
       "\u2502   \u2502   \u2502   \u2514\u2500\u2500 ct-report/ (1 files)",
       "\u2502   \u2502   \u251c\u2500\u2500 seo/ (1 files)",
       "\u2502   \u2502   \u2502   \u2514\u2500\u2500 search-console/ (1 files)",
+      "\u2502   \u2502   \u251c\u2500\u2500 stats/ (3 files)",
+      "\u2502   \u2502   \u2502   \u251c\u2500\u2500 courts/ (1 files)",
+      "\u2502   \u2502   \u2502   \u251c\u2500\u2500 judges/ (1 files)",
+      "\u2502   \u2502   \u2502   \u2514\u2500\u2500 platform/ (1 files)",
       "\u2502   \u2502   \u251c\u2500\u2500 sync/ (3 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 courts/ (1 files)",
       "\u2502   \u2502   \u2502   \u251c\u2500\u2500 decisions/ (1 files)",
@@ -84,7 +97,10 @@
       "\u2502   \u2502   \u2514\u2500\u2500 los-angeles/ (1 files)",
       "\u2502   \u251c\u2500\u2500 courts/ (3 files)",
       "\u2502   \u2502   \u2514\u2500\u2500 [id]/ (1 files)",
-      "\u2502   \u251c\u2500\u2500 dashboard/ (2 files)",
+      "\u2502   \u251c\u2500\u2500 dashboard/ (6 files)",
+      "\u2502   \u2502   \u251c\u2500\u2500 advertiser/ (4 files)",
+      "\u2502   \u2502   \u2502   \u251c\u2500\u2500 ad-spots/ (1 files)",
+      "\u2502   \u2502   \u2502   \u2514\u2500\u2500 onboarding/ (1 files)",
       "\u2502   \u2502   \u2514\u2500\u2500 bookmarks/ (1 files)",
       "\u2502   \u251c\u2500\u2500 docs/ (1 files)",
       "\u2502   \u251c\u2500\u2500 features/ (1 files)",
@@ -98,6 +114,7 @@
       "\u2502   \u251c\u2500\u2500 legal-specialties/ (1 files)",
       "\u2502   \u251c\u2500\u2500 login/ (1 files)",
       "\u2502   \u251c\u2500\u2500 privacy/ (1 files)",
+      "\u2502   \u251c\u2500\u2500 professional/ (1 files)",
       "\u2502   \u251c\u2500\u2500 profile/ (1 files)",
       "\u2502   \u251c\u2500\u2500 search/ (1 files)",
       "\u2502   \u251c\u2500\u2500 sign-in/ (1 files)",
@@ -108,24 +125,30 @@
       "\u2502   \u251c\u2500\u2500 support/ (1 files)",
       "\u2502   \u251c\u2500\u2500 terms/ (1 files)",
       "\u2502   \u2514\u2500\u2500 welcome/ (1 files)",
-      "\u251c\u2500\u2500 components/ (50 files)",
+      "\u251c\u2500\u2500 components/ (76 files)",
       "\u2502   \u251c\u2500\u2500 ads/ (1 files)",
+      "\u2502   \u251c\u2500\u2500 ai/ (7 files)",
       "\u2502   \u251c\u2500\u2500 analytics/ (1 files)",
-      "\u2502   \u251c\u2500\u2500 courts/ (2 files)",
-      "\u2502   \u251c\u2500\u2500 dashboard/ (3 files)",
+      "\u2502   \u251c\u2500\u2500 auth/ (1 files)",
+      "\u2502   \u251c\u2500\u2500 chat/ (1 files)",
+      "\u2502   \u251c\u2500\u2500 courts/ (4 files)",
+      "\u2502   \u251c\u2500\u2500 dashboard/ (7 files)",
       "\u2502   \u251c\u2500\u2500 error/ (3 files)",
-      "\u2502   \u251c\u2500\u2500 judges/ (22 files)",
+      "\u2502   \u251c\u2500\u2500 home/ (1 files)",
+      "\u2502   \u251c\u2500\u2500 judges/ (24 files)",
       "\u2502   \u2502   \u2514\u2500\u2500 profile/ (6 files)",
       "\u2502   \u251c\u2500\u2500 onboarding/ (1 files)",
       "\u2502   \u251c\u2500\u2500 profile/ (1 files)",
-      "\u2502   \u251c\u2500\u2500 providers/ (1 files)",
+      "\u2502   \u251c\u2500\u2500 providers/ (2 files)",
       "\u2502   \u251c\u2500\u2500 seo/ (4 files)",
-      "\u2502   \u2514\u2500\u2500 ui/ (11 files)",
+      "\u2502   \u251c\u2500\u2500 three/ (1 files)",
+      "\u2502   \u251c\u2500\u2500 ui/ (16 files)",
+      "\u2502   \u2514\u2500\u2500 visualizations/ (1 files)",
       "\u251c\u2500\u2500 la-county-data/ (1 files)",
-      "\u251c\u2500\u2500 lib/ (30 files)",
+      "\u251c\u2500\u2500 lib/ (32 files)",
       "\u2502   \u251c\u2500\u2500 ai/ (1 files)",
       "\u2502   \u251c\u2500\u2500 analytics/ (1 files)",
-      "\u2502   \u251c\u2500\u2500 auth/ (1 files)",
+      "\u2502   \u251c\u2500\u2500 auth/ (3 files)",
       "\u2502   \u251c\u2500\u2500 cache/ (1 files)",
       "\u2502   \u251c\u2500\u2500 courtlistener/ (1 files)",
       "\u2502   \u251c\u2500\u2500 database/ (2 files)",
@@ -137,11 +160,13 @@
       "\u2502   \u251c\u2500\u2500 supabase/ (3 files)",
       "\u2502   \u251c\u2500\u2500 sync/ (4 files)",
       "\u2502   \u2514\u2500\u2500 utils/ (6 files)",
+      "\u251c\u2500\u2500 New Logo HTML/",
       "\u251c\u2500\u2500 public/ (1 files)",
-      "\u251c\u2500\u2500 scripts/ (106 files)",
-      "\u251c\u2500\u2500 supabase/ (9 files)",
-      "\u2502   \u2514\u2500\u2500 migrations/ (9 files)",
-      "\u251c\u2500\u2500 types/ (3 files)",
+      "\u251c\u2500\u2500 reports/ (3 files)",
+      "\u251c\u2500\u2500 scripts/ (114 files)",
+      "\u251c\u2500\u2500 supabase/ (11 files)",
+      "\u2502   \u2514\u2500\u2500 migrations/ (11 files)",
+      "\u251c\u2500\u2500 types/ (4 files)",
       "\u251c\u2500\u2500 package.json",
       "\u2514\u2500\u2500 README.md"
     ]
@@ -294,6 +319,21 @@
       ],
       "architecture_hints": []
     },
+    "IMMEDIATE_ACTION_REQUIRED.md": {
+      "sections": [
+        "\ud83d\udea8 IMMEDIATE ACTION REQUIRED",
+        "\u2705 Completed Actions",
+        "\u26a0\ufe0f URGENT: Actions You Must Take Now",
+        "1. ROTATE ALL API KEYS IMMEDIATELY",
+        "2. Apply Database Migration",
+        "3. Configure Netlify Environment Variables",
+        "4. Trigger New Deployment",
+        "Security Checklist",
+        "Next Steps",
+        "Support"
+      ],
+      "architecture_hints": []
+    },
     "IMPLEMENTATION_SUMMARY.md": {
       "sections": [
         "JudgeFinder Platform - Final Implementation Summary",
@@ -375,6 +415,21 @@
       ],
       "architecture_hints": []
     },
+    "NETLIFY_ENV_SETUP.md": {
+      "sections": [
+        "Netlify Environment Variables Setup",
+        "Required Environment Variables",
+        "Database (Supabase)",
+        "Authentication (Clerk) - REQUIRED",
+        "AI APIs (Rotate these immediately if exposed)",
+        "External APIs",
+        "Site Configuration",
+        "Security Keys (Generate new ones)",
+        "Optional: Monitoring",
+        "Optional: Rate Limiting (Upstash Redis)"
+      ],
+      "architecture_hints": []
+    },
     "PERFORMANCE_IMPROVEMENTS.md": {
       "sections": [
         "Performance Improvements Applied",
@@ -430,21 +485,6 @@
         "Security Model Implementation",
         "Implementation Files",
         "Deployment Steps"
-      ],
-      "architecture_hints": []
-    },
-    "SECURITY_FIX_INSTRUCTIONS.md": {
-      "sections": [
-        "\ud83d\udea8 URGENT: Security Fix Instructions",
-        "\u26a0\ufe0f CRITICAL: Your API Keys Have Been Exposed",
-        "1. OpenAI API Key",
-        "2. Google AI (Gemini) API Key",
-        "3. CourtListener API Key",
-        "4. Supabase Service Role Key",
-        "\u2705 Security Fixes Already Applied",
-        "\ud83d\udd10 New Secure Keys Generated",
-        "\ud83d\udccb Next Steps (In Order)",
-        "Today (Day 0) - Security Fixes"
       ],
       "architecture_hints": []
     },
@@ -544,6 +584,7 @@
     "scripts": "Build and utility scripts",
     "app\\docs": "Project documentation",
     "app\\legal-specialties": "Test specifications",
+    "app\\api\\chat": "API routes and endpoints",
     "app\\api\\courts": "API routes and endpoints",
     "app\\api\\health": "API routes and endpoints",
     "app\\api\\search": "API routes and endpoints",
@@ -553,6 +594,10 @@
     "app\\api\\admin\\sync": "API routes and endpoints",
     "app\\api\\admin\\sync-status": "API routes and endpoints",
     "app\\api\\admin\\verification": "API routes and endpoints",
+    "app\\api\\advertising\\advertiser\\create": "API routes and endpoints",
+    "app\\api\\advertising\\spots\\available": "API routes and endpoints",
+    "app\\api\\advertising\\spots\\book": "API routes and endpoints",
+    "app\\api\\analytics\\chat-funnel": "API routes and endpoints",
     "app\\api\\analytics\\conversion": "API routes and endpoints",
     "app\\api\\analytics\\kpi": "API routes and endpoints",
     "app\\api\\analytics\\performance": "API routes and endpoints",
@@ -569,6 +614,7 @@
     "app\\api\\judges\\advanced-search": "API routes and endpoints",
     "app\\api\\judges\\by-slug": "API routes and endpoints",
     "app\\api\\judges\\by-state": "API routes and endpoints",
+    "app\\api\\judges\\chat-search": "API routes and endpoints",
     "app\\api\\judges\\la-county": "API routes and endpoints",
     "app\\api\\judges\\list": "API routes and endpoints",
     "app\\api\\judges\\orange-county": "API routes and endpoints",
@@ -586,6 +632,9 @@
     "app\\api\\security\\csp-report": "API routes and endpoints",
     "app\\api\\security\\ct-report": "API routes and endpoints",
     "app\\api\\seo\\search-console": "API routes and endpoints",
+    "app\\api\\stats\\courts": "API routes and endpoints",
+    "app\\api\\stats\\judges": "API routes and endpoints",
+    "app\\api\\stats\\platform": "API routes and endpoints",
     "app\\api\\sync\\courts": "API routes and endpoints",
     "app\\api\\sync\\decisions": "API routes and endpoints",
     "app\\api\\sync\\judges": "API routes and endpoints",
@@ -594,25 +643,26 @@
     "app\\api\\user\\preferences": "API routes and endpoints",
     "app\\api\\user\\stats": "API routes and endpoints",
     "app\\api\\webhooks\\courtlistener": "API routes and endpoints",
+    "components\\auth": "Authentication and authorization logic",
     "lib\\auth": "Authentication and authorization logic",
     "lib\\middleware": "Middleware functions and handlers",
     "lib\\utils": "Shared utility functions and helpers",
     "supabase\\migrations": "Database migration files"
   },
   "stats": {
-    "total_files": 292,
-    "total_directories": 140,
+    "total_files": 347,
+    "total_directories": 166,
     "fully_parsed": {
-      "typescript": 174,
-      "javascript": 73
+      "typescript": 217,
+      "javascript": 80
     },
     "listed_only": {
-      "json": 10,
-      "sql": 33,
+      "json": 13,
+      "sql": 35,
       "css": 1,
       "shell": 1
     },
-    "markdown_files": 27
+    "markdown_files": 28
   },
   "files": {
     ".eslintrc.json": {
@@ -805,17 +855,26 @@
       "language": "typescript",
       "parsed": true,
       "imports": [
-        "@/components/judges/SearchSection",
-        "@/components/judges/PopularCourts",
-        "@/components/ui/WhatYoullLearn",
-        "@/components/ui/WhyJudgeResearch",
+        "react",
+        "framer-motion",
+        "react-intersection-observer",
         "@/components/seo/StructuredData",
-        "next/link"
+        "@/components/ai/BuilderStyleChat",
+        "@/components/home/AnimatedTechTiles",
+        "next/link",
+        "lucide-react"
       ],
       "functions": {
-        "HomePage": "()"
+        "AnimatedCounter": "({ end, duration = 1000 }: { end: number; duration?: number })",
+        "HomePage": "()",
+        "step": "(timestamp: number)"
       },
       "classes": {},
+      "variables": [
+        "step",
+        "progress",
+        "benefits"
+      ],
       "call_graph": {}
     },
     "app\\sitemap.ts": {
@@ -844,12 +903,35 @@
       "language": "typescript",
       "parsed": true,
       "imports": [
+        "react",
+        "framer-motion",
         "lucide-react"
       ],
       "functions": {
-        "AboutPage": "()"
+        "AnimatedCounter": "({ end, duration = 2000 }: { end: number; duration?: number })",
+        "TypewriterText": "({ text, delay = 50 }: { text: string; delay?: number })",
+        "return": "()",
+        "ParticleBackground": "()",
+        "AboutPage": "()",
+        "step": "(timestamp: number)",
+        "fetchPlatformStats": "async ()"
       },
       "classes": {},
+      "variables": [
+        "step",
+        "progress",
+        "index",
+        "timer",
+        "char",
+        "y",
+        "opacity",
+        "fetchPlatformStats",
+        "response",
+        "data",
+        "benefits",
+        "userTypes",
+        "features"
+      ],
       "call_graph": {}
     },
     "app\\admin\\page.tsx": {
@@ -1098,6 +1180,102 @@
       "classes": {},
       "variables": [
         "dynamic",
+        "supabase"
+      ],
+      "call_graph": {}
+    },
+    "app\\api\\advertising\\advertiser\\create\\route.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "purpose": "Route definitions",
+      "imports": [
+        "next/server",
+        "@clerk/nextjs/server",
+        "@/lib/supabase/server",
+        "@/lib/auth/roles"
+      ],
+      "functions": {
+        "POST": "async (request: NextRequest)"
+      },
+      "classes": {},
+      "variables": [
+        "user",
+        "body",
+        "supabase",
+        "role"
+      ],
+      "call_graph": {}
+    },
+    "app\\api\\advertising\\spots\\available\\route.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "purpose": "Route definitions",
+      "imports": [
+        "next/server",
+        "@/lib/supabase/server"
+      ],
+      "functions": {
+        "GET": {
+          "calls": [
+            "filter"
+          ],
+          "signature": "async (request: NextRequest)",
+          "called_by": [
+            "POST"
+          ]
+        },
+        "createMockSpots": "async ()"
+      },
+      "classes": {},
+      "variables": [
+        "supabase",
+        "entityType",
+        "priceRange",
+        "jurisdiction",
+        "status",
+        "query",
+        "entity"
+      ],
+      "call_graph": {}
+    },
+    "app\\api\\advertising\\spots\\book\\route.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "purpose": "Route definitions",
+      "imports": [
+        "next/server",
+        "@clerk/nextjs/server",
+        "@/lib/supabase/server",
+        "@/lib/auth/roles"
+      ],
+      "functions": {
+        "POST": "async (request: NextRequest)"
+      },
+      "classes": {},
+      "variables": [
+        "advertiserProfile",
+        "body",
+        "supabase",
+        "session"
+      ],
+      "call_graph": {}
+    },
+    "app\\api\\analytics\\chat-funnel\\route.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "purpose": "Route definitions",
+      "imports": [
+        "next/server",
+        "@/lib/supabase/server"
+      ],
+      "functions": {
+        "POST": "async (request: NextRequest)"
+      },
+      "classes": {},
+      "variables": [
+        "dynamic",
+        "body",
+        "eventData",
         "supabase"
       ],
       "call_graph": {}
@@ -1442,6 +1620,61 @@
         "user",
         "supabase"
       ],
+      "call_graph": {}
+    },
+    "app\\api\\chat\\route.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "purpose": "Route definitions",
+      "imports": [
+        "next/server",
+        "openai",
+        "@/lib/supabase/server"
+      ],
+      "functions": {
+        "POST": {
+          "calls": [
+            "ReadableStream",
+            "await",
+            "getRelevantContext"
+          ],
+          "signature": "async (request: NextRequest)"
+        },
+        "getRelevantContext": {
+          "signature": "async (query: string): Promise<ChatMessage[]>",
+          "called_by": [
+            "POST"
+          ]
+        }
+      },
+      "classes": {},
+      "constants": {
+        "SYSTEM_PROMPT": "str"
+      },
+      "variables": [
+        "dynamic",
+        "maxDuration",
+        "openai",
+        "body",
+        "userQuery",
+        "context",
+        "streamResponse",
+        "encoder",
+        "readableStream",
+        "text",
+        "encoded",
+        "completion",
+        "responseText",
+        "supabase",
+        "lowerQuery",
+        "nameMatch",
+        "judgeName",
+        "judgeInfo",
+        "courtInfo"
+      ],
+      "interfaces": {
+        "ChatMessage": {}
+      },
       "call_graph": {}
     },
     "app\\api\\courts\\route.ts": {
@@ -2011,6 +2244,36 @@
       "interfaces": {
         "JudgesByState": {}
       },
+      "call_graph": {}
+    },
+    "app\\api\\judges\\chat-search\\route.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "purpose": "Route definitions",
+      "imports": [
+        "next/server",
+        "@/lib/supabase/server"
+      ],
+      "functions": {
+        "GET": {
+          "signature": "async (request: NextRequest)",
+          "called_by": [
+            "POST"
+          ]
+        }
+      },
+      "classes": {},
+      "variables": [
+        "dynamic",
+        "name",
+        "jurisdiction",
+        "supabase",
+        "cleanName",
+        "query",
+        "searchTerms",
+        "fuzzyQuery",
+        "searchConditions"
+      ],
       "call_graph": {}
     },
     "app\\api\\judges\\la-county\\route.ts": {
@@ -2964,6 +3227,105 @@
       ],
       "call_graph": {}
     },
+    "app\\api\\stats\\courts\\route.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "purpose": "Route definitions",
+      "imports": [
+        "next/server",
+        "@/lib/supabase/server"
+      ],
+      "functions": {
+        "GET": {
+          "signature": "async ()",
+          "called_by": [
+            "POST"
+          ]
+        }
+      },
+      "classes": {},
+      "variables": [
+        "dynamic",
+        "revalidate",
+        "supabase",
+        "typeBreakdown",
+        "type",
+        "totalJudgeCount",
+        "courtsWithJudges",
+        "avgJudgesPerCourt",
+        "mainCourtTypes",
+        "stats"
+      ],
+      "call_graph": {}
+    },
+    "app\\api\\stats\\judges\\route.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "purpose": "Route definitions",
+      "imports": [
+        "next/server",
+        "@/lib/supabase/server"
+      ],
+      "functions": {
+        "GET": {
+          "signature": "async ()",
+          "called_by": [
+            "POST"
+          ]
+        }
+      },
+      "classes": {},
+      "variables": [
+        "dynamic",
+        "revalidate",
+        "supabase",
+        "analyticsCoverage",
+        "avgExperience",
+        "currentYear",
+        "experiences",
+        "appointmentYear",
+        "lastUpdateDate",
+        "daysSinceUpdate",
+        "updateFrequency",
+        "stats"
+      ],
+      "call_graph": {}
+    },
+    "app\\api\\stats\\platform\\route.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "purpose": "Route definitions",
+      "imports": [
+        "next/server",
+        "@/lib/supabase/server"
+      ],
+      "functions": {
+        "GET": {
+          "signature": "async ()",
+          "called_by": [
+            "POST"
+          ]
+        }
+      },
+      "classes": {},
+      "variables": [
+        "dynamic",
+        "revalidate",
+        "supabase",
+        "activeUsers",
+        "monthlySearches",
+        "monthlySearchesDisplay",
+        "yearsOfData",
+        "oldestDate",
+        "currentDate",
+        "platformLaunchDate",
+        "uptimeDays",
+        "uptimePercentage",
+        "dataBreaches",
+        "stats"
+      ],
+      "call_graph": {}
+    },
     "app\\api\\sync\\courts\\route.ts": {
       "language": "typescript",
       "parsed": true,
@@ -3487,8 +3849,8 @@
       "language": "typescript",
       "parsed": true,
       "imports": [
-        "@/components/courts/CourtsSearch",
-        "@/lib/supabase/server"
+        "@/lib/supabase/server",
+        "@/components/courts/CourtsPageClient"
       ],
       "functions": {
         "getInitialCourts": {
@@ -3524,6 +3886,7 @@
         "next/link",
         "@/lib/supabase/server",
         "@/components/courts/CourtJudgesSection",
+        "@/components/courts/CourtAdvertiserSlots",
         "@/lib/utils/slug"
       ],
       "functions": {
@@ -3553,6 +3916,8 @@
         "nameVariations",
         "response",
         "data",
+        "serializedJudges",
+        "serializedCourt",
         "cityMatch",
         "cityName",
         "description"
@@ -3575,7 +3940,114 @@
       },
       "classes": {},
       "variables": [
-        "user"
+        "user",
+        "serializedUser"
+      ],
+      "call_graph": {}
+    },
+    "app\\dashboard\\advertiser\\layout.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "@clerk/nextjs/server",
+        "next/navigation",
+        "@/lib/auth/roles",
+        "@/components/dashboard/AdvertiserSidebar"
+      ],
+      "functions": {
+        "AdvertiserLayout": "async ({ children, }: { children: React.ReactNode })"
+      },
+      "classes": {},
+      "variables": [
+        "userIsAdvertiser",
+        "metadata"
+      ],
+      "call_graph": {}
+    },
+    "app\\dashboard\\advertiser\\page.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "@clerk/nextjs/server",
+        "next/navigation",
+        "@/lib/auth/roles",
+        "@/lib/supabase/server",
+        "@/components/dashboard/AdvertiserOverview"
+      ],
+      "functions": {
+        "getAdvertiserStats": {
+          "signature": "async (advertiserId: string): Promise<AdvertiserDashboardStats>",
+          "called_by": [
+            "AdvertiserDashboardPage"
+          ]
+        },
+        "AdvertiserDashboardPage": {
+          "calls": [
+            "getAdvertiserStats"
+          ],
+          "signature": "async ()"
+        }
+      },
+      "classes": {},
+      "variables": [
+        "supabase",
+        "activeCampaigns",
+        "totalSpend",
+        "totalImpressions",
+        "totalClicks",
+        "averageCtr",
+        "activeBookings",
+        "upcomingBookings",
+        "user",
+        "advertiserProfile",
+        "stats"
+      ],
+      "call_graph": {}
+    },
+    "app\\dashboard\\advertiser\\ad-spots\\page.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "@clerk/nextjs/server",
+        "next/navigation",
+        "@/lib/auth/roles",
+        "@/components/dashboard/AdSpotsExplorer"
+      ],
+      "functions": {
+        "AdSpotsPage": "async ()"
+      },
+      "classes": {},
+      "variables": [
+        "user",
+        "advertiserProfile",
+        "metadata"
+      ],
+      "call_graph": {}
+    },
+    "app\\dashboard\\advertiser\\onboarding\\page.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react",
+        "next/navigation",
+        "lucide-react"
+      ],
+      "functions": {
+        "AdvertiserOnboardingPage": "()",
+        "handleSubmit": {
+          "signature": "async ()",
+          "called_by": [
+            "handleSuggestedPrompt"
+          ]
+        }
+      },
+      "classes": {},
+      "variables": [
+        "router",
+        "firmTypes",
+        "specializations",
+        "response",
+        "data"
       ],
       "call_graph": {}
     },
@@ -3639,7 +4111,12 @@
       ],
       "functions": {
         "ForgotPasswordPage": "()",
-        "handleSubmit": "async (e: React.FormEvent)"
+        "handleSubmit": {
+          "signature": "async (e: React.FormEvent)",
+          "called_by": [
+            "handleSuggestedPrompt"
+          ]
+        }
       },
       "classes": {},
       "variables": [
@@ -3669,10 +4146,16 @@
         "next/link",
         "@/lib/utils/slug",
         "@/lib/hooks/useDebounce",
-        "@/components/ui/Skeleton"
+        "@/components/ui/Skeleton",
+        "framer-motion",
+        "@/components/ui/ParticleBackground",
+        "@/components/ui/AnimatedCounter",
+        "@/components/ui/TypewriterText",
+        "@/components/ui/ScrollIndicator"
       ],
       "functions": {
         "JudgesPage": "()",
+        "fetchJudgeStats": "async ()",
         "handleLoadMore": "()",
         "generateJudgeSlug": "(judge: Judge)",
         "getRecentDecisionsDisplay": "(judge: JudgeWithDecisions)",
@@ -3680,11 +4163,14 @@
       },
       "classes": {},
       "variables": [
+        "y",
+        "opacity",
         "fetchJudges",
         "params",
         "response",
         "data",
         "filteredJudges",
+        "fetchJudgeStats",
         "handleLoadMore",
         "generateJudgeSlug",
         "getRecentDecisionsDisplay",
@@ -3693,7 +4179,10 @@
         "getCourtAndStateDisplay",
         "courtName",
         "state",
-        "jurisdictionOptions"
+        "jurisdictionOptions",
+        "fadeInUp",
+        "staggerContainer",
+        "cardVariants"
       ],
       "interfaces": {
         "JudgeWithDecisions": {
@@ -3749,7 +4238,8 @@
           "signature": "async (slug: string): Promise<Judge | null>",
           "called_by": [
             "JudgePage",
-            "generateMetadata"
+            "generateMetadata",
+            "JudgePage"
           ]
         },
         "JudgePage": {
@@ -3791,13 +4281,13 @@
       "imports": [
         "next/navigation",
         "@/components/judges/JudgeProfile",
+        "@/components/judges/ProfessionalBackground",
         "@/components/judges/JudgeRulingPatterns",
         "@/components/judges/RecentDecisions",
-        "@/components/judges/AttorneySlots",
+        "@/components/judges/AdvertiserSlots",
         "@/components/judges/JudgeFAQ",
         "@/components/judges/AnalyticsSliders",
         "@/components/judges/BookmarkButton",
-        "@/components/ads/GoogleAd",
         "@/components/seo/SEOBreadcrumbs",
         "@/components/seo/RelatedJudges",
         "@/components/seo/RelatedContent",
@@ -3815,17 +4305,29 @@
           "signature": "async (slug: string): Promise<Judge | null>",
           "called_by": [
             "JudgePage",
-            "generateMetadata"
+            "generateMetadata",
+            "JudgePage"
           ]
         },
-        "getRelatedJudges": "async (currentJudge: Judge): Promise<Judge[]>",
+        "getRelatedJudges": {
+          "signature": "async (currentJudge: Judge): Promise<Judge[]>",
+          "called_by": [
+            "JudgePage"
+          ]
+        },
         "getJudgeFallback": {
           "signature": "async (slug: string): Promise<Judge | null>",
           "called_by": [
             "getJudge"
           ]
         },
-        "JudgePage": "async ({ params }: JudgePageProps)",
+        "JudgePage": {
+          "calls": [
+            "getJudge",
+            "getRelatedJudges"
+          ],
+          "signature": "async ({ params }: JudgePageProps)"
+        },
         "getCoordinatesForJurisdiction": {
           "signature": "(jurisdiction: string): string",
           "called_by": [
@@ -3880,26 +4382,32 @@
       "language": "typescript",
       "parsed": true,
       "imports": [
-        "@/lib/supabase/server",
+        "react",
         "next/link",
         "lucide-react",
-        "next"
+        "framer-motion",
+        "@/components/ui/ParticleBackground",
+        "@/components/ui/AnimatedCounter",
+        "@/components/ui/TypewriterText",
+        "@/components/ui/ScrollIndicator"
       ],
       "functions": {
-        "getJurisdictionData": {
-          "calls": [
-            "then"
-          ],
-          "signature": "async ()"
-        },
         "createSlugFromJurisdiction": "(jurisdiction: string): string",
-        "JurisdictionsPage": "async ()"
+        "JurisdictionsPage": "()",
+        "fetchData": "async ()"
       },
       "classes": {},
       "variables": [
-        "metadata",
-        "supabase",
-        "jurisdiction"
+        "y",
+        "opacity",
+        "fadeInUp",
+        "staggerContainer",
+        "cardVariants",
+        "judgesResponse",
+        "judgesData",
+        "jurisdiction",
+        "courtsResponse",
+        "courtsData"
       ],
       "interfaces": {
         "Jurisdiction": {}
@@ -3988,7 +4496,12 @@
       ],
       "functions": {
         "LoginPage": "()",
-        "handleSubmit": "async (e: React.FormEvent)"
+        "handleSubmit": {
+          "signature": "async (e: React.FormEvent)",
+          "called_by": [
+            "handleSuggestedPrompt"
+          ]
+        }
       },
       "classes": {},
       "variables": [
@@ -4003,6 +4516,19 @@
       "parsed": true,
       "functions": {
         "PrivacyPage": "()"
+      },
+      "classes": {},
+      "call_graph": {}
+    },
+    "app\\professional\\page.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "next/link",
+        "lucide-react"
+      ],
+      "functions": {
+        "ProfessionalPage": "()"
       },
       "classes": {},
       "call_graph": {}
@@ -4075,7 +4601,7 @@
       "language": "typescript",
       "parsed": true,
       "imports": [
-        "@clerk/nextjs"
+        "@/components/auth/CustomSignUp"
       ],
       "functions": {
         "Page": "()"
@@ -4095,7 +4621,12 @@
       ],
       "functions": {
         "SignupPage": "()",
-        "handleSubmit": "async (e: React.FormEvent)"
+        "handleSubmit": {
+          "signature": "async (e: React.FormEvent)",
+          "called_by": [
+            "handleSuggestedPrompt"
+          ]
+        }
       },
       "classes": {},
       "variables": [
@@ -4135,14 +4666,16 @@
       "imports": [
         "@clerk/nextjs/server",
         "next/navigation",
-        "@/components/onboarding/OnboardingWizard"
+        "@/components/onboarding/OnboardingWizard",
+        "@/lib/auth/admin"
       ],
       "functions": {
         "WelcomePage": "async ()"
       },
       "classes": {},
       "variables": [
-        "user"
+        "user",
+        "userIsAdmin"
       ],
       "call_graph": {}
     },
@@ -4166,6 +4699,206 @@
       "interfaces": {
         "GoogleAdProps": {},
         "Window": {}
+      },
+      "call_graph": {}
+    },
+    "components\\ai\\AIChatModal.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react",
+        "lucide-react"
+      ],
+      "functions": {
+        "AIChatModal": "({ isOpen, onClose }: AIChatModalProps)",
+        "handleSubmit": {
+          "calls": [
+            "getAIResponse"
+          ],
+          "signature": "async (e: React.FormEvent)",
+          "called_by": [
+            "handleSuggestedPrompt"
+          ]
+        },
+        "getAIResponse": {
+          "signature": "(query: string): string",
+          "called_by": [
+            "handleSubmit"
+          ]
+        }
+      },
+      "classes": {},
+      "variables": [
+        "messagesEndRef",
+        "inputRef",
+        "isInitialMount",
+        "handleSubmit",
+        "userMessage",
+        "assistantMessage",
+        "getAIResponse",
+        "lowerQuery"
+      ],
+      "interfaces": {
+        "Message": {},
+        "AIChatModalProps": {}
+      },
+      "call_graph": {}
+    },
+    "components\\ai\\BuilderStyleChat.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react",
+        "lucide-react",
+        "./ChatMessage",
+        "./JudgeCard",
+        "./SuggestedPrompts",
+        "./ChatInput",
+        "./ChatHeader"
+      ],
+      "functions": {
+        "BuilderStyleChat": "()",
+        "scrollToBottom": "()",
+        "handleSuggestedPrompt": {
+          "calls": [
+            "handleSubmit"
+          ],
+          "signature": "(prompt: string)"
+        },
+        "handleSubmit": {
+          "calls": [
+            "checkForJudgeData"
+          ],
+          "signature": "async (e: React.FormEvent, overrideInput?: string)",
+          "called_by": [
+            "handleSuggestedPrompt"
+          ]
+        },
+        "checkForJudgeData": {
+          "signature": "async (content: string, messageId: string)",
+          "called_by": [
+            "handleSubmit"
+          ]
+        },
+        "stopStreaming": "()"
+      },
+      "classes": {},
+      "variables": [
+        "messagesEndRef",
+        "abortControllerRef",
+        "isInitialMount",
+        "scrollToBottom",
+        "handleSuggestedPrompt",
+        "handleSubmit",
+        "queryText",
+        "userMessage",
+        "response",
+        "reader",
+        "decoder",
+        "accumulatedContent",
+        "assistantMessageId",
+        "chunk",
+        "lines",
+        "data",
+        "parsed",
+        "checkForJudgeData",
+        "judgeNameMatch",
+        "judgeName",
+        "searchResponse",
+        "stopStreaming"
+      ],
+      "interfaces": {
+        "Message": {}
+      },
+      "call_graph": {}
+    },
+    "components\\ai\\ChatHeader.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "lucide-react"
+      ],
+      "functions": {
+        "ChatHeader": "()"
+      },
+      "classes": {},
+      "call_graph": {}
+    },
+    "components\\ai\\ChatInput.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "lucide-react"
+      ],
+      "functions": {
+        "ChatInput": "({ input, setInput, onSubmit, isLoading, isStreaming, onStopStreaming }: ChatInputProps)",
+        "handleKeyDown": "(e: React.KeyboardEvent<HTMLTextAreaElement>)"
+      },
+      "classes": {},
+      "variables": [
+        "handleKeyDown"
+      ],
+      "interfaces": {
+        "ChatInputProps": {}
+      },
+      "call_graph": {}
+    },
+    "components\\ai\\ChatMessage.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "lucide-react",
+        "./BuilderStyleChat"
+      ],
+      "functions": {
+        "ChatMessage": "({ message }: ChatMessageProps)"
+      },
+      "classes": {},
+      "variables": [
+        "isUser"
+      ],
+      "interfaces": {
+        "ChatMessageProps": {}
+      },
+      "call_graph": {}
+    },
+    "components\\ai\\JudgeCard.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "next/link",
+        "lucide-react"
+      ],
+      "functions": {
+        "JudgeCard": "({ judge, compact = false }: JudgeCardProps)",
+        "handleViewProfile": "()"
+      },
+      "classes": {},
+      "variables": [
+        "yearsOfService",
+        "judgeSlug",
+        "handleViewProfile"
+      ],
+      "interfaces": {
+        "JudgeCardProps": {}
+      },
+      "call_graph": {}
+    },
+    "components\\ai\\SuggestedPrompts.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "lucide-react"
+      ],
+      "functions": {
+        "SuggestedPrompts": "({ onSelectPrompt }: SuggestedPromptsProps)"
+      },
+      "classes": {},
+      "variables": [
+        "prompts"
+      ],
+      "interfaces": {
+        "SuggestedPromptsProps": {}
       },
       "call_graph": {}
     },
@@ -4201,6 +4934,134 @@
       ],
       "interfaces": {
         "SEOMonitoringProps": {}
+      },
+      "call_graph": {}
+    },
+    "components\\auth\\CustomSignUp.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react",
+        "@clerk/nextjs",
+        "@/lib/auth/admin-client",
+        "lucide-react"
+      ],
+      "functions": {
+        "CustomSignUp": "({ afterSignInUrl = '/dashboard', afterSignUpUrl = '/welcome' }: CustomSignUpProps)",
+        "checkUserType": {
+          "signature": "(emailAddress: string)",
+          "called_by": [
+            "checkEmailInput"
+          ]
+        },
+        "checkEmailInput": {
+          "calls": [
+            "checkUserType"
+          ],
+          "signature": "()"
+        }
+      },
+      "classes": {},
+      "variables": [
+        "urlParams",
+        "emailParam",
+        "checkUserType",
+        "isAdmin",
+        "checkEmailInput",
+        "emailInput",
+        "interval"
+      ],
+      "interfaces": {
+        "CustomSignUpProps": {}
+      },
+      "call_graph": {}
+    },
+    "components\\chat\\AILegalAssistant.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react",
+        "framer-motion",
+        "lucide-react"
+      ],
+      "functions": {
+        "AILegalAssistant": "({ className, onJudgeSelect }: AILegalAssistantProps)",
+        "handleSubmit": {
+          "signature": "async (e: React.FormEvent)",
+          "called_by": [
+            "handleSuggestedPrompt"
+          ]
+        },
+        "handleVoiceInput": {
+          "calls": [
+            "SpeechRecognition"
+          ],
+          "signature": "()"
+        }
+      },
+      "classes": {},
+      "variables": [
+        "messagesEndRef",
+        "inputRef",
+        "abortControllerRef",
+        "isInitialMount",
+        "handleSubmit",
+        "userMessage",
+        "typingMessage",
+        "response",
+        "reader",
+        "decoder",
+        "assistantMessage",
+        "chunk",
+        "lines",
+        "data",
+        "json",
+        "judgePattern",
+        "matches",
+        "handleVoiceInput",
+        "recognition",
+        "transcript",
+        "suggestedQuestions"
+      ],
+      "interfaces": {
+        "Message": {},
+        "AILegalAssistantProps": {}
+      },
+      "call_graph": {}
+    },
+    "components\\courts\\CourtAdvertiserSlots.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react",
+        "lucide-react",
+        "next/link"
+      ],
+      "functions": {
+        "CourtAdvertiserSlots": "({ courtId, courtName }: CourtAdvertiserSlotsProps)",
+        "fetchAdSlots": {
+          "calls": [
+            "getDemoSlots"
+          ],
+          "signature": "async ()"
+        },
+        "getDemoSlots": {
+          "signature": "(): AdSlot[]",
+          "called_by": [
+            "fetchAdSlots",
+            "fetchAdSlots"
+          ]
+        },
+        "trackClick": "(slotId: string, url: string)"
+      },
+      "classes": {},
+      "variables": [
+        "response",
+        "data"
+      ],
+      "interfaces": {
+        "CourtAdvertiserSlotsProps": {},
+        "AdSlot": {}
       },
       "call_graph": {}
     },
@@ -4242,6 +5103,42 @@
       },
       "call_graph": {}
     },
+    "components\\courts\\CourtsPageClient.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react",
+        "framer-motion",
+        "lucide-react",
+        "next/link",
+        "./CourtsSearch"
+      ],
+      "functions": {
+        "AnimatedCounter": "({ end, duration = 2000 }: { end: number; duration?: number })",
+        "TypewriterText": "({ text, delay = 50 }: { text: string; delay?: number })",
+        "ParticleBackground": "()",
+        "CourtsPageClient": "({ initialCourts }: { initialCourts: Court[] })",
+        "step": "(timestamp: number)",
+        "fetchStats": "async ()"
+      },
+      "classes": {},
+      "variables": [
+        "step",
+        "progress",
+        "index",
+        "timer",
+        "char",
+        "y",
+        "opacity",
+        "fetchStats",
+        "response",
+        "data"
+      ],
+      "interfaces": {
+        "Court": {}
+      },
+      "call_graph": {}
+    },
     "components\\courts\\CourtsSearch.tsx": {
       "language": "typescript",
       "parsed": true,
@@ -4249,6 +5146,7 @@
         "react",
         "lucide-react",
         "next/link",
+        "framer-motion",
         "@/lib/hooks/useDebounce",
         "@/components/ui/Skeleton",
         "@/lib/utils/slug"
@@ -4326,6 +5224,100 @@
       },
       "call_graph": {}
     },
+    "components\\dashboard\\AdSpotBookingModal.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react",
+        "lucide-react"
+      ],
+      "functions": {
+        "AdSpotBookingModal": "({ spot, advertiserId, onClose, onSuccess }: AdSpotBookingModalProps)",
+        "handleBooking": "async ()"
+      },
+      "classes": {},
+      "variables": [
+        "totalPrice",
+        "monthlyPrice",
+        "start",
+        "end",
+        "response",
+        "data"
+      ],
+      "interfaces": {
+        "AdSpotBookingModalProps": {}
+      },
+      "call_graph": {}
+    },
+    "components\\dashboard\\AdSpotsExplorer.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react",
+        "lucide-react",
+        "./AdSpotBookingModal"
+      ],
+      "functions": {
+        "AdSpotsExplorer": "({ advertiserId }: AdSpotsExplorerProps)",
+        "fetchAdSpots": "async ()",
+        "getPriceRangeLabel": "(price: number)"
+      },
+      "classes": {},
+      "variables": [
+        "params",
+        "response",
+        "data",
+        "filteredSpots",
+        "query",
+        "getPriceRangeLabel",
+        "priceInfo"
+      ],
+      "interfaces": {
+        "AdSpotsExplorerProps": {}
+      },
+      "call_graph": {}
+    },
+    "components\\dashboard\\AdvertiserOverview.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react",
+        "next/link",
+        "lucide-react"
+      ],
+      "functions": {
+        "AdvertiserOverview": "({ stats, advertiserProfile }: AdvertiserOverviewProps)"
+      },
+      "classes": {},
+      "variables": [
+        "statCards"
+      ],
+      "interfaces": {
+        "AdvertiserOverviewProps": {}
+      },
+      "call_graph": {}
+    },
+    "components\\dashboard\\AdvertiserSidebar.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "next/link",
+        "next/navigation",
+        "lucide-react",
+        "@clerk/nextjs"
+      ],
+      "functions": {
+        "AdvertiserSidebar": "()"
+      },
+      "classes": {},
+      "variables": [
+        "navigation",
+        "bottomNav",
+        "pathname",
+        "isActive"
+      ],
+      "call_graph": {}
+    },
     "components\\dashboard\\BiasAnalyticsDashboard.tsx": {
       "language": "typescript",
       "parsed": true,
@@ -4364,7 +5356,6 @@
       "imports": [
         "react",
         "next/link",
-        "@clerk/nextjs/server",
         "lucide-react"
       ],
       "functions": {
@@ -4379,6 +5370,7 @@
         "daysSinceJoin"
       ],
       "interfaces": {
+        "SerializedUser": {},
         "UserDashboardProps": {},
         "DashboardStats": {},
         "ApiResponse": {}
@@ -4485,6 +5477,34 @@
       },
       "call_graph": {}
     },
+    "components\\home\\AnimatedTechTiles.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react",
+        "framer-motion",
+        "lucide-react"
+      ],
+      "functions": {
+        "TileRow": "({ tiles, direction = 'left' }: { tiles: TileData[], direction?: 'left' | 'right' })",
+        "AnimatedTechTiles": "()",
+        "animate": "()"
+      },
+      "classes": {},
+      "variables": [
+        "scrollRef",
+        "animationRef",
+        "scrollContainer",
+        "scrollSpeed",
+        "scrollPosition",
+        "animate",
+        "duplicatedTiles"
+      ],
+      "interfaces": {
+        "TileData": {}
+      },
+      "call_graph": {}
+    },
     "components\\judges\\AdvancedSearchFilters.tsx": {
       "language": "typescript",
       "parsed": true,
@@ -4509,6 +5529,42 @@
         "FilterOptions": {},
         "AdvancedFilters": {},
         "AdvancedSearchFiltersProps": {}
+      },
+      "call_graph": {}
+    },
+    "components\\judges\\AdvertiserSlots.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react",
+        "lucide-react",
+        "next/link"
+      ],
+      "functions": {
+        "AdvertiserSlots": "({ judgeId, judgeName }: AdvertiserSlotsProps)",
+        "fetchAdSlots": {
+          "calls": [
+            "getDemoSlots"
+          ],
+          "signature": "async ()"
+        },
+        "getDemoSlots": {
+          "signature": "(): AdSlot[]",
+          "called_by": [
+            "fetchAdSlots",
+            "fetchAdSlots"
+          ]
+        },
+        "trackClick": "(slotId: string, url: string)"
+      },
+      "classes": {},
+      "variables": [
+        "response",
+        "data"
+      ],
+      "interfaces": {
+        "AdvertiserSlotsProps": {},
+        "AdSlot": {}
       },
       "call_graph": {}
     },
@@ -4792,8 +5848,8 @@
       "parsed": true,
       "imports": [
         "lucide-react",
-        "react",
-        "next/link"
+        "next/link",
+        "./BookmarkButton"
       ],
       "functions": {
         "JudgeProfile": "({ judge }: JudgeProfileProps)",
@@ -4810,13 +5866,7 @@
         "judicialPositions",
         "education",
         "school",
-        "degree",
-        "bio",
-        "bioParts",
-        "notablePositions",
-        "positionText",
-        "professionalBackground",
-        "tabs"
+        "degree"
       ],
       "interfaces": {
         "JudgeProfileProps": {}
@@ -4889,6 +5939,7 @@
       "parsed": true,
       "imports": [
         "next/link",
+        "framer-motion",
         "lucide-react",
         "react"
       ],
@@ -4925,6 +5976,34 @@
       },
       "call_graph": {}
     },
+    "components\\judges\\ProfessionalBackground.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "lucide-react"
+      ],
+      "functions": {
+        "ProfessionalBackground": "({ judge }: ProfessionalBackgroundProps)"
+      },
+      "classes": {},
+      "variables": [
+        "courtlistenerData",
+        "appointmentDate",
+        "yearsOfService",
+        "judicialPositions",
+        "education",
+        "school",
+        "degree",
+        "year",
+        "careerHistory",
+        "bio",
+        "bioParts"
+      ],
+      "interfaces": {
+        "ProfessionalBackgroundProps": {}
+      },
+      "call_graph": {}
+    },
     "components\\judges\\RecentDecisions.tsx": {
       "language": "typescript",
       "parsed": true,
@@ -4956,6 +6035,7 @@
       "imports": [
         "react",
         "next/navigation",
+        "framer-motion",
         "lucide-react"
       ],
       "functions": {
@@ -5158,10 +6238,24 @@
       "parsed": true,
       "imports": [
         "@clerk/nextjs",
-        "react"
+        "react",
+        "./ThemeProvider"
       ],
       "functions": {
         "Providers": "({ children }: { children: ReactNode })"
+      },
+      "classes": {},
+      "call_graph": {}
+    },
+    "components\\providers\\ThemeProvider.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "next-themes",
+        "next-themes/dist/types"
+      ],
+      "functions": {
+        "ThemeProvider": "({ children, ...props }: ThemeProviderProps)"
       },
       "classes": {},
       "call_graph": {}
@@ -5273,6 +6367,64 @@
       ],
       "interfaces": {
         "StructuredDataProps": {}
+      },
+      "call_graph": {}
+    },
+    "components\\three\\JusticeScaleScene.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react",
+        "@react-three/fiber",
+        "@react-three/drei",
+        "three"
+      ],
+      "functions": {
+        "Particles": "({ count = 500 })",
+        "JusticeScale": "()",
+        "FloatingText": "()",
+        "JusticeScaleScene": "({ className }: { className?: string })",
+        "JusticeScale2DFallback": "({ className }: { className?: string })"
+      },
+      "classes": {},
+      "variables": [
+        "mesh",
+        "light",
+        "particles",
+        "temp",
+        "i",
+        "time",
+        "factor",
+        "speed",
+        "x",
+        "y",
+        "z",
+        "dummy",
+        "t",
+        "scaleRef",
+        "leftPanRef",
+        "rightPanRef",
+        "tilt"
+      ],
+      "call_graph": {}
+    },
+    "components\\ui\\AnimatedCounter.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react"
+      ],
+      "functions": {
+        "AnimatedCounter": "({ end, duration = 2000, suffix = '' }: AnimatedCounterProps)",
+        "step": "(timestamp: number)"
+      },
+      "classes": {},
+      "variables": [
+        "step",
+        "progress"
+      ],
+      "interfaces": {
+        "AnimatedCounterProps": {}
       },
       "call_graph": {}
     },
@@ -5391,7 +6543,8 @@
         "react",
         "lucide-react",
         "@clerk/nextjs",
-        "./NavLogo"
+        "./NavLogo",
+        "./ThemeToggle"
       ],
       "functions": {
         "Header": "()"
@@ -5403,27 +6556,44 @@
       "language": "typescript",
       "parsed": true,
       "imports": [
-        "next/link",
-        "framer-motion"
+        "react",
+        "next/link"
       ],
       "functions": {
-        "NavLogo": "({ className = \"\" })",
-        "handleMouseMove": "(e: React.MouseEvent<HTMLDivElement>)"
+        "NavLogo": "({ className = \"\", variant = 'default', showText = true })"
       },
       "classes": {},
-      "variables": [
-        "mouseX",
-        "mouseY",
-        "rotateX",
-        "rotateY",
-        "handleMouseMove",
-        "rect",
-        "centerX",
-        "centerY"
-      ],
       "interfaces": {
         "NavLogoProps": {}
       },
+      "call_graph": {}
+    },
+    "components\\ui\\ParticleBackground.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react",
+        "framer-motion"
+      ],
+      "functions": {
+        "ParticleBackground": "({ particleCount = 50 }: ParticleBackgroundProps)"
+      },
+      "classes": {},
+      "interfaces": {
+        "ParticleBackgroundProps": {}
+      },
+      "call_graph": {}
+    },
+    "components\\ui\\ScrollIndicator.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "framer-motion"
+      ],
+      "functions": {
+        "ScrollIndicator": "()"
+      },
+      "classes": {},
       "call_graph": {}
     },
     "components\\ui\\Skeleton.tsx": {
@@ -5446,6 +6616,40 @@
             "React.HTMLAttributes<HTMLDivElement>"
           ]
         }
+      },
+      "call_graph": {}
+    },
+    "components\\ui\\ThemeToggle.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "lucide-react",
+        "next-themes",
+        "react"
+      ],
+      "functions": {
+        "ThemeToggle": "()"
+      },
+      "classes": {},
+      "call_graph": {}
+    },
+    "components\\ui\\TypewriterText.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react"
+      ],
+      "functions": {
+        "TypewriterText": "({ text, delay = 50 }: TypewriterTextProps)"
+      },
+      "classes": {},
+      "variables": [
+        "index",
+        "timer",
+        "char"
+      ],
+      "interfaces": {
+        "TypewriterTextProps": {}
       },
       "call_graph": {}
     },
@@ -5474,6 +6678,51 @@
       "variables": [
         "benefits"
       ],
+      "call_graph": {}
+    },
+    "components\\visualizations\\BiasRadarChart.tsx": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "react",
+        "d3",
+        "framer-motion"
+      ],
+      "functions": {
+        "BiasRadarChart": "({ data = defaultData, size = 400, className = '', animated = true }: BiasRadarChartProps)",
+        "angleToCoordinate": "(angle: number, radius: number, cx: number, cy: number)"
+      },
+      "classes": {},
+      "variables": [
+        "svgRef",
+        "width",
+        "height",
+        "margin",
+        "radius",
+        "svg",
+        "g",
+        "angleScale",
+        "radiusScale",
+        "levels",
+        "levelStep",
+        "level",
+        "levelRadius",
+        "angle",
+        "lineCoordinate",
+        "labelCoordinate",
+        "label",
+        "valueCoordinate",
+        "radarLine",
+        "radarArea",
+        "totalLength",
+        "gradient",
+        "coordinate",
+        "circle"
+      ],
+      "interfaces": {
+        "BiasMetric": {},
+        "BiasRadarChartProps": {}
+      },
       "call_graph": {}
     },
     "la-county-data\\la-county-market-intelligence.json": {
@@ -5675,6 +6924,19 @@
       },
       "call_graph": {}
     },
+    "lib\\auth\\admin-client.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "functions": {
+        "isAdminEmail": "(email: string): boolean",
+        "getAdminEmails": "(): string[]"
+      },
+      "classes": {},
+      "constants": {
+        "ADMIN_EMAILS": "collection"
+      },
+      "call_graph": {}
+    },
     "lib\\auth\\admin.ts": {
       "language": "typescript",
       "parsed": true,
@@ -5686,7 +6948,8 @@
           "signature": "async (): Promise<boolean>",
           "called_by": [
             "requireAdmin",
-            "getUserRole"
+            "getUserRole",
+            "requireAdmin"
           ]
         },
         "isAdminEmail": "(email: string): boolean",
@@ -5700,7 +6963,83 @@
           "calls": [
             "isAdmin"
           ],
-          "signature": "async (): Promise<'admin' | 'user'>"
+          "signature": "async (): Promise<'admin' | 'user'>",
+          "called_by": [
+            "isAdmin",
+            "isAdvertiser"
+          ]
+        }
+      },
+      "classes": {},
+      "constants": {
+        "ADMIN_EMAILS": "collection"
+      },
+      "variables": [
+        "user",
+        "userEmail",
+        "isUserAdmin"
+      ],
+      "call_graph": {}
+    },
+    "lib\\auth\\roles.ts": {
+      "language": "typescript",
+      "parsed": true,
+      "imports": [
+        "@clerk/nextjs/server",
+        "@/lib/supabase/server"
+      ],
+      "functions": {
+        "getUserRole": {
+          "signature": "async (): Promise<UserRole>",
+          "called_by": [
+            "isAdmin",
+            "isAdvertiser"
+          ]
+        },
+        "isAdmin": {
+          "calls": [
+            "getUserRole"
+          ],
+          "signature": "async (): Promise<boolean>",
+          "called_by": [
+            "requireAdmin",
+            "getUserRole",
+            "requireAdmin"
+          ]
+        },
+        "isAdvertiser": {
+          "calls": [
+            "getUserRole"
+          ],
+          "signature": "async (): Promise<boolean>",
+          "called_by": [
+            "requireAdvertiser"
+          ]
+        },
+        "updateUserRole": {
+          "signature": "async (userId: string, role: UserRole): Promise<void>",
+          "called_by": [
+            "getOrCreateAdvertiserProfile"
+          ]
+        },
+        "getRolePermissions": "(role: UserRole)",
+        "requireAdvertiser": {
+          "calls": [
+            "isAdvertiser"
+          ],
+          "signature": "async (): Promise<void>"
+        },
+        "requireAdmin": {
+          "calls": [
+            "isAdmin"
+          ],
+          "signature": "async (): Promise<void>"
+        },
+        "getOrCreateAdvertiserProfile": {
+          "calls": [
+            "updateUserRole"
+          ],
+          "signature": "async (userData?: { firm_name: string firm_type: 'solo' | 'small' | 'medium' | 'large' | 'enterprise' contact_email: string bar_number?: string bar_state?: string })"
         }
       },
       "classes": {},
@@ -5710,6 +7049,12 @@
       "variables": [
         "user",
         "userEmail",
+        "publicMetadata",
+        "supabase",
+        "role",
+        "clerk",
+        "permissions",
+        "isUserAdvertiser",
         "isUserAdmin"
       ],
       "call_graph": {}
@@ -6564,7 +7909,8 @@
             "syncJudges": {
               "signature": "async (options: JudgeSyncOptions = {}): Promise<JudgeSyncResult>",
               "called_by": [
-                "CourtListenerJudgesSyncService.run"
+                "CourtListenerJudgesSyncService.run",
+                "syncJudges"
               ]
             },
             "__init__": "()"
@@ -6734,8 +8080,8 @@
             "error": {
               "signature": "(message: string, context?: Record<string, any>, error?: Error)",
               "called_by": [
-                "POST",
-                "GET"
+                "GET",
+                "POST"
               ]
             },
             "apiRequest": "(method: string, path: string, context?: Record<string, any>)",
@@ -7181,6 +8527,18 @@
       ],
       "call_graph": {}
     },
+    "reports\\analytics-regeneration-1756092874359.json": {
+      "language": "json",
+      "parsed": false
+    },
+    "reports\\cleaning-report-1756092230811.json": {
+      "language": "json",
+      "parsed": false
+    },
+    "reports\\final-integrity-1756092522464.json": {
+      "language": "json",
+      "parsed": false
+    },
     "scripts\\add-court-slugs-simple.js": {
       "language": "javascript",
       "parsed": true,
@@ -7243,6 +8601,21 @@
     "scripts\\add-courtlistener-unique-constraint.sql": {
       "language": "sql",
       "parsed": false
+    },
+    "scripts\\add-jurisdiction-column.js": {
+      "language": "javascript",
+      "parsed": true,
+      "imports": [
+        "@supabase/supabase-js"
+      ],
+      "functions": {
+        "addJurisdictionColumn": "async ()"
+      },
+      "classes": {},
+      "variables": [
+        "supabase"
+      ],
+      "call_graph": {}
     },
     "scripts\\add-rpc-function.sql": {
       "language": "sql",
@@ -7868,6 +9241,69 @@
       ],
       "call_graph": {}
     },
+    "scripts\\clean-test-data.js": {
+      "language": "javascript",
+      "parsed": true,
+      "purpose": "Test file",
+      "imports": [
+        "@supabase/supabase-js",
+        "fs",
+        "fs"
+      ],
+      "functions": {
+        "main": {
+          "calls": [
+            "run"
+          ],
+          "signature": "async ()"
+        }
+      },
+      "classes": {
+        "JudgeDataCleaner": {
+          "methods": {
+            "constructor": "()",
+            "run": {
+              "signature": "async ()",
+              "called_by": [
+                "main"
+              ]
+            },
+            "identifyTestData": "async ()",
+            "validateJudgeProfiles": "async ()",
+            "checkDataAnomalies": "async ()",
+            "cleanTestData": "async ()",
+            "generateReport": {
+              "signature": "async ()",
+              "called_by": [
+                "CourtListenerJudgesSyncService.run",
+                "CourtListenerSyncService.run",
+                "DatabaseIntegrityChecker.runAllChecks",
+                "JudgeCourtDataMigrator.runMigration",
+                "DatabaseMigrationRunner.runMigrations"
+              ]
+            },
+            "__init__": "()"
+          },
+          "doc": "JUDGE DATA CLEANING AND VALIDATION SCRIPT"
+        }
+      },
+      "variables": [
+        "supabase",
+        "isTestData",
+        "reasons",
+        "appointedYear",
+        "currentYear",
+        "nameMap",
+        "duplicates",
+        "backupData",
+        "fs",
+        "backupPath",
+        "report",
+        "reportPath",
+        "cleaner"
+      ],
+      "call_graph": {}
+    },
     "scripts\\complete-migration-process.js": {
       "language": "javascript",
       "parsed": true,
@@ -8270,8 +9706,8 @@
             "checkTableExists": {
               "signature": "async ()",
               "called_by": [
-                "PositionsTableCreator.run",
-                "main"
+                "main",
+                "PositionsTableCreator.run"
               ]
             },
             "createTableViaSQL": "async ()",
@@ -8357,8 +9793,8 @@
             "isValidURL": {
               "signature": "(string)",
               "called_by": [
-                "isJudge",
-                "isCourt"
+                "isCourt",
+                "isJudge"
               ]
             },
             "isValidPhone": "(phone)",
@@ -8538,11 +9974,11 @@
             "generateReport": {
               "signature": "async ()",
               "called_by": [
+                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "DatabaseMigrationRunner.runMigrations",
                 "DatabaseIntegrityChecker.runAllChecks",
                 "JudgeCourtDataMigrator.runMigration",
-                "CourtListenerJudgesSyncService.run"
+                "DatabaseMigrationRunner.runMigrations"
               ]
             },
             "calculateHealthScore": "()",
@@ -8678,8 +10114,8 @@
             "checkTableExists": {
               "signature": "async (tableName)",
               "called_by": [
-                "PositionsTableCreator.run",
-                "main"
+                "main",
+                "PositionsTableCreator.run"
               ]
             },
             "verifyMigrationState": {
@@ -8920,6 +10356,78 @@
       ],
       "call_graph": {}
     },
+    "scripts\\final-integrity-report.js": {
+      "language": "javascript",
+      "parsed": true,
+      "imports": [
+        "@supabase/supabase-js",
+        "fs",
+        "path"
+      ],
+      "functions": {
+        "main": {
+          "calls": [
+            "generate"
+          ],
+          "signature": "async ()"
+        }
+      },
+      "classes": {
+        "FinalIntegrityReport": {
+          "methods": {
+            "constructor": "()",
+            "generate": {
+              "signature": "async ()",
+              "called_by": [
+                "main"
+              ]
+            },
+            "checkDatabaseStatistics": "async ()",
+            "checkJudgeDataQuality": "async ()",
+            "checkAnalyticsCoverage": "async ()",
+            "checkAPIHealth": "async ()",
+            "checkDataRelationships": "async ()",
+            "generateSummary": "async ()",
+            "saveReport": "async ()",
+            "displayResults": "()",
+            "__init__": "()"
+          },
+          "doc": "FINAL INTEGRITY REPORT"
+        }
+      },
+      "variables": [
+        "fs",
+        "path",
+        "supabase",
+        "testDataCount",
+        "testPatterns",
+        "uniqueJudgesWithAnalytics",
+        "freshAnalytics",
+        "staleAnalytics",
+        "highConfidence",
+        "lowConfidence",
+        "oneDayAgo",
+        "createdAt",
+        "confidence",
+        "coverage",
+        "baseUrl",
+        "endpoints",
+        "healthyEndpoints",
+        "failedEndpoints",
+        "startTime",
+        "response",
+        "responseTime",
+        "issues",
+        "criticalIssues",
+        "errors",
+        "warnings",
+        "platformStatus",
+        "reportPath",
+        "statusEmoji",
+        "report"
+      ],
+      "call_graph": {}
+    },
     "scripts\\final-rpc-function.sql": {
       "language": "sql",
       "parsed": false
@@ -8996,8 +10504,8 @@
             "checkCurrentState": {
               "signature": "async ()",
               "called_by": [
-                "MigrationCompletionGuide.run",
-                "ManualMigrationGuide.run"
+                "ManualMigrationGuide.run",
+                "MigrationCompletionGuide.run"
               ]
             },
             "generateMigrationSQL": {
@@ -9009,10 +10517,10 @@
             "createBackup": {
               "signature": "async ()",
               "called_by": [
-                "CourtListenerSyncService.run",
-                "CourtListenerJudgesSyncService.run",
                 "ManualMigrationGuide.run",
-                "DatabaseMigrationRunner.runMigrations"
+                "DatabaseMigrationRunner.runMigrations",
+                "CourtListenerJudgesSyncService.run",
+                "CourtListenerSyncService.run"
               ]
             },
             "run": {
@@ -9170,21 +10678,21 @@
             "generateReport": {
               "signature": "async (dryRun = false)",
               "called_by": [
+                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "DatabaseMigrationRunner.runMigrations",
                 "DatabaseIntegrityChecker.runAllChecks",
                 "JudgeCourtDataMigrator.runMigration",
-                "CourtListenerJudgesSyncService.run"
+                "DatabaseMigrationRunner.runMigrations"
               ]
             },
             "sleep": {
               "signature": "async (ms)",
               "called_by": [
-                "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CAJudgeDecisionsSync.sleep",
-                "JudgeCourtDataMigrator.runMigration",
+                "retryWithBackoff",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "retryWithBackoff"
+                "JudgeCourtDataMigrator.runMigration",
+                "CAJudgeDecisionsSync.sleep",
+                "CAJudgeDecisionsSync.fetchDocketsForJudge"
               ]
             },
             "__init__": "()"
@@ -9238,8 +10746,8 @@
             "checkCurrentState": {
               "signature": "async ()",
               "called_by": [
-                "MigrationCompletionGuide.run",
-                "ManualMigrationGuide.run"
+                "ManualMigrationGuide.run",
+                "MigrationCompletionGuide.run"
               ]
             },
             "generateSQLScript": {
@@ -9568,6 +11076,86 @@
       ],
       "call_graph": {}
     },
+    "scripts\\regenerate-all-analytics.js": {
+      "language": "javascript",
+      "parsed": true,
+      "imports": [
+        "@supabase/supabase-js",
+        "fs"
+      ],
+      "functions": {
+        "main": {
+          "calls": [
+            "run"
+          ],
+          "signature": "async ()"
+        }
+      },
+      "classes": {
+        "AnalyticsRegenerator": {
+          "methods": {
+            "constructor": "()",
+            "run": {
+              "signature": "async ()",
+              "called_by": [
+                "main"
+              ]
+            },
+            "clearAnalyticsCache": "async ()",
+            "getAllJudges": "async ()",
+            "regenerateAnalytics": "async (judges)",
+            "generateAnalyticsForJudge": "async (judge)",
+            "verifyAnalytics": "async ()",
+            "generateReport": {
+              "signature": "async ()",
+              "called_by": [
+                "CourtListenerJudgesSyncService.run",
+                "CourtListenerSyncService.run",
+                "DatabaseIntegrityChecker.runAllChecks",
+                "JudgeCourtDataMigrator.runMigration",
+                "DatabaseMigrationRunner.runMigrations"
+              ]
+            },
+            "__init__": "()"
+          },
+          "doc": "REGENERATE ALL JUDGE ANALYTICS"
+        }
+      },
+      "variables": [
+        "supabase",
+        "judges",
+        "oneDayAgo",
+        "judgesWithCases",
+        "judgesWithoutCases",
+        "startTime",
+        "i",
+        "batch",
+        "batchNumber",
+        "totalBatches",
+        "batchPromises",
+        "results",
+        "judge",
+        "progress",
+        "elapsedTime",
+        "estimatedTotal",
+        "remainingTime",
+        "cacheAge",
+        "hoursOld",
+        "baseUrl",
+        "response",
+        "data",
+        "uniqueJudgeIds",
+        "highConfidence",
+        "mediumConfidence",
+        "lowConfidence",
+        "confidence",
+        "report",
+        "fs",
+        "reportPath",
+        "regenerator"
+      ],
+      "call_graph": {}
+    },
     "scripts\\remove-console-logs.js": {
       "language": "javascript",
       "parsed": false
@@ -9601,17 +11189,17 @@
             "createBackup": {
               "signature": "async ()",
               "called_by": [
-                "CourtListenerSyncService.run",
-                "CourtListenerJudgesSyncService.run",
                 "ManualMigrationGuide.run",
-                "DatabaseMigrationRunner.runMigrations"
+                "DatabaseMigrationRunner.runMigrations",
+                "CourtListenerJudgesSyncService.run",
+                "CourtListenerSyncService.run"
               ]
             },
             "loadMigrationSQL": {
               "signature": "async (filename)",
               "called_by": [
-                "DatabaseMigrationRunner.executeRollback",
-                "DatabaseMigrationRunner.executeMigration"
+                "DatabaseMigrationRunner.executeMigration",
+                "DatabaseMigrationRunner.executeRollback"
               ]
             },
             "executeMigration": {
@@ -9647,11 +11235,11 @@
             "generateReport": {
               "signature": "async (results, backupPath)",
               "called_by": [
+                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "DatabaseMigrationRunner.runMigrations",
                 "DatabaseIntegrityChecker.runAllChecks",
                 "JudgeCourtDataMigrator.runMigration",
-                "CourtListenerJudgesSyncService.run"
+                "DatabaseMigrationRunner.runMigrations"
               ]
             },
             "__init__": "()"
@@ -9781,8 +11369,8 @@
             "checkTableExists": {
               "signature": "async (tableName)",
               "called_by": [
-                "PositionsTableCreator.run",
-                "main"
+                "main",
+                "PositionsTableCreator.run"
               ]
             },
             "performCompleteVerification": {
@@ -10101,11 +11689,11 @@
               ],
               "signature": "async (ms)",
               "called_by": [
-                "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CAJudgeDecisionsSync.sleep",
-                "JudgeCourtDataMigrator.runMigration",
+                "retryWithBackoff",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "retryWithBackoff"
+                "JudgeCourtDataMigrator.runMigration",
+                "CAJudgeDecisionsSync.sleep",
+                "CAJudgeDecisionsSync.fetchDocketsForJudge"
               ]
             },
             "makeApiRequest": {
@@ -10116,13 +11704,13 @@
               ],
               "signature": "async (url)",
               "called_by": [
-                "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CAJudgeDecisionsSync.sleep",
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
                 "CourtJudgeValidator.validateCourtJudgeRelationships",
                 "CAJudgeDecisionsSync.makeApiRequest",
+                "CourtJudgeValidator.validateFrontendIntegration",
                 "CourtJudgeValidator.validatePerformance",
-                "CourtJudgeValidator.validateFrontendIntegration"
+                "CAJudgeDecisionsSync.sleep",
+                "CAJudgeDecisionsSync.fetchDocketsForJudge",
+                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility"
               ]
             },
             "fetchDecisionsForJudge": {
@@ -10229,10 +11817,10 @@
             "createBackup": {
               "signature": "async ()",
               "called_by": [
-                "CourtListenerSyncService.run",
-                "CourtListenerJudgesSyncService.run",
                 "ManualMigrationGuide.run",
-                "DatabaseMigrationRunner.runMigrations"
+                "DatabaseMigrationRunner.runMigrations",
+                "CourtListenerJudgesSyncService.run",
+                "CourtListenerSyncService.run"
               ]
             },
             "fetchAllCourts": {
@@ -10244,13 +11832,13 @@
             "makeApiRequest": {
               "signature": "async (url)",
               "called_by": [
-                "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CAJudgeDecisionsSync.sleep",
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
                 "CourtJudgeValidator.validateCourtJudgeRelationships",
                 "CAJudgeDecisionsSync.makeApiRequest",
+                "CourtJudgeValidator.validateFrontendIntegration",
                 "CourtJudgeValidator.validatePerformance",
-                "CourtJudgeValidator.validateFrontendIntegration"
+                "CAJudgeDecisionsSync.sleep",
+                "CAJudgeDecisionsSync.fetchDocketsForJudge",
+                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility"
               ]
             },
             "mapCourtData": {
@@ -10288,21 +11876,21 @@
             "generateReport": {
               "signature": "async ()",
               "called_by": [
+                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "DatabaseMigrationRunner.runMigrations",
                 "DatabaseIntegrityChecker.runAllChecks",
                 "JudgeCourtDataMigrator.runMigration",
-                "CourtListenerJudgesSyncService.run"
+                "DatabaseMigrationRunner.runMigrations"
               ]
             },
             "sleep": {
               "signature": "async (ms)",
               "called_by": [
-                "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CAJudgeDecisionsSync.sleep",
-                "JudgeCourtDataMigrator.runMigration",
+                "retryWithBackoff",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "retryWithBackoff"
+                "JudgeCourtDataMigrator.runMigration",
+                "CAJudgeDecisionsSync.sleep",
+                "CAJudgeDecisionsSync.fetchDocketsForJudge"
               ]
             },
             "run": {
@@ -10382,10 +11970,10 @@
             "createBackup": {
               "signature": "async ()",
               "called_by": [
-                "CourtListenerSyncService.run",
-                "CourtListenerJudgesSyncService.run",
                 "ManualMigrationGuide.run",
-                "DatabaseMigrationRunner.runMigrations"
+                "DatabaseMigrationRunner.runMigrations",
+                "CourtListenerJudgesSyncService.run",
+                "CourtListenerSyncService.run"
               ]
             },
             "loadCourtMappings": {
@@ -10405,13 +11993,13 @@
             "makeApiRequest": {
               "signature": "async (url)",
               "called_by": [
-                "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CAJudgeDecisionsSync.sleep",
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
                 "CourtJudgeValidator.validateCourtJudgeRelationships",
                 "CAJudgeDecisionsSync.makeApiRequest",
+                "CourtJudgeValidator.validateFrontendIntegration",
                 "CourtJudgeValidator.validatePerformance",
-                "CourtJudgeValidator.validateFrontendIntegration"
+                "CAJudgeDecisionsSync.sleep",
+                "CAJudgeDecisionsSync.fetchDocketsForJudge",
+                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility"
               ]
             },
             "mapJudgeData": {
@@ -10453,27 +12041,28 @@
             "syncJudges": {
               "signature": "async (judgesData)",
               "called_by": [
-                "CourtListenerJudgesSyncService.run"
+                "CourtListenerJudgesSyncService.run",
+                "syncJudges"
               ]
             },
             "generateReport": {
               "signature": "async ()",
               "called_by": [
+                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "DatabaseMigrationRunner.runMigrations",
                 "DatabaseIntegrityChecker.runAllChecks",
                 "JudgeCourtDataMigrator.runMigration",
-                "CourtListenerJudgesSyncService.run"
+                "DatabaseMigrationRunner.runMigrations"
               ]
             },
             "sleep": {
               "signature": "async (ms)",
               "called_by": [
-                "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CAJudgeDecisionsSync.sleep",
-                "JudgeCourtDataMigrator.runMigration",
+                "retryWithBackoff",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "retryWithBackoff"
+                "JudgeCourtDataMigrator.runMigration",
+                "CAJudgeDecisionsSync.sleep",
+                "CAJudgeDecisionsSync.fetchDocketsForJudge"
               ]
             },
             "run": {
@@ -10546,6 +12135,64 @@
       ],
       "call_graph": {}
     },
+    "scripts\\sync-courts-manual.js": {
+      "language": "javascript",
+      "parsed": true,
+      "imports": [
+        "@supabase/supabase-js",
+        "fs",
+        "path"
+      ],
+      "functions": {
+        "syncCourts": {
+          "signature": "async ()",
+          "called_by": [
+            "CourtListenerSyncService.run"
+          ]
+        }
+      },
+      "classes": {},
+      "variables": [
+        "supabase",
+        "fs",
+        "path",
+        "syncScriptPath",
+        "stats",
+        "annualFilings",
+        "essentialCourts"
+      ],
+      "call_graph": {}
+    },
+    "scripts\\sync-decisions-manual.js": {
+      "language": "javascript",
+      "parsed": true,
+      "imports": [
+        "@supabase/supabase-js",
+        "fs",
+        "path",
+        "./sync-ca-judge-decisions.js"
+      ],
+      "functions": {
+        "syncDecisions": "async ()"
+      },
+      "classes": {},
+      "variables": [
+        "supabase",
+        "fs",
+        "path",
+        "syncScriptPath",
+        "results",
+        "casesToGenerate",
+        "sampleCases",
+        "caseTypes",
+        "outcomes",
+        "i",
+        "caseDate",
+        "batchSize",
+        "batch"
+      ],
+      "call_graph": {}
+    },
     "scripts\\sync-judge-decisions.js": {
       "language": "javascript",
       "parsed": true,
@@ -10565,11 +12212,11 @@
             "sleep": {
               "signature": "async (ms)",
               "called_by": [
-                "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CAJudgeDecisionsSync.sleep",
-                "JudgeCourtDataMigrator.runMigration",
+                "retryWithBackoff",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "retryWithBackoff"
+                "JudgeCourtDataMigrator.runMigration",
+                "CAJudgeDecisionsSync.sleep",
+                "CAJudgeDecisionsSync.fetchDocketsForJudge"
               ]
             },
             "makeRequest": "async (endpoint, params = {})",
@@ -10621,6 +12268,34 @@
         "chunk",
         "newCaseCountMap",
         "judgesWithCases"
+      ],
+      "call_graph": {}
+    },
+    "scripts\\sync-judges-manual.js": {
+      "language": "javascript",
+      "parsed": true,
+      "imports": [
+        "@supabase/supabase-js",
+        "./sync-courtlistener-judges.js"
+      ],
+      "functions": {
+        "syncJudges": {
+          "calls": [
+            "syncJudges"
+          ],
+          "signature": "async ()",
+          "called_by": [
+            "CourtListenerJudgesSyncService.run",
+            "syncJudges"
+          ]
+        }
+      },
+      "classes": {},
+      "variables": [
+        "supabase",
+        "syncScript",
+        "service",
+        "results"
       ],
       "call_graph": {}
     },
@@ -10685,11 +12360,11 @@
             "sleep": {
               "signature": "async (ms)",
               "called_by": [
-                "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CAJudgeDecisionsSync.sleep",
-                "JudgeCourtDataMigrator.runMigration",
+                "retryWithBackoff",
                 "CAJudgeDecisionsSync.makeApiRequest",
-                "retryWithBackoff"
+                "JudgeCourtDataMigrator.runMigration",
+                "CAJudgeDecisionsSync.sleep",
+                "CAJudgeDecisionsSync.fetchDocketsForJudge"
               ]
             },
             "makeRequest": "async (endpoint, params = {})",
@@ -10845,17 +12520,17 @@
             "log": {
               "signature": "(message, level = 'info')",
               "called_by": [
-                "ValidationReporter.generateReport",
-                "CourtJudgeValidator.validateCourtJudgeRelationships"
+                "CourtJudgeValidator.validateCourtJudgeRelationships",
+                "ValidationReporter.generateReport"
               ]
             },
             "addTest": {
               "signature": "(category, testName, status, details = {})",
               "called_by": [
-                "CourtJudgeValidator.validatePerformance",
                 "CourtJudgeValidator.validateFrontendIntegration",
-                "CourtJudgeValidator.validateCourtJudgeRelationships",
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility"
+                "CourtJudgeValidator.validatePerformance",
+                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
+                "CourtJudgeValidator.validateCourtJudgeRelationships"
               ]
             },
             "addPerformanceMetric": {
@@ -10872,11 +12547,11 @@
               ],
               "signature": "async ()",
               "called_by": [
+                "CourtListenerJudgesSyncService.run",
                 "CourtListenerSyncService.run",
-                "DatabaseMigrationRunner.runMigrations",
                 "DatabaseIntegrityChecker.runAllChecks",
                 "JudgeCourtDataMigrator.runMigration",
-                "CourtListenerJudgesSyncService.run"
+                "DatabaseMigrationRunner.runMigrations"
               ]
             },
             "printSummary": "()",
@@ -10891,13 +12566,13 @@
             "makeApiRequest": {
               "signature": "async (url, options = {})",
               "called_by": [
-                "CAJudgeDecisionsSync.fetchDocketsForJudge",
-                "CAJudgeDecisionsSync.sleep",
-                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility",
                 "CourtJudgeValidator.validateCourtJudgeRelationships",
                 "CAJudgeDecisionsSync.makeApiRequest",
+                "CourtJudgeValidator.validateFrontendIntegration",
                 "CourtJudgeValidator.validatePerformance",
-                "CourtJudgeValidator.validateFrontendIntegration"
+                "CAJudgeDecisionsSync.sleep",
+                "CAJudgeDecisionsSync.fetchDocketsForJudge",
+                "CourtJudgeValidator.validateCaliforniaJudgesAccessibility"
               ]
             },
             "validateCourtJudgeRelationships": {
@@ -11186,6 +12861,18 @@
       "language": "sql",
       "parsed": false
     },
+    "supabase\\migrations\\20250822_003_add_jurisdiction_column.sql": {
+      "language": "sql",
+      "parsed": false
+    },
+    "supabase\\migrations\\20250823_001_create_advertising_system.sql": {
+      "language": "sql",
+      "parsed": false
+    },
+    "types\\advertising.ts": {
+      "language": "typescript",
+      "parsed": false
+    },
     "types\\global.d.ts": {
       "language": "typescript",
       "parsed": false
@@ -11220,18 +12907,22 @@
       "next"
     ],
     "app\\page.tsx": [
-      "@/components/judges/SearchSection",
-      "@/components/judges/PopularCourts",
-      "@/components/ui/WhatYoullLearn",
-      "@/components/ui/WhyJudgeResearch",
+      "react",
+      "framer-motion",
+      "react-intersection-observer",
       "@/components/seo/StructuredData",
-      "next/link"
+      "@/components/ai/BuilderStyleChat",
+      "@/components/home/AnimatedTechTiles",
+      "next/link",
+      "lucide-react"
     ],
     "app\\sitemap.ts": [
       "@/lib/supabase/server",
       "@/lib/utils/slug"
     ],
     "app\\about\\page.tsx": [
+      "react",
+      "framer-motion",
       "lucide-react"
     ],
     "app\\admin\\page.tsx": [
@@ -11270,6 +12961,26 @@
       "next/server",
       "@/lib/supabase/server"
     ],
+    "app\\api\\advertising\\advertiser\\create\\route.ts": [
+      "next/server",
+      "@clerk/nextjs/server",
+      "@/lib/supabase/server",
+      "@/lib/auth/roles"
+    ],
+    "app\\api\\advertising\\spots\\available\\route.ts": [
+      "next/server",
+      "@/lib/supabase/server"
+    ],
+    "app\\api\\advertising\\spots\\book\\route.ts": [
+      "next/server",
+      "@clerk/nextjs/server",
+      "@/lib/supabase/server",
+      "@/lib/auth/roles"
+    ],
+    "app\\api\\analytics\\chat-funnel\\route.ts": [
+      "next/server",
+      "@/lib/supabase/server"
+    ],
     "app\\api\\analytics\\conversion\\route.ts": [
       "next/server",
       "@/lib/supabase/server",
@@ -11302,6 +13013,11 @@
     "app\\api\\auth\\test\\route.ts": [
       "next/server",
       "@clerk/nextjs/server",
+      "@/lib/supabase/server"
+    ],
+    "app\\api\\chat\\route.ts": [
+      "next/server",
+      "openai",
       "@/lib/supabase/server"
     ],
     "app\\api\\courts\\route.ts": [
@@ -11355,6 +13071,10 @@
       "@/lib/utils/type-guards"
     ],
     "app\\api\\judges\\by-state\\route.ts": [
+      "next/server",
+      "@/lib/supabase/server"
+    ],
+    "app\\api\\judges\\chat-search\\route.ts": [
       "next/server",
       "@/lib/supabase/server"
     ],
@@ -11437,6 +13157,18 @@
     "app\\api\\seo\\search-console\\route.ts": [
       "next/server"
     ],
+    "app\\api\\stats\\courts\\route.ts": [
+      "next/server",
+      "@/lib/supabase/server"
+    ],
+    "app\\api\\stats\\judges\\route.ts": [
+      "next/server",
+      "@/lib/supabase/server"
+    ],
+    "app\\api\\stats\\platform\\route.ts": [
+      "next/server",
+      "@/lib/supabase/server"
+    ],
     "app\\api\\sync\\courts\\route.ts": [
       "next/server",
       "@/lib/sync/court-sync",
@@ -11511,8 +13243,8 @@
       "next/link"
     ],
     "app\\courts\\page.tsx": [
-      "@/components/courts/CourtsSearch",
-      "@/lib/supabase/server"
+      "@/lib/supabase/server",
+      "@/components/courts/CourtsPageClient"
     ],
     "app\\courts\\[id]\\page.tsx": [
       "next/navigation",
@@ -11520,12 +13252,37 @@
       "next/link",
       "@/lib/supabase/server",
       "@/components/courts/CourtJudgesSection",
+      "@/components/courts/CourtAdvertiserSlots",
       "@/lib/utils/slug"
     ],
     "app\\dashboard\\page.tsx": [
       "@clerk/nextjs/server",
       "next/navigation",
       "@/components/dashboard/UserDashboard"
+    ],
+    "app\\dashboard\\advertiser\\layout.tsx": [
+      "@clerk/nextjs/server",
+      "next/navigation",
+      "@/lib/auth/roles",
+      "@/components/dashboard/AdvertiserSidebar"
+    ],
+    "app\\dashboard\\advertiser\\page.tsx": [
+      "@clerk/nextjs/server",
+      "next/navigation",
+      "@/lib/auth/roles",
+      "@/lib/supabase/server",
+      "@/components/dashboard/AdvertiserOverview"
+    ],
+    "app\\dashboard\\advertiser\\ad-spots\\page.tsx": [
+      "@clerk/nextjs/server",
+      "next/navigation",
+      "@/lib/auth/roles",
+      "@/components/dashboard/AdSpotsExplorer"
+    ],
+    "app\\dashboard\\advertiser\\onboarding\\page.tsx": [
+      "react",
+      "next/navigation",
+      "lucide-react"
     ],
     "app\\dashboard\\bookmarks\\page.tsx": [
       "@clerk/nextjs/server",
@@ -11553,7 +13310,12 @@
       "next/link",
       "@/lib/utils/slug",
       "@/lib/hooks/useDebounce",
-      "@/components/ui/Skeleton"
+      "@/components/ui/Skeleton",
+      "framer-motion",
+      "@/components/ui/ParticleBackground",
+      "@/components/ui/AnimatedCounter",
+      "@/components/ui/TypewriterText",
+      "@/components/ui/ScrollIndicator"
     ],
     "app\\judges\\advanced-search\\page.tsx": [
       "@/components/judges/EnhancedJudgeSearch",
@@ -11576,13 +13338,13 @@
     "app\\judges\\[slug]\\page.tsx": [
       "next/navigation",
       "@/components/judges/JudgeProfile",
+      "@/components/judges/ProfessionalBackground",
       "@/components/judges/JudgeRulingPatterns",
       "@/components/judges/RecentDecisions",
-      "@/components/judges/AttorneySlots",
+      "@/components/judges/AdvertiserSlots",
       "@/components/judges/JudgeFAQ",
       "@/components/judges/AnalyticsSliders",
       "@/components/judges/BookmarkButton",
-      "@/components/ads/GoogleAd",
       "@/components/seo/SEOBreadcrumbs",
       "@/components/seo/RelatedJudges",
       "@/components/seo/RelatedContent",
@@ -11593,10 +13355,14 @@
       "@/lib/seo/content-generator"
     ],
     "app\\jurisdictions\\page.tsx": [
-      "@/lib/supabase/server",
+      "react",
       "next/link",
       "lucide-react",
-      "next"
+      "framer-motion",
+      "@/components/ui/ParticleBackground",
+      "@/components/ui/AnimatedCounter",
+      "@/components/ui/TypewriterText",
+      "@/components/ui/ScrollIndicator"
     ],
     "app\\jurisdictions\\[county]\\page.tsx": [
       "react",
@@ -11617,6 +13383,10 @@
       "next/link",
       "lucide-react"
     ],
+    "app\\professional\\page.tsx": [
+      "next/link",
+      "lucide-react"
+    ],
     "app\\profile\\page.tsx": [
       "@clerk/nextjs/server",
       "next/navigation",
@@ -11632,7 +13402,7 @@
       "@clerk/nextjs"
     ],
     "app\\sign-up\\[[...sign-up]]\\page.tsx": [
-      "@clerk/nextjs"
+      "@/components/auth/CustomSignUp"
     ],
     "app\\signup\\page.tsx": [
       "react",
@@ -11647,24 +13417,79 @@
     "app\\welcome\\page.tsx": [
       "@clerk/nextjs/server",
       "next/navigation",
-      "@/components/onboarding/OnboardingWizard"
+      "@/components/onboarding/OnboardingWizard",
+      "@/lib/auth/admin"
     ],
     "components\\ads\\GoogleAd.tsx": [
       "react"
     ],
+    "components\\ai\\AIChatModal.tsx": [
+      "react",
+      "lucide-react"
+    ],
+    "components\\ai\\BuilderStyleChat.tsx": [
+      "react",
+      "lucide-react",
+      "components/ai/ChatMessage.tsx",
+      "components/ai/JudgeCard.tsx",
+      "components/ai/SuggestedPrompts.tsx",
+      "components/ai/ChatInput.tsx",
+      "components/ai/ChatHeader.tsx"
+    ],
+    "components\\ai\\ChatHeader.tsx": [
+      "lucide-react"
+    ],
+    "components\\ai\\ChatInput.tsx": [
+      "lucide-react"
+    ],
+    "components\\ai\\ChatMessage.tsx": [
+      "lucide-react",
+      "components/ai/BuilderStyleChat.tsx"
+    ],
+    "components\\ai\\JudgeCard.tsx": [
+      "next/link",
+      "lucide-react"
+    ],
+    "components\\ai\\SuggestedPrompts.tsx": [
+      "lucide-react"
+    ],
     "components\\analytics\\SEOMonitoring.tsx": [
       "react",
       "@/lib/analytics/seo-monitoring"
+    ],
+    "components\\auth\\CustomSignUp.tsx": [
+      "react",
+      "@clerk/nextjs",
+      "@/lib/auth/admin-client",
+      "lucide-react"
+    ],
+    "components\\chat\\AILegalAssistant.tsx": [
+      "react",
+      "framer-motion",
+      "lucide-react"
+    ],
+    "components\\courts\\CourtAdvertiserSlots.tsx": [
+      "react",
+      "lucide-react",
+      "next/link"
     ],
     "components\\courts\\CourtJudgesSection.tsx": [
       "react",
       "lucide-react",
       "next/link"
     ],
+    "components\\courts\\CourtsPageClient.tsx": [
+      "react",
+      "framer-motion",
+      "lucide-react",
+      "next/link",
+      "components/courts/CourtsSearch.tsx"
+    ],
     "components\\courts\\CourtsSearch.tsx": [
       "react",
       "lucide-react",
       "next/link",
+      "framer-motion",
       "@/lib/hooks/useDebounce",
       "@/components/ui/Skeleton",
       "@/lib/utils/slug"
@@ -11675,6 +13500,26 @@
       "lucide-react",
       "next/link"
     ],
+    "components\\dashboard\\AdSpotBookingModal.tsx": [
+      "react",
+      "lucide-react"
+    ],
+    "components\\dashboard\\AdSpotsExplorer.tsx": [
+      "react",
+      "lucide-react",
+      "components/dashboard/AdSpotBookingModal.tsx"
+    ],
+    "components\\dashboard\\AdvertiserOverview.tsx": [
+      "react",
+      "next/link",
+      "lucide-react"
+    ],
+    "components\\dashboard\\AdvertiserSidebar.tsx": [
+      "next/link",
+      "next/navigation",
+      "lucide-react",
+      "@clerk/nextjs"
+    ],
     "components\\dashboard\\BiasAnalyticsDashboard.tsx": [
       "react",
       "recharts",
@@ -11683,7 +13528,6 @@
     "components\\dashboard\\UserDashboard.tsx": [
       "react",
       "next/link",
-      "@clerk/nextjs/server",
       "lucide-react"
     ],
     "components\\error\\ApiErrorBoundary.tsx": [
@@ -11693,9 +13537,19 @@
     "components\\error\\FormErrorBoundary.tsx": [
       "lucide-react"
     ],
+    "components\\home\\AnimatedTechTiles.tsx": [
+      "react",
+      "framer-motion",
+      "lucide-react"
+    ],
     "components\\judges\\AdvancedSearchFilters.tsx": [
       "react",
       "lucide-react"
+    ],
+    "components\\judges\\AdvertiserSlots.tsx": [
+      "react",
+      "lucide-react",
+      "next/link"
     ],
     "components\\judges\\AnalyticsSliders.tsx": [
       "react"
@@ -11741,8 +13595,8 @@
     ],
     "components\\judges\\JudgeProfile.tsx": [
       "lucide-react",
-      "react",
-      "next/link"
+      "next/link",
+      "components/judges/BookmarkButton.tsx"
     ],
     "components\\judges\\JudgeRulingPatterns.tsx": [
       "react",
@@ -11757,8 +13611,12 @@
     ],
     "components\\judges\\PopularCourts.tsx": [
       "next/link",
+      "framer-motion",
       "lucide-react",
       "react"
+    ],
+    "components\\judges\\ProfessionalBackground.tsx": [
+      "lucide-react"
     ],
     "components\\judges\\RecentDecisions.tsx": [
       "lucide-react",
@@ -11767,6 +13625,7 @@
     "components\\judges\\SearchSection.tsx": [
       "react",
       "next/navigation",
+      "framer-motion",
       "lucide-react"
     ],
     "components\\judges\\profile\\AttorneyDirectoryBanner.tsx": [
@@ -11795,7 +13654,12 @@
     ],
     "components\\providers\\Providers.tsx": [
       "@clerk/nextjs",
-      "react"
+      "react",
+      "components/providers/ThemeProvider.tsx"
+    ],
+    "components\\providers\\ThemeProvider.tsx": [
+      "next-themes",
+      "next-themes/dist/types"
     ],
     "components\\seo\\RelatedContent.tsx": [
       "next/link",
@@ -11810,6 +13674,15 @@
     "components\\seo\\SEOBreadcrumbs.tsx": [
       "next/link",
       "lucide-react"
+    ],
+    "components\\three\\JusticeScaleScene.tsx": [
+      "react",
+      "@react-three/fiber",
+      "@react-three/drei",
+      "three"
+    ],
+    "components\\ui\\AnimatedCounter.tsx": [
+      "react"
     ],
     "components\\ui\\badge.tsx": [
       "react",
@@ -11832,17 +13705,38 @@
       "react",
       "lucide-react",
       "@clerk/nextjs",
-      "components/ui/NavLogo.tsx"
+      "components/ui/NavLogo.tsx",
+      "components/ui/ThemeToggle.tsx"
     ],
     "components\\ui\\NavLogo.tsx": [
-      "next/link",
+      "react",
+      "next/link"
+    ],
+    "components\\ui\\ParticleBackground.tsx": [
+      "react",
+      "framer-motion"
+    ],
+    "components\\ui\\ScrollIndicator.tsx": [
       "framer-motion"
     ],
     "components\\ui\\Skeleton.tsx": [
       "@/lib/utils"
     ],
+    "components\\ui\\ThemeToggle.tsx": [
+      "lucide-react",
+      "next-themes",
+      "react"
+    ],
+    "components\\ui\\TypewriterText.tsx": [
+      "react"
+    ],
     "components\\ui\\WhatYoullLearn.tsx": [
       "lucide-react"
+    ],
+    "components\\visualizations\\BiasRadarChart.tsx": [
+      "react",
+      "d3",
+      "framer-motion"
     ],
     "lib\\rate-limit.ts": [
       "@upstash/ratelimit",
@@ -11854,6 +13748,10 @@
     ],
     "lib\\auth\\admin.ts": [
       "@clerk/nextjs/server"
+    ],
+    "lib\\auth\\roles.ts": [
+      "@clerk/nextjs/server",
+      "@/lib/supabase/server"
     ],
     "lib\\courtlistener\\client.ts": [
       "@/lib/utils/helpers"
@@ -11922,6 +13820,9 @@
       "@supabase/supabase-js",
       "dotenv"
     ],
+    "scripts\\add-jurisdiction-column.js": [
+      "@supabase/supabase-js"
+    ],
     "scripts\\add-slug-column-simple.js": [
       "@supabase/supabase-js",
       "fs"
@@ -11984,6 +13885,11 @@
     ],
     "scripts\\check-cases-schema.js": [
       "@supabase/supabase-js"
+    ],
+    "scripts\\clean-test-data.js": [
+      "@supabase/supabase-js",
+      "fs",
+      "fs"
     ],
     "scripts\\complete-migration-process.js": [
       "@supabase/supabase-js"
@@ -12054,6 +13960,11 @@
       "@supabase/supabase-js",
       "fs"
     ],
+    "scripts\\final-integrity-report.js": [
+      "@supabase/supabase-js",
+      "fs",
+      "path"
+    ],
     "scripts\\investigate-ca-judges.js": [
       "@supabase/supabase-js"
     ],
@@ -12092,6 +14003,10 @@
     ],
     "scripts\\quick-fix-data-integrity.js": [
       "@supabase/supabase-js"
+    ],
+    "scripts\\regenerate-all-analytics.js": [
+      "@supabase/supabase-js",
+      "fs"
     ],
     "scripts\\run-database-migrations.js": [
       "@supabase/supabase-js",
@@ -12142,11 +14057,26 @@
       "fs",
       "path"
     ],
+    "scripts\\sync-courts-manual.js": [
+      "@supabase/supabase-js",
+      "fs",
+      "path"
+    ],
+    "scripts\\sync-decisions-manual.js": [
+      "@supabase/supabase-js",
+      "fs",
+      "path",
+      "scripts/sync-ca-judge-decisions.js"
+    ],
     "scripts\\sync-judge-decisions.js": [
       "@supabase/supabase-js",
       "dotenv",
       "url",
       "path"
+    ],
+    "scripts\\sync-judges-manual.js": [
+      "@supabase/supabase-js",
+      "scripts/sync-courtlistener-judges.js"
     ],
     "scripts\\update-ca-courts.js": [
       "@supabase/supabase-js"
@@ -12181,5 +14111,5 @@
       "@supabase/supabase-js"
     ]
   },
-  "staleness_check": 1755241856.861129
+  "staleness_check": 1755489653.700295
 }

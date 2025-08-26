@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Search, MapPin, Building, Filter, Users, Scale, Clock, ChevronRight } from 'lucide-react'
 import type { SearchResult } from '@/types/search'
 
@@ -138,13 +139,13 @@ export function SearchSection() {
   const getResultIcon = (type: string) => {
     switch (type) {
       case 'judge':
-        return <Scale className="h-4 w-4 text-blue-500" />
+        return <Scale className="h-4 w-4 text-primary" />
       case 'court':
-        return <Building className="h-4 w-4 text-green-500" />
+        return <Building className="h-4 w-4 text-primary" />
       case 'jurisdiction':
-        return <MapPin className="h-4 w-4 text-purple-500" />
+        return <MapPin className="h-4 w-4 text-primary" />
       default:
-        return <Search className="h-4 w-4 text-gray-500" />
+        return <Search className="h-4 w-4 text-muted-foreground" />
     }
   }
 
@@ -165,8 +166,12 @@ export function SearchSection() {
     <div className="mx-auto max-w-4xl">
       {/* Search Bar */}
       <div className="relative">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+        <motion.div 
+          className="relative"
+          whileHover={{ scale: 1.01 }}
+          transition={{ duration: 0.2 }}
+        >
+          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
           <input
             ref={searchRef}
             type="text"
@@ -179,26 +184,33 @@ export function SearchSection() {
               }
             }}
             placeholder="Search judges, courts, or jurisdictions..."
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 py-4 pl-12 pr-20 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-full rounded-lg border border-border bg-card py-4 pl-12 pr-20 text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-300"
           />
-          <button 
+          <motion.button 
             onClick={() => handleSearch()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md bg-blue-600 px-6 py-2 font-semibold text-white hover:bg-blue-700 transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md bg-primary px-6 py-2 font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Search
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         {/* Search Suggestions Dropdown */}
-        {showSuggestions && (searchResults.length > 0 || isLoading) && (
-          <div 
-            ref={suggestionsRef}
-            className="absolute top-full left-0 right-0 z-50 mt-2 max-h-96 overflow-y-auto rounded-lg border border-gray-700 bg-gray-800 shadow-xl"
-          >
+        <AnimatePresence>
+          {showSuggestions && (searchResults.length > 0 || isLoading) && (
+            <motion.div 
+              ref={suggestionsRef}
+              className="absolute top-full left-0 right-0 z-50 mt-2 max-h-96 overflow-y-auto rounded-lg border border-border bg-card shadow-xl"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
             {isLoading ? (
               <div className="flex items-center justify-center p-4">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
-                <span className="ml-2 text-gray-300">Searching...</span>
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                <span className="ml-2 text-muted-foreground">Searching...</span>
               </div>
             ) : (
               <>
@@ -206,8 +218,8 @@ export function SearchSection() {
                   <button
                     key={`${result.type}-${result.id}`}
                     onClick={() => handleSearch(result.title, result.url)}
-                    className={`w-full text-left p-4 hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0 ${
-                      index === selectedIndex ? 'bg-gray-700' : ''
+                    className={`w-full text-left p-4 hover:bg-muted transition-colors border-b border-border last:border-b-0 ${
+                      index === selectedIndex ? 'bg-muted' : ''
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -215,20 +227,20 @@ export function SearchSection() {
                         {getResultIcon(result.type)}
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center space-x-2">
-                            <h4 className="font-medium text-white truncate">{result.title}</h4>
-                            <span className="text-xs px-2 py-1 rounded-full bg-gray-700 text-gray-300">
+                            <h4 className="font-medium text-foreground truncate">{result.title}</h4>
+                            <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">
                               {getResultTypeLabel(result.type)}
                             </span>
                           </div>
                           {result.subtitle && (
-                            <p className="text-sm text-gray-400 truncate">{result.subtitle}</p>
+                            <p className="text-sm text-muted-foreground truncate">{result.subtitle}</p>
                           )}
                           {result.description && (
-                            <p className="text-xs text-gray-500 truncate mt-1">{result.description}</p>
+                            <p className="text-xs text-muted-foreground/70 truncate mt-1">{result.description}</p>
                           )}
                         </div>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     </div>
                   </button>
                 ))}
@@ -236,76 +248,91 @@ export function SearchSection() {
                 {searchResults.length > 0 && (
                   <button
                     onClick={() => handleSearch()}
-                    className="w-full p-4 text-center text-blue-400 hover:bg-gray-700 transition-colors border-t border-gray-700"
+                    className="w-full p-4 text-center text-primary hover:bg-muted transition-colors border-t border-border"
                   >
                     View all results for "{searchQuery}" →
                   </button>
                 )}
               </>
             )}
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Quick Search Categories */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <button
+        <motion.button
           onClick={() => handleSearch('', '/judges')}
-          className="group p-6 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 transition-colors text-left"
+          className="group relative p-6 rounded-lg border border-border bg-card hover:bg-muted transition-all duration-300 text-left overflow-hidden"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
           <div className="flex items-center space-x-3 mb-2">
-            <Scale className="h-6 w-6 text-blue-500" />
-            <h3 className="font-semibold text-white">Browse Judges</h3>
+            <Scale className="h-6 w-6 text-primary" />
+            <h3 className="font-semibold text-foreground">Browse Judges</h3>
           </div>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Explore judicial profiles, case history, and ruling patterns
           </p>
-        </button>
+          <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-enterprise-primary to-enterprise-deep opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+        </motion.button>
 
-        <button
+        <motion.button
           onClick={() => handleSearch('', '/courts')}
-          className="group p-6 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 transition-colors text-left"
+          className="group relative p-6 rounded-lg border border-border bg-card hover:bg-muted transition-all duration-300 text-left overflow-hidden"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
           <div className="flex items-center space-x-3 mb-2">
-            <Building className="h-6 w-6 text-green-500" />
-            <h3 className="font-semibold text-white">Find Courts</h3>
+            <Building className="h-6 w-6 text-primary" />
+            <h3 className="font-semibold text-foreground">Find Courts</h3>
           </div>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Discover court information, locations, and judicial assignments
           </p>
-        </button>
+          <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-enterprise-primary to-enterprise-deep opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+        </motion.button>
 
-        <button
+        <motion.button
           onClick={() => handleSearch('', '/jurisdictions')}
-          className="group p-6 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 transition-colors text-left"
+          className="group relative p-6 rounded-lg border border-border bg-card hover:bg-muted transition-all duration-300 text-left overflow-hidden"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
           <div className="flex items-center space-x-3 mb-2">
-            <MapPin className="h-6 w-6 text-purple-500" />
-            <h3 className="font-semibold text-white">Explore Jurisdictions</h3>
+            <MapPin className="h-6 w-6 text-primary" />
+            <h3 className="font-semibold text-foreground">Explore Jurisdictions</h3>
           </div>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Navigate federal, state, and local judicial systems
           </p>
-        </button>
+          <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-enterprise-primary to-enterprise-deep opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+        </motion.button>
       </div>
 
       {/* Popular Searches */}
       <div className="mt-8 text-center">
-        <p className="text-sm text-gray-400 mb-4">Popular searches:</p>
+        <p className="text-sm text-muted-foreground mb-4">Popular searches:</p>
         <div className="flex flex-wrap justify-center gap-2">
           {[
-            { term: 'California Superior Court', type: 'court' },
-            { term: 'Los Angeles County', type: 'jurisdiction' },
-            { term: 'Federal Court', type: 'court' },
-            { term: 'Orange County', type: 'jurisdiction' }
-          ].map(({ term, type }) => (
-            <button
+            { term: 'California Superior Court', type: 'court', url: '/courts' },
+            { term: 'Los Angeles County', type: 'jurisdiction', url: '/jurisdictions/los-angeles-county' },
+            { term: 'Federal Court', type: 'court', url: '/jurisdictions/federal' },
+            { term: 'Orange County', type: 'jurisdiction', url: '/jurisdictions/orange-county' }
+          ].map(({ term, type, url }, index) => (
+            <motion.button
               key={term}
-              onClick={() => handleSearch(term)}
-              className="rounded-full border border-gray-700 px-4 py-2 text-sm text-gray-300 hover:border-blue-500 hover:text-blue-400 transition-colors"
+              onClick={() => router.push(url)}
+              className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-all duration-300"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               {term}
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>

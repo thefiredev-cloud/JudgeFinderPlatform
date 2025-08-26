@@ -1,7 +1,10 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
 
-// Admin email addresses from environment
-const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',').map(email => email.trim().toLowerCase()) || []
+// Hardcoded admin email addresses
+const ADMIN_EMAILS = [
+  'admin@thefiredev.com',
+  'rosterkamp@voitco.com'
+].map(email => email.toLowerCase())
 
 /**
  * Check if the current user is an admin

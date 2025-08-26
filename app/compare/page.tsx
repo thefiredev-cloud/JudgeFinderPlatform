@@ -186,7 +186,7 @@ function ComparePageContent() {
                 Compare judicial patterns, decision trends, and case outcomes side by side
               </p>
             </div>
-            <Link href="/judges" className="text-blue-400 hover:text-blue-300 flex items-center">
+            <Link href="/judges" className="text-blue-600 hover:text-blue-500 flex items-center">
               <ArrowRight className="h-4 w-4 mr-1" />
               Browse Judges
             </Link>
@@ -201,7 +201,7 @@ function ComparePageContent() {
               </p>
               <button
                 onClick={() => setShowSearch(true)}
-                className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-purple-600 transition-colors"
+                className="bg-gradient-to-r from-enterprise-primary to-enterprise-deep text-white px-6 py-3 rounded-lg hover:from-enterprise-accent hover:to-enterprise-primary transition-colors"
               >
                 Add Judge to Compare
               </button>
@@ -216,7 +216,7 @@ function ComparePageContent() {
               onClick={() => setShowSearch(true)}
               className="flex items-center space-x-2 bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-lg px-4 py-3 hover:bg-gray-700/50 transition-colors"
             >
-              <Plus className="h-5 w-5 text-blue-400" />
+              <Plus className="h-5 w-5 text-blue-600" />
               <span>Add Another Judge ({judges.length}/3)</span>
             </button>
           </div>
@@ -247,8 +247,7 @@ function ComparePageContent() {
                       searchJudges(e.target.value)
                     }}
                     placeholder="Search for judges by name..."
-                    className="w-full rounded-lg border border-gray-600 bg-gray-700/50 py-3 pl-10 pr-4 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    autoFocus
+                    className="w-full rounded-lg border border-gray-600 bg-gray-700/50 py-3 pl-10 pr-4 text-white placeholder-gray-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20"
                   />
                 </div>
 
@@ -266,7 +265,7 @@ function ComparePageContent() {
                               <h4 className="font-medium">{judge.name}</h4>
                               <p className="text-sm text-gray-400">{judge.court_name}</p>
                             </div>
-                            <Plus className="h-4 w-4 text-blue-400" />
+                            <Plus className="h-4 w-4 text-blue-600" />
                           </div>
                         </button>
                       ))}
@@ -294,7 +293,7 @@ function ComparePageContent() {
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex-1">
                     <h3 className="text-xl font-semibold mb-2">{judge.name}</h3>
-                    <p className="text-blue-400 text-sm mb-1">{judge.court_name}</p>
+                    <p className="text-blue-600 text-sm mb-1">{judge.court_name}</p>
                     <p className="text-gray-400 text-sm">{judge.jurisdiction}</p>
                   </div>
                   <button
@@ -351,7 +350,7 @@ function ComparePageContent() {
                 <div className="mt-6 pt-4 border-t border-gray-700">
                   <Link
                     href={`/judges/${judge.slug || judge.id}`}
-                    className="text-blue-400 hover:text-blue-300 text-sm flex items-center"
+                    className="text-blue-600 hover:text-blue-500 text-sm flex items-center"
                   >
                     View Full Profile
                     <ArrowRight className="h-3 w-3 ml-1" />
@@ -370,7 +369,7 @@ function ComparePageContent() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <h3 className="text-lg font-semibold mb-4 flex items-center">
-                    <Clock className="h-5 w-5 mr-2 text-blue-400" />
+                    <Clock className="h-5 w-5 mr-2 text-blue-600" />
                     Fastest Decision Time
                   </h3>
                   {(() => {
@@ -380,7 +379,7 @@ function ComparePageContent() {
                     return (
                       <div>
                         <p className="font-medium">{fastest.name}</p>
-                        <p className="text-blue-400">{formatDecisionTime(fastest.stats.averageDecisionTime)}</p>
+                        <p className="text-blue-600">{formatDecisionTime(fastest.stats.averageDecisionTime)}</p>
                       </div>
                     )
                   })()}
@@ -406,7 +405,7 @@ function ComparePageContent() {
 
                 <div>
                   <h3 className="text-lg font-semibold mb-4 flex items-center">
-                    <BarChart3 className="h-5 w-5 mr-2 text-purple-400" />
+                    <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
                     Most Cases
                   </h3>
                   {(() => {
@@ -416,7 +415,7 @@ function ComparePageContent() {
                     return (
                       <div>
                         <p className="font-medium">{most.name}</p>
-                        <p className="text-purple-400">{most.total_cases.toLocaleString()} cases</p>
+                        <p className="text-blue-600">{most.total_cases.toLocaleString()} cases</p>
                       </div>
                     )
                   })()}

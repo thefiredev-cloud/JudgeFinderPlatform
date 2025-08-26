@@ -3,6 +3,7 @@ import { Building, MapPin, Users, Scale, Phone, Globe, Gavel, Award, TrendingUp 
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import CourtJudgesSection from '@/components/courts/CourtJudgesSection'
+import { CourtAdvertiserSlots } from '@/components/courts/CourtAdvertiserSlots'
 import { 
   courtSlugToName, 
   generateCourtNameVariations, 
@@ -132,7 +133,9 @@ async function getCourt(id: string): Promise<Court | null> {
       return null
     }
 
-    return court as Court
+    // Ensure the court object is properly serialized (convert to plain object)
+    // This prevents Next.js serialization errors when passing to client components
+    return JSON.parse(JSON.stringify(court)) as Court
   } catch (error) {
     console.error('Error fetching court:', error)
     return null
@@ -153,8 +156,11 @@ async function getInitialJudges(courtId: string): Promise<{ judges: JudgeWithPos
     }
     
     const data = await response.json()
+    // Ensure judges data is properly serialized
+    const serializedJudges = JSON.parse(JSON.stringify(data.judges || []))
+    
     return {
-      judges: data.judges || [],
+      judges: serializedJudges,
       totalCount: data.total_count || 0
     }
   } catch (error) {
@@ -171,10 +177,12 @@ export default async function CourtPage({ params }: { params: Params }) {
     notFound()
   }
 
-  const { judges: initialJudges, totalCount } = await getInitialJudges(court.id)
+  // Ensure court is properly serialized before using
+  const serializedCourt = JSON.parse(JSON.stringify(court))
+  const { judges: initialJudges, totalCount } = await getInitialJudges(serializedCourt.id)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Enhanced Structured Data */}
       <script
         type="application/ld+json"
@@ -185,20 +193,20 @@ export default async function CourtPage({ params }: { params: Params }) {
               '@context': 'https://schema.org',
               '@type': 'GovernmentOffice',
               '@id': `https://judgefinder.io/courts/${id}#court`,
-              name: court.name,
-              description: `${court.name} is a ${court.type} court serving ${court.jurisdiction}. Research judges, view analytics, and find legal representation.`,
+              name: serializedCourt.name,
+              description: `${serializedCourt.name} is a ${serializedCourt.type} court serving ${serializedCourt.jurisdiction}. Research judges, view analytics, and find legal representation.`,
               url: `https://judgefinder.io/courts/${id}`,
-              telephone: court.phone,
-              sameAs: court.website ? [court.website] : undefined,
-              address: court.address ? {
+              telephone: serializedCourt.phone,
+              sameAs: serializedCourt.website ? [serializedCourt.website] : undefined,
+              address: serializedCourt.address ? {
                 '@type': 'PostalAddress',
-                streetAddress: court.address,
-                addressRegion: court.jurisdiction,
+                streetAddress: serializedCourt.address,
+                addressRegion: serializedCourt.jurisdiction,
                 addressCountry: 'US'
               } : undefined,
               areaServed: {
                 '@type': 'State',
-                name: court.jurisdiction
+                name: serializedCourt.jurisdiction
               },
               serviceType: [
                 'Legal Proceedings',
@@ -207,8 +215,8 @@ export default async function CourtPage({ params }: { params: Params }) {
               ],
               parentOrganization: {
                 '@type': 'GovernmentOrganization',
-                name: `${court.jurisdiction} Judicial System`,
-                url: `https://judgefinder.io/jurisdictions#${court.jurisdiction.toLowerCase()}`
+                name: `${serializedCourt.jurisdiction} Judicial System`,
+                url: `https://judgefinder.io/jurisdictions#${serializedCourt.jurisdiction.toLowerCase()}`
               },
               employee: initialJudges.slice(0, 5).map((judge: JudgeWithPosition) => ({
                 '@type': 'Person',
@@ -223,14 +231,14 @@ export default async function CourtPage({ params }: { params: Params }) {
               '@context': 'https://schema.org',
               '@type': 'LocalBusiness',
               '@id': `https://judgefinder.io/courts/${id}#localbusiness`,
-              name: court.name,
-              description: `Official information and analytics for ${court.name} in ${court.jurisdiction}`,
-              telephone: court.phone,
-              url: court.website || `https://judgefinder.io/courts/${id}`,
-              address: court.address ? {
+              name: serializedCourt.name,
+              description: `Official information and analytics for ${serializedCourt.name} in ${serializedCourt.jurisdiction}`,
+              telephone: serializedCourt.phone,
+              url: serializedCourt.website || `https://judgefinder.io/courts/${id}`,
+              address: serializedCourt.address ? {
                 '@type': 'PostalAddress',
-                streetAddress: court.address,
-                addressRegion: court.jurisdiction,
+                streetAddress: serializedCourt.address,
+                addressRegion: serializedCourt.jurisdiction,
                 addressCountry: 'US'
               } : undefined,
               openingHoursSpecification: {
@@ -245,8 +253,8 @@ export default async function CourtPage({ params }: { params: Params }) {
               '@context': 'https://schema.org',
               '@type': 'WebPage',
               '@id': `https://judgefinder.io/courts/${id}`,
-              name: `${court.name} - Court Information | JudgeFinder`,
-              description: `Complete information about ${court.name} including judges, contact details, and legal services. Find attorneys practicing in this ${court.type} court.`,
+              name: `${serializedCourt.name} - Court Information | JudgeFinder`,
+              description: `Complete information about ${serializedCourt.name} including judges, contact details, and legal services. Find attorneys practicing in this ${serializedCourt.type} court.`,
               url: `https://judgefinder.io/courts/${id}`,
               isPartOf: {
                 '@type': 'WebSite',
@@ -265,28 +273,30 @@ export default async function CourtPage({ params }: { params: Params }) {
         }}
       />
 
-      {/* Hero Section */}
-      <div className="bg-gradient-to-b from-gray-900 to-gray-800 px-4 py-12 text-white">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-4 text-sm font-medium text-gray-300">
-            Home / Courts / {court.jurisdiction} / {court.name}
+      {/* Hero Section with Enhanced Gradient */}
+      <div className="bg-gradient-to-br from-enterprise-primary/20 via-enterprise-deep/10 to-background px-4 py-12 text-white relative overflow-hidden">
+        {/* Background pattern */}
+        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
+        <div className="mx-auto max-w-7xl relative z-10">
+          <div className="mb-4 text-sm font-medium text-muted-foreground">
+            Home / Courts / {serializedCourt.jurisdiction} / {serializedCourt.name}
           </div>
-          <h1 className="mb-2 text-4xl font-bold">{court.name}</h1>
-          <p className="text-xl text-gray-300 capitalize">{court.type} Court • {court.jurisdiction}</p>
+          <h1 className="mb-2 text-4xl md:text-5xl font-bold bg-gradient-to-r from-enterprise-primary to-enterprise-deep bg-clip-text text-transparent">{serializedCourt.name}</h1>
+          <p className="text-xl text-muted-foreground capitalize">{serializedCourt.type} Court • {serializedCourt.jurisdiction}</p>
         </div>
       </div>
 
       {/* Attorney CTA Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+      <div className="bg-gradient-to-r from-enterprise-primary to-enterprise-deep text-white">
         <div className="mx-auto max-w-7xl px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold">Are you an attorney who practices in {court.name}?</h2>
+              <h2 className="text-2xl font-bold">Are you an attorney who practices in {serializedCourt.name}?</h2>
               <p className="mt-1 text-blue-100">Get premium visibility to potential clients researching judges in this court</p>
             </div>
             <Link 
               href="/signup" 
-              className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg"
+              className="bg-white text-primary px-6 py-3 rounded-lg font-semibold hover:bg-white/90 transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
             >
               Advertise Your Practice →
             </Link>
@@ -300,27 +310,27 @@ export default async function CourtPage({ params }: { params: Params }) {
           {/* Left Column - Court Profile */}
           <div className="lg:col-span-2 space-y-8">
             {/* Court Profile Card */}
-            <div className="rounded-lg bg-white shadow-md overflow-hidden">
+            <div className="rounded-xl bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-border">
               {/* Header with gradient background */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
+              <div className="bg-gradient-to-r from-enterprise-primary to-enterprise-deep p-6 text-white">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="h-20 w-20 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
                       <Building className="h-10 w-10 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold">{court.name}</h2>
-                      <p className="text-blue-100 capitalize">{court.type} Court</p>
-                      <div className="flex items-center mt-1 text-sm text-blue-200">
+                      <h2 className="text-2xl font-bold">{serializedCourt.name}</h2>
+                      <p className="text-white/80 capitalize">{serializedCourt.type} Court</p>
+                      <div className="flex items-center mt-1 text-sm text-white/70">
                         <MapPin className="h-4 w-4 mr-1" />
-                        {court.jurisdiction}
+                        {serializedCourt.jurisdiction}
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-blue-200">Active Judges</p>
+                    <p className="text-sm text-white/70">Active Judges</p>
                     <p className="text-3xl font-bold">
-                      {court.judge_count || totalCount}
+                      {serializedCourt.judge_count || totalCount}
                     </p>
                   </div>
                 </div>
@@ -329,40 +339,40 @@ export default async function CourtPage({ params }: { params: Params }) {
               <div className="p-6 space-y-6">
                 {/* Court Information Grid */}
                 <div className="grid gap-4 md:grid-cols-2">
-                  {court.address && (
-                    <div className="flex items-start space-x-3 p-4 rounded-lg bg-gray-50">
-                      <MapPin className="h-5 w-5 text-blue-600 mt-1" />
+                  {serializedCourt.address && (
+                    <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/30 border border-border">
+                      <MapPin className="h-5 w-5 text-primary mt-1" />
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">Address</p>
-                        <p className="text-sm text-gray-600">{court.address}</p>
+                        <p className="text-sm font-medium text-foreground">Address</p>
+                        <p className="text-sm text-muted-foreground">{serializedCourt.address}</p>
                       </div>
                     </div>
                   )}
 
-                  {court.phone && (
-                    <div className="flex items-start space-x-3 p-4 rounded-lg bg-gray-50">
-                      <Phone className="h-5 w-5 text-blue-600 mt-1" />
+                  {serializedCourt.phone && (
+                    <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/30 border border-border">
+                      <Phone className="h-5 w-5 text-primary mt-1" />
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">Phone</p>
-                        <p className="text-sm text-gray-600">{court.phone}</p>
+                        <p className="text-sm font-medium text-foreground">Phone</p>
+                        <p className="text-sm text-muted-foreground">{serializedCourt.phone}</p>
                       </div>
                     </div>
                   )}
 
-                  <div className="flex items-start space-x-3 p-4 rounded-lg bg-gray-50">
-                    <Scale className="h-5 w-5 text-blue-600 mt-1" />
+                  <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/30 border border-border">
+                    <Scale className="h-5 w-5 text-primary mt-1" />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">Court Type</p>
-                      <p className="text-sm text-gray-600 capitalize">{court.type} Court</p>
+                      <p className="text-sm font-medium text-foreground">Court Type</p>
+                      <p className="text-sm text-muted-foreground capitalize">{serializedCourt.type} Court</p>
                     </div>
                   </div>
 
-                  {court.website && (
-                    <div className="flex items-start space-x-3 p-4 rounded-lg bg-gray-50">
-                      <Globe className="h-5 w-5 text-blue-600 mt-1" />
+                  {serializedCourt.website && (
+                    <div className="flex items-start space-x-3 p-4 rounded-lg bg-muted/30 border border-border">
+                      <Globe className="h-5 w-5 text-primary mt-1" />
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">Official Website</p>
-                        <a href={court.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:text-blue-700">
+                        <p className="text-sm font-medium text-foreground">Official Website</p>
+                        <a href={serializedCourt.website} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:text-primary/80 transition-colors">
                           Visit Website →
                         </a>
                       </div>
@@ -371,32 +381,32 @@ export default async function CourtPage({ params }: { params: Params }) {
                 </div>
 
                 {/* Court Statistics */}
-                <div className="border-t pt-6">
-                  <h3 className="mb-4 text-lg font-semibold text-gray-900 flex items-center">
-                    <TrendingUp className="h-5 w-5 mr-2 text-blue-600" />
+                <div className="border-t border-border pt-6">
+                  <h3 className="mb-4 text-lg font-semibold text-foreground flex items-center">
+                    <TrendingUp className="h-5 w-5 mr-2 text-primary" />
                     Court Statistics
                   </h3>
                   <div className="grid gap-4 sm:grid-cols-3">
-                    <div className="rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 p-4 text-center">
-                      <Gavel className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                      <p className="text-3xl font-bold text-gray-900">
-                        {court.judge_count || totalCount}
+                    <div className="rounded-lg bg-gradient-to-br from-primary/10 to-primary/20 p-4 text-center border border-primary/20">
+                      <Gavel className="h-8 w-8 text-primary mx-auto mb-2" />
+                      <p className="text-3xl font-bold text-foreground">
+                        {serializedCourt.judge_count || totalCount}
                       </p>
-                      <p className="text-sm text-gray-600">Active Judges</p>
+                      <p className="text-sm text-muted-foreground">Active Judges</p>
                     </div>
-                    <div className="rounded-lg bg-gradient-to-br from-green-50 to-green-100 p-4 text-center">
-                      <Users className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                      <p className="text-3xl font-bold text-gray-900">
+                    <div className="rounded-lg bg-gradient-to-br from-green-500/10 to-green-500/20 p-4 text-center border border-green-500/20">
+                      <Users className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                      <p className="text-3xl font-bold text-foreground">
                         2,500+
                       </p>
-                      <p className="text-sm text-gray-600">Monthly Searches</p>
+                      <p className="text-sm text-muted-foreground">Monthly Searches</p>
                     </div>
-                    <div className="rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 p-4 text-center">
-                      <Award className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                      <p className="text-3xl font-bold text-gray-900">
+                    <div className="rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-500/20 p-4 text-center border border-purple-500/20">
+                      <Award className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+                      <p className="text-3xl font-bold text-foreground">
                         Est. 1850
                       </p>
-                      <p className="text-sm text-gray-600">Established</p>
+                      <p className="text-sm text-muted-foreground">Established</p>
                     </div>
                   </div>
                 </div>
@@ -405,27 +415,33 @@ export default async function CourtPage({ params }: { params: Params }) {
 
             {/* Enhanced Judges Section */}
             <CourtJudgesSection 
-              courtId={court.id} 
-              courtName={court.name}
+              courtId={serializedCourt.id} 
+              courtName={serializedCourt.name}
               initialJudges={initialJudges}
             />
           </div>
 
           {/* Right Column - Sidebar */}
           <div className="space-y-6">
+            {/* Advertiser Slots */}
+            <CourtAdvertiserSlots 
+              courtId={serializedCourt.id} 
+              courtName={serializedCourt.name} 
+            />
+            
             {/* Quick Actions */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div className="bg-card rounded-xl shadow-lg p-6 border border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
               <div className="space-y-3">
                 <Link 
-                  href={`/judges?court=${encodeURIComponent(court.name)}`}
-                  className="block w-full text-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-medium transition-colors"
+                  href={`/judges?court=${encodeURIComponent(serializedCourt.name)}`}
+                  className="block w-full text-center bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium transition-all duration-200 hover:scale-105"
                 >
                   Browse All {totalCount > 0 ? `${totalCount} ` : ''}Judges
                 </Link>
                 <Link 
                   href="/signup"
-                  className="block w-full text-center border border-blue-600 text-blue-600 px-4 py-2 rounded hover:bg-blue-50 font-medium transition-colors"
+                  className="block w-full text-center border border-primary text-primary px-4 py-2 rounded-lg hover:bg-primary/10 font-medium transition-all duration-200"
                 >
                   Advertise Your Practice
                 </Link>
@@ -433,13 +449,13 @@ export default async function CourtPage({ params }: { params: Params }) {
             </div>
 
             {/* Court Resources */}
-            <div className="bg-blue-50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Need Legal Representation?</h3>
-              <p className="text-gray-600 mb-4">
+            <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl p-6 border border-primary/20">
+              <h3 className="text-lg font-semibold text-foreground mb-2">Need Legal Representation?</h3>
+              <p className="text-muted-foreground mb-4">
                 Find experienced attorneys who practice in this court and understand its procedures.
               </p>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p>• Experienced in {court.jurisdiction} law</p>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>• Experienced in {serializedCourt.jurisdiction} law</p>
                 <p>• Familiar with court procedures</p>
                 <p>• High success rates</p>
                 <p>• Client testimonials available</p>

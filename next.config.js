@@ -9,8 +9,14 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', '@supabase/supabase-js'],
     // Windows-specific optimizations to prevent Jest worker errors
     workerThreads: false,
-    cpus: 2,
+    cpus: 1,
+    // Disable parallel compilation to prevent worker issues
+    parallelServerCompiles: false,
+    parallelServerBuildTraces: false,
   },
+  
+  // Disable SWC minification on Windows to prevent worker issues
+  swcMinify: false,
 
   // Image optimization for judge profiles and court images
   images: {

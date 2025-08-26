@@ -54,7 +54,7 @@ const JudgeFinderNavLogo = () => {
             }}
             transition={{ duration: 0.3 }}
           >
-            <div className="w-10 h-10 bg-gradient-to-tr from-blue-400 to-purple-400 rounded-lg" />
+            <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-blue-800 rounded-lg" />
           </motion.div>
 
           {/* Glass container for icon */}
@@ -64,9 +64,9 @@ const JudgeFinderNavLogo = () => {
               className="absolute inset-0 opacity-70"
               animate={{
                 background: [
-                  "linear-gradient(45deg, #60A5FA 0%, #A78BFA 100%)",
-                  "linear-gradient(45deg, #A78BFA 0%, #60A5FA 100%)",
-                  "linear-gradient(45deg, #60A5FA 0%, #A78BFA 100%)",
+                  "linear-gradient(45deg, #3b82f6 0%, #1e40af 100%)",
+                  "linear-gradient(45deg, #2563eb 0%, #1e40af 100%)",
+                  "linear-gradient(45deg, #3b82f6 0%, #2563eb 100%)",
                 ],
               }}
               transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
@@ -84,14 +84,14 @@ const JudgeFinderNavLogo = () => {
                   <motion.stop
                     offset="0%"
                     animate={{
-                      stopColor: isHovered ? "#93BBFC" : "#FFFFFF",
+                      stopColor: isHovered ? "#60a5fa" : "#FFFFFF",
                     }}
                     transition={{ duration: 0.3 }}
                   />
                   <motion.stop
                     offset="100%"
                     animate={{
-                      stopColor: isHovered ? "#C4B5FD" : "#F3E8FF",
+                      stopColor: isHovered ? "#3b82f6" : "#dbeafe",
                     }}
                     transition={{ duration: 0.3 }}
                   />
@@ -207,7 +207,7 @@ const JudgeFinderNavLogo = () => {
         >
           <motion.div className="flex items-baseline gap-0.5">
             <motion.span 
-              className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400"
+              className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-800"
               animate={{
                 backgroundPosition: isHovered ? ["0% 50%", "100% 50%", "0% 50%"] : "0% 50%",
               }}
@@ -264,7 +264,7 @@ const JudgeFinderNavLogo = () => {
           transition={{ duration: 0.2 }}
         >
           <motion.div
-            className="w-1.5 h-1.5 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full"
+            className="w-1.5 h-1.5 bg-gradient-to-r from-blue-600 to-blue-800 rounded-full"
             animate={{
               scale: [1, 1.5, 1],
             }}
@@ -284,7 +284,7 @@ const JudgeFinderNavLogo = () => {
         <button className="text-slate-400 hover:text-slate-200 text-sm font-medium transition-colors">
           About
         </button>
-        <button className="px-4 py-1.5 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm font-medium rounded-lg hover:shadow-lg hover:shadow-purple-500/25 transition-all">
+        <button className="px-4 py-1.5 bg-gradient-to-r from-blue-600 to-blue-800 text-white text-sm font-medium rounded-lg hover:shadow-lg hover:shadow-blue-600/25 transition-all">
           Sign Up
         </button>
       </div>

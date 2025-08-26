@@ -10,19 +10,28 @@ export default async function DashboardPage() {
     redirect('/sign-in')
   }
 
+  // Serialize the user data to pass to client component
+  const serializedUser = user ? {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.emailAddresses[0]?.emailAddress || '',
+    createdAt: user.createdAt
+  } : null
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
-            Welcome back, {user?.firstName || 'User'}
+            Welcome back, {serializedUser?.firstName || 'User'}
           </h1>
           <p className="text-gray-400">
             Access your saved judges, recent searches, and personalized analytics
           </p>
         </div>
         
-        <UserDashboard user={user} />
+        <UserDashboard user={serializedUser} />
       </div>
     </div>
   )

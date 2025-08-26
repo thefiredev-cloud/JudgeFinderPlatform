@@ -1,291 +1,152 @@
 'use client'
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import React from 'react'
+import Link from 'next/link'
 
 interface NavLogoProps {
-  className?: string;
+  className?: string
+  variant?: 'default' | 'dark' | 'monochrome'
+  showText?: boolean
 }
 
-const NavLogo: React.FC<NavLogoProps> = ({ className = "" }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  
-  // Subtle 3D tilt effect
-  const rotateX = useSpring(useTransform(mouseY, [-10, 10], [5, -5]), { stiffness: 400, damping: 30 });
-  const rotateY = useSpring(useTransform(mouseX, [-10, 10], [-5, 5]), { stiffness: 400, damping: 30 });
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    mouseX.set((e.clientX - centerX) / 5);
-    mouseY.set((e.clientY - centerY) / 5);
-  };
-
+const NavLogo: React.FC<NavLogoProps> = ({ 
+  className = "", 
+  variant = 'default',
+  showText = true 
+}) => {
   return (
     <Link href="/" className={className}>
-      <motion.div
-        className="flex items-center gap-2.5 cursor-pointer select-none"
-        onMouseMove={handleMouseMove}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => {
-          setIsHovered(false);
-          mouseX.set(0);
-          mouseY.set(0);
-        }}
-        style={{
-          rotateX,
-          rotateY,
-          transformStyle: "preserve-3d",
-        }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      >
-        {/* Logo Icon Container */}
-        <motion.div 
-          className="relative"
-          initial={{ rotate: -180, opacity: 0 }}
-          animate={{ rotate: 0, opacity: 1 }}
-          transition={{ duration: 0.6, type: "spring", stiffness: 200 }}
-        >
-          {/* Glow effect behind icon */}
-          <motion.div
-            className="absolute inset-0 blur-xl"
-            animate={{
-              opacity: isHovered ? 1 : 0.6,
-              scale: isHovered ? 1.3 : 1,
-            }}
-            transition={{ duration: 0.3 }}
+      <div className="flex items-center gap-2.5 group">
+        {/* Logo Icon */}
+        <div className="w-10 h-10 flex items-center justify-center">
+          <svg 
+            viewBox="0 0 52 52" 
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-full h-full transition-transform duration-200 group-hover:scale-105"
           >
-            <div className="w-10 h-10 bg-gradient-to-tr from-blue-400 to-purple-400 rounded-lg" />
-          </motion.div>
-
-          {/* Glass container for icon */}
-          <div className="relative w-10 h-10 bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm rounded-lg border border-slate-700/50 shadow-lg overflow-hidden">
-            {/* Animated gradient background */}
-            <motion.div
-              className="absolute inset-0 opacity-70"
-              animate={{
-                background: [
-                  "linear-gradient(45deg, #60A5FA 0%, #A78BFA 100%)",
-                  "linear-gradient(45deg, #A78BFA 0%, #60A5FA 100%)",
-                  "linear-gradient(45deg, #60A5FA 0%, #A78BFA 100%)",
-                ],
-              }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            />
-
-            {/* Scales of Justice SVG - Compact Version */}
-            <svg
-              width="40"
-              height="40"
-              viewBox="0 0 40 40"
-              className="absolute inset-0 p-2"
-            >
-              <defs>
-                <linearGradient id="navGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <motion.stop
-                    offset="0%"
-                    animate={{
-                      stopColor: isHovered ? "#93BBFC" : "#FFFFFF",
-                    }}
-                    transition={{ duration: 0.3 }}
-                  />
-                  <motion.stop
-                    offset="100%"
-                    animate={{
-                      stopColor: isHovered ? "#C4B5FD" : "#F3E8FF",
-                    }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </linearGradient>
-                
-                <filter id="navGlow">
-                  <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
-                  <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                  </feMerge>
-                </filter>
-              </defs>
-
-              {/* Simplified scales icon */}
-              <g filter="url(#navGlow)">
-                {/* Center pillar */}
-                <motion.rect
-                  x="19"
-                  y="10"
-                  width="2"
-                  height="20"
-                  fill="url(#navGradient)"
-                  animate={{
-                    height: isHovered ? "21" : "20",
-                  }}
-                  transition={{ duration: 0.3 }}
+            {/* Gradient definitions */}
+            <defs>
+              <linearGradient id="enterpriseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{ stopColor: '#2563eb', stopOpacity: 1 }} />
+                <stop offset="100%" style={{ stopColor: '#1e40af', stopOpacity: 1 }} />
+              </linearGradient>
+              <linearGradient id="enterpriseAccent" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style={{ stopColor: '#3b82f6', stopOpacity: 1 }} />
+                <stop offset="100%" style={{ stopColor: '#2563eb', stopOpacity: 1 }} />
+              </linearGradient>
+              <linearGradient id="lightGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{ stopColor: '#60a5fa', stopOpacity: 1 }} />
+                <stop offset="100%" style={{ stopColor: '#3b82f6', stopOpacity: 1 }} />
+              </linearGradient>
+            </defs>
+            
+            {/* Logo shape based on variant */}
+            <g>
+              {/* Main J structure */}
+              <path 
+                d="M 22 6 L 38 6 Q 42 6 42 10 L 42 14 Q 42 18 38 18 L 30 18 L 30 32 Q 30 40 22 40 L 14 40 Q 6 40 6 32 L 6 26 L 14 26 L 14 32 L 22 32 L 22 10 Q 22 6 22 6 Z" 
+                fill={
+                  variant === 'dark' 
+                    ? 'url(#lightGradient)' 
+                    : variant === 'monochrome'
+                    ? '#0f172a'
+                    : 'url(#enterpriseGradient)'
+                }
+                className="transition-all duration-200"
+              />
+              
+              {/* Top accent bar */}
+              <rect 
+                x="34" 
+                y="10" 
+                width="6" 
+                height="6" 
+                rx="1" 
+                fill={
+                  variant === 'dark'
+                    ? '#93c5fd'
+                    : variant === 'monochrome'
+                    ? '#475569'
+                    : 'url(#enterpriseAccent)'
+                }
+                className="transition-all duration-200"
+              />
+              
+              {/* Bottom accent - scales of justice reference */}
+              <g opacity={variant === 'dark' ? 0.9 : 0.8}>
+                <rect 
+                  x="36" 
+                  y="38" 
+                  width="8" 
+                  height="2" 
+                  rx="1" 
+                  fill={
+                    variant === 'dark'
+                      ? '#60a5fa'
+                      : variant === 'monochrome'
+                      ? '#0f172a'
+                      : '#2563eb'
+                  }
                 />
-                
-                {/* Top triangle */}
-                <motion.path
-                  d="M 20 10 L 17 7 L 23 7 Z"
-                  fill="url(#navGradient)"
-                  animate={{
-                    d: isHovered ? "M 20 9 L 16 6 L 24 6 Z" : "M 20 10 L 17 7 L 23 7 Z",
-                  }}
-                  transition={{ duration: 0.3 }}
+                <rect 
+                  x="38" 
+                  y="34" 
+                  width="2" 
+                  height="6" 
+                  rx="1" 
+                  fill={
+                    variant === 'dark'
+                      ? '#60a5fa'
+                      : variant === 'monochrome'
+                      ? '#0f172a'
+                      : '#2563eb'
+                  }
                 />
-                
-                {/* Balance beam */}
-                <motion.rect
-                  x="10"
-                  y="13"
-                  width="20"
-                  height="1"
-                  fill="url(#navGradient)"
-                  animate={{
-                    rotate: isHovered ? [0, -3, 3, -1.5, 1.5, 0] : 0,
-                  }}
-                  transition={{ 
-                    duration: 2,
-                    repeat: isHovered ? Infinity : 0,
-                  }}
-                  style={{ transformOrigin: "20px 13.5px" }}
+                <rect 
+                  x="40" 
+                  y="34" 
+                  width="2" 
+                  height="6" 
+                  rx="1" 
+                  fill={
+                    variant === 'dark'
+                      ? '#60a5fa'
+                      : variant === 'monochrome'
+                      ? '#0f172a'
+                      : '#2563eb'
+                  }
                 />
-                
-                {/* Left pan */}
-                <motion.g
-                  animate={{
-                    y: isHovered ? [0, 1, -1, 0.5, -0.5, 0] : 0,
-                  }}
-                  transition={{ 
-                    duration: 2,
-                    repeat: isHovered ? Infinity : 0,
-                    delay: 0.1
-                  }}
-                >
-                  <line x1="13" y1="13" x2="13" y2="18" stroke="url(#navGradient)" strokeWidth="1" />
-                  <path d="M 11 18 Q 13 20 15 18" fill="none" stroke="url(#navGradient)" strokeWidth="1.5" />
-                </motion.g>
-                
-                {/* Right pan */}
-                <motion.g
-                  animate={{
-                    y: isHovered ? [0, -1, 1, -0.5, 0.5, 0] : 0,
-                  }}
-                  transition={{ 
-                    duration: 2,
-                    repeat: isHovered ? Infinity : 0,
-                    delay: 0.1
-                  }}
-                >
-                  <line x1="27" y1="13" x2="27" y2="18" stroke="url(#navGradient)" strokeWidth="1" />
-                  <path d="M 25 18 Q 27 20 29 18" fill="none" stroke="url(#navGradient)" strokeWidth="1.5" />
-                </motion.g>
-                
-                {/* Base */}
-                <rect x="16" y="30" width="8" height="2" rx="1" fill="url(#navGradient)" />
               </g>
-            </svg>
-
-            {/* Shine effect */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/25 to-transparent"
-              animate={{
-                x: isHovered ? ["-100%", "100%"] : "-100%",
-              }}
-              transition={{
-                duration: 0.6,
-                ease: "easeInOut",
-              }}
-              style={{
-                transform: "skewX(-20deg)",
-              }}
-            />
-          </div>
-        </motion.div>
-
-        {/* Text Logo */}
-        <motion.div 
-          className="flex flex-col justify-center"
-          initial={{ x: -20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
-        >
-          <motion.div className="flex items-baseline gap-0.5">
-            <motion.span 
-              className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400"
-              animate={{
-                backgroundPosition: isHovered ? ["0% 50%", "100% 50%", "0% 50%"] : "0% 50%",
-              }}
-              transition={{
-                duration: 2,
-                repeat: isHovered ? Infinity : 0,
-                ease: "linear"
-              }}
-              style={{
-                backgroundSize: "200% 200%",
-              }}
-            >
+            </g>
+          </svg>
+        </div>
+        
+        {/* Logo Text */}
+        {showText && (
+          <div className="flex items-baseline">
+            <span className={`text-xl font-semibold transition-colors duration-200 ${
+              variant === 'dark' 
+                ? 'text-white' 
+                : variant === 'monochrome'
+                ? 'text-enterprise-slate-black'
+                : 'text-enterprise-slate-black dark:text-white'
+            }`}>
               JudgeFinder
-            </motion.span>
-            <motion.span 
-              className="text-lg font-light text-slate-400"
-              animate={{
-                color: isHovered ? "#94a3b8" : "#64748b",
-              }}
-            >
+            </span>
+            <span className={`text-xl font-normal transition-colors duration-200 ${
+              variant === 'dark'
+                ? 'text-enterprise-light'
+                : variant === 'monochrome'
+                ? 'text-gray-500'
+                : 'text-enterprise-accent dark:text-enterprise-light'
+            }`}>
               .io
-            </motion.span>
-          </motion.div>
-          
-          {/* Subtle tagline that appears on hover */}
-          <motion.div
-            className="overflow-hidden h-0"
-            animate={{
-              height: isHovered ? "auto" : 0,
-            }}
-            transition={{ duration: 0.2 }}
-          >
-            <motion.p 
-              className="text-[10px] text-slate-500 font-medium tracking-wider uppercase"
-              initial={{ y: -10, opacity: 0 }}
-              animate={{
-                y: isHovered ? 0 : -10,
-                opacity: isHovered ? 1 : 0,
-              }}
-              transition={{ duration: 0.2, delay: 0.05 }}
-            >
-              Legal Analytics
-            </motion.p>
-          </motion.div>
-        </motion.div>
-
-        {/* Floating indicator dot */}
-        <motion.div
-          className="ml-1"
-          animate={{
-            opacity: isHovered ? 1 : 0,
-            scale: isHovered ? 1 : 0,
-          }}
-          transition={{ duration: 0.2 }}
-        >
-          <motion.div
-            className="w-1.5 h-1.5 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full"
-            animate={{
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: 1.5,
-              repeat: Infinity,
-            }}
-          />
-        </motion.div>
-      </motion.div>
+            </span>
+          </div>
+        )}
+      </div>
     </Link>
-  );
-};
+  )
+}
 
-export default NavLogo;
+export default NavLogo

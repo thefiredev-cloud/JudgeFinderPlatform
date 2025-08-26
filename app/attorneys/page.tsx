@@ -126,9 +126,9 @@ export default function AttorneysPage() {
               judges, and local legal procedures.
             </p>
             <div className="flex flex-wrap justify-center gap-4 text-sm">
-              <span className="rounded-lg bg-blue-700 px-3 py-1">Verified Attorneys</span>
+              <span className="rounded-lg bg-enterprise-deep px-3 py-1">Verified Attorneys</span>
               <span className="rounded-lg bg-green-600 px-3 py-1">Local Expertise</span>
-              <span className="rounded-lg bg-purple-600 px-3 py-1">Court Knowledge</span>
+              <span className="rounded-lg bg-enterprise-deep px-3 py-1">Court Knowledge</span>
             </div>
           </div>
         </div>
@@ -145,14 +145,14 @@ export default function AttorneysPage() {
               <input
                 type="text"
                 placeholder="Attorney name or firm..."
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-enterprise-accent focus:outline-none focus:ring-2 focus:ring-enterprise-accent/20"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Jurisdiction
               </label>
-              <select className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+              <select className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-enterprise-accent focus:outline-none focus:ring-2 focus:ring-enterprise-accent/20">
                 <option value="">All Jurisdictions</option>
                 {jurisdictions.map((jurisdiction) => (
                   <option key={jurisdiction} value={jurisdiction}>
@@ -165,7 +165,7 @@ export default function AttorneysPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Practice Area
               </label>
-              <select className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+              <select className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-enterprise-accent focus:outline-none focus:ring-2 focus:ring-enterprise-accent/20">
                 <option value="">All Practice Areas</option>
                 {practiceAreas.map((area) => (
                   <option key={area} value={area}>
@@ -196,7 +196,7 @@ export default function AttorneysPage() {
               {/* Attorney Header */}
               <div className="mb-4 flex items-start">
                 <div className="mr-4 h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Scale className="h-8 w-8 text-blue-600" />
+                  <Scale className="h-8 w-8 text-enterprise-primary" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-1">
@@ -207,7 +207,7 @@ export default function AttorneysPage() {
                       </div>
                     )}
                   </div>
-                  <p className="text-blue-600 font-medium">{attorney.firm}</p>
+                  <p className="text-enterprise-primary font-medium">{attorney.firm}</p>
                   <div className="flex items-center space-x-2 mt-1">
                     <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
@@ -262,7 +262,7 @@ export default function AttorneysPage() {
                 {attorney.contact.phone && (
                   <a
                     href={`tel:${attorney.contact.phone}`}
-                    className="flex items-center text-sm text-blue-600 hover:text-blue-700"
+                    className="flex items-center text-sm text-enterprise-primary hover:text-blue-700"
                   >
                     <Phone className="mr-2 h-4 w-4" />
                     {attorney.contact.phone}
@@ -271,7 +271,7 @@ export default function AttorneysPage() {
                 {attorney.contact.email && (
                   <a
                     href={`mailto:${attorney.contact.email}`}
-                    className="flex items-center text-sm text-blue-600 hover:text-blue-700"
+                    className="flex items-center text-sm text-enterprise-primary hover:text-blue-700"
                   >
                     <Mail className="mr-2 h-4 w-4" />
                     Contact via email
@@ -282,7 +282,7 @@ export default function AttorneysPage() {
                     href={attorney.contact.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center text-sm text-blue-600 hover:text-blue-700"
+                    className="flex items-center text-sm text-enterprise-primary hover:text-blue-700"
                   >
                     <Globe className="mr-2 h-4 w-4" />
                     Visit website
@@ -295,7 +295,7 @@ export default function AttorneysPage() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 py-16 text-white">
+      <div className="bg-gradient-to-r from-enterprise-primary to-enterprise-deep py-16 text-white">
         <div className="mx-auto max-w-4xl px-4 text-center">
           <h2 className="mb-4 text-3xl font-bold">Are You an Attorney?</h2>
           <p className="mb-8 text-xl text-blue-100">
@@ -304,13 +304,13 @@ export default function AttorneysPage() {
           <div className="space-y-4 md:flex md:justify-center md:space-x-4 md:space-y-0">
             <Link
               href="/signup?type=attorney"
-              className="block rounded-lg bg-white px-8 py-3 font-semibold text-blue-600 hover:bg-gray-100 transition-colors"
+              className="block rounded-lg bg-white px-8 py-3 font-semibold text-enterprise-primary hover:bg-gray-100 transition-colors"
             >
               Join Attorney Directory
             </Link>
             <Link
               href="/about"
-              className="block rounded-lg border border-white px-8 py-3 font-semibold text-white hover:bg-white hover:text-blue-600 transition-colors"
+              className="block rounded-lg border border-white px-8 py-3 font-semibold text-white hover:bg-white hover:text-enterprise-primary transition-colors"
             >
               Learn More
             </Link>

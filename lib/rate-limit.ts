@@ -3,12 +3,22 @@ import { Redis } from '@upstash/redis'
 
 // Create Redis instance for rate limiting
 // In development without Redis, skip rate limiting entirely to avoid errors
-const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN 
-  ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    })
-  : null
+const redis = (() => {
+  try {
+    const url = process.env.UPSTASH_REDIS_REST_URL
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN
+    
+    if (url && token && url.startsWith('https://')) {
+      return new Redis({
+        url,
+        token,
+      })
+    }
+  } catch (error) {
+    console.log('Redis not configured for rate limiting - requests will not be rate limited')
+  }
+  return null
+})()
 
 // In development without Redis, rate limiting is disabled
 const isRateLimitingEnabled = redis !== null

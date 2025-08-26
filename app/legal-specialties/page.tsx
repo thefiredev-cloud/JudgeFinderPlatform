@@ -245,7 +245,7 @@ export default async function LegalSpecialtiesPage() {
       </div>
 
       {/* Call to Action */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 py-16 text-white">
+      <div className="bg-gradient-to-r from-enterprise-primary to-enterprise-deep py-16 text-white">
         <div className="mx-auto max-w-4xl px-4 text-center">
           <h2 className="mb-4 text-3xl font-bold">Need Legal Representation?</h2>
           <p className="mb-8 text-xl text-blue-100">

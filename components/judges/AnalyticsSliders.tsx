@@ -243,17 +243,6 @@ function LegalDisclaimer({ analytics }: { analytics: CaseAnalytics }) {
     )
   }
 
-  // Additional safety check for analytics properties
-  if (!analytics.notable_patterns || !analytics.data_limitations) {
-    return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-        <h3 className="text-yellow-800 font-medium mb-2">Analytics Loading</h3>
-        <p className="text-yellow-600">
-          Analytics data is being processed for {judgeName}. Please refresh in a moment.
-        </p>
-      </div>
-    )
-  }
 
   const sliders = [
     {
@@ -271,7 +260,7 @@ function LegalDisclaimer({ analytics }: { analytics: CaseAnalytics }) {
       value: analytics.family_custody_mother,
       leftLabel: 'Father Custody',
       rightLabel: 'Mother Custody',
-      color: 'bg-purple-100 text-purple-800',
+      color: 'bg-blue-100 text-blue-800',
       description: 'In custody disputes, what is the pattern of custody awards between parents?',
       confidence: analytics.confidence_custody,
       sampleSize: analytics.sample_size_custody
@@ -281,7 +270,7 @@ function LegalDisclaimer({ analytics }: { analytics: CaseAnalytics }) {
       value: analytics.family_alimony_favorable,
       leftLabel: 'Rarely Awards',
       rightLabel: 'Frequently Awards',
-      color: 'bg-pink-100 text-pink-800',
+      color: 'bg-sky-100 text-sky-800',
       description: 'How likely is this judge to award alimony or spousal support in divorce proceedings?',
       confidence: analytics.confidence_alimony,
       sampleSize: analytics.sample_size_alimony
@@ -369,38 +358,6 @@ function LegalDisclaimer({ analytics }: { analytics: CaseAnalytics }) {
         ))}
       </div>
 
-      {/* Data Quality and Limitations */}
-      {analytics && (analytics.notable_patterns?.length > 0 || analytics.data_limitations?.length > 0) && (
-        <div className="bg-gray-50 rounded-lg p-4">
-          {analytics.notable_patterns?.length > 0 && (
-            <div className="mb-4">
-              <h4 className="font-medium text-gray-900 mb-2">Notable Patterns</h4>
-              <ul className="text-sm text-gray-700 space-y-1">
-                {analytics.notable_patterns?.map((pattern, idx) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="text-green-500 mt-1">•</span>
-                    {pattern}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          
-          {analytics.data_limitations?.length > 0 && (
-            <div>
-              <h4 className="font-medium text-gray-900 mb-2">Data Limitations</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                {analytics.data_limitations?.map((limitation, idx) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="text-yellow-500 mt-1">⚠</span>
-                    {limitation}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
 
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="flex items-center justify-between text-sm text-gray-600">

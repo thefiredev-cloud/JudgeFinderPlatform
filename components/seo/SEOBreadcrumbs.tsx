@@ -17,26 +17,26 @@ interface SEOBreadcrumbsProps {
 
 export function SEOBreadcrumbs({ items, judgeName, jurisdiction }: SEOBreadcrumbsProps) {
   return (
-    <nav aria-label="Breadcrumb" className="mb-6">
+    <nav aria-label="Breadcrumb" className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 py-3">
       <div className="mx-auto max-w-7xl px-4">
-        <ol className="flex items-center space-x-2 text-sm">
+        <ol className="flex items-center flex-wrap gap-2 text-sm">
           <li>
             <Link
               href="/"
-              className="flex items-center text-gray-500 hover:text-gray-700 transition-colors"
+              className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
             >
               <Home className="h-4 w-4 mr-1" />
-              <span className="sr-only">Home</span>
+              <span>Home</span>
             </Link>
           </li>
           
           {items.map((item, index) => (
             <li key={index} className="flex items-center">
-              <ChevronRight className="h-4 w-4 text-gray-400 mx-2" />
+              <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-600 mx-1" />
               
               {item.current ? (
                 <span 
-                  className="font-medium text-gray-900"
+                  className="font-medium text-gray-900 dark:text-gray-100"
                   aria-current="page"
                 >
                   {item.label}
@@ -44,7 +44,7 @@ export function SEOBreadcrumbs({ items, judgeName, jurisdiction }: SEOBreadcrumb
               ) : (
                 <Link
                   href={item.href}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
                 >
                   {item.label}
                 </Link>

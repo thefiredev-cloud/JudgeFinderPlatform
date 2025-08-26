@@ -1,83 +1,227 @@
-import { SearchSection } from '@/components/judges/SearchSection'
-import { PopularCourts } from '@/components/judges/PopularCourts'
-import { WhatYoullLearn } from '@/components/ui/WhatYoullLearn'
-import { WhyJudgeResearch } from '@/components/ui/WhyJudgeResearch'
+'use client'
+
+import { useState, useEffect, Suspense } from 'react'
+import { motion } from 'framer-motion'
+import { useInView } from 'react-intersection-observer'
 import { StructuredData } from '@/components/seo/StructuredData'
+import BuilderStyleChat from '@/components/ai/BuilderStyleChat'
+import AnimatedTechTiles from '@/components/home/AnimatedTechTiles'
 import Link from 'next/link'
+import { 
+  Scale, Search, 
+  BarChart3, Brain,
+  MessageSquare, Bot, ArrowRight, Database, Lock,
+  Sparkles
+} from 'lucide-react'
+
+// Animated counter component - simplified
+function AnimatedCounter({ end, duration = 1000 }: { end: number; duration?: number }) {
+  const [count, setCount] = useState(0)
+  
+  useEffect(() => {
+    let startTime: number | null = null
+    const step = (timestamp: number) => {
+      if (!startTime) startTime = timestamp
+      const progress = Math.min((timestamp - startTime) / duration, 1)
+      setCount(Math.floor(progress * end))
+      if (progress < 1) requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+  }, [end, duration])
+  
+  return <span>{count.toLocaleString()}</span>
+}
+
 
 export default function HomePage() {
+  const [heroRef, heroInView] = useInView({ threshold: 0.1, triggerOnce: true })
+  
+  const benefits = [
+    { 
+      icon: Bot, 
+      title: "AI Legal Assistant", 
+      desc: "Get instant answers about any California judge",
+      color: 'from-blue-500 to-blue-600'
+    },
+    { 
+      icon: BarChart3, 
+      title: "Real-Time Analytics", 
+      desc: "Live bias detection with machine learning",
+      color: 'from-green-500 to-green-600'
+    },
+    { 
+      icon: Lock, 
+      title: "Complete Privacy", 
+      desc: "Anonymous and secure searches",
+      color: 'from-blue-700 to-blue-900'
+    },
+    { 
+      icon: Database, 
+      title: "Comprehensive Data", 
+      desc: "300,000+ cases analyzed",
+      color: 'from-orange-500 to-orange-600'
+    }
+  ]
+
+  
   return (
     <>
       <StructuredData type="website" data={{}} />
       <StructuredData type="organization" data={{}} />
       
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
-      {/* Hero Section with Search */}
-      <section className="relative px-4 py-20 md:py-32">
-        <div className="mx-auto max-w-7xl">
-          <div className="text-center">
-            <h1 className="mb-6 text-4xl font-bold tracking-tight md:text-6xl">
-              Find Judicial Insights That
-              <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-                {" "}Win Cases
-              </span>
-            </h1>
-            <p className="mx-auto mb-12 max-w-2xl text-lg text-gray-300 md:text-xl">
-              Access comprehensive analytics on judges' ruling patterns, decision trends, 
-              and case outcomes to build winning legal strategies.
-            </p>
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-black text-gray-900 dark:text-white overflow-hidden">
+        {/* Simplified Hero Section */}
+        <section ref={heroRef} className="relative min-h-[90vh] flex items-center py-20">
+          {/* Subtle Background Pattern */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(147,51,234,0.1),transparent_50%)]" />
           </div>
           
-          <SearchSection />
-        </div>
-      </section>
-
-      {/* Popular Courts Section */}
-      <section className="px-4 py-16">
-        <div className="mx-auto max-w-7xl">
-          <PopularCourts />
-        </div>
-      </section>
-
-      {/* What You'll Learn Section */}
-      <section className="bg-gray-900/50 px-4 py-16">
-        <div className="mx-auto max-w-7xl">
-          <WhatYoullLearn />
-        </div>
-      </section>
-
-      {/* Why Judge Research Section */}
-      <section className="px-4 py-16">
-        <div className="mx-auto max-w-7xl">
-          <WhyJudgeResearch />
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="border-t border-gray-800 bg-gradient-to-r from-blue-900/20 to-purple-900/20 px-4 py-20">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="mb-4 text-3xl font-bold md:text-4xl">
-            Start Your Judge Research Today
-          </h2>
-          <p className="mb-8 text-lg text-gray-300">
-            Join thousands of legal professionals using data-driven insights to win cases
-          </p>
-          <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <Link 
-              href="/signup" 
-              className="rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white transition hover:bg-blue-700 text-center"
-            >
-              Start Free Trial
-            </Link>
-            <Link 
-              href="/judges" 
-              className="rounded-lg border border-gray-600 px-8 py-3 font-semibold text-white transition hover:bg-gray-800 text-center"
-            >
-              Browse Judges
-            </Link>
+          {/* Main Content - Builder.io Style Layout */}
+          <div className="relative z-10 w-full max-w-7xl mx-auto px-4">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Left Column - Content */}
+              <div>
+                {/* Badge */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 20 }}
+                  transition={{ duration: 0.6 }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-semibold mb-6"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  AI-Powered Judicial Analytics
+                </motion.div>
+                
+                {/* Main Heading */}
+                <motion.h1
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 30 }}
+                  transition={{ duration: 0.8, delay: 0.1 }}
+                  className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
+                >
+                  <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                    Understand Your Judge
+                  </span>
+                  <br />
+                  <span className="text-gray-900 dark:text-white">
+                    Before You Enter Court
+                  </span>
+                </motion.h1>
+                
+                {/* Subheading */}
+                <motion.p
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 30 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="text-xl text-gray-600 dark:text-gray-300 mb-8"
+                >
+                  AI-powered analysis of California judges. Discover bias patterns, 
+                  ruling tendencies, and comprehensive analytics in seconds.
+                </motion.p>
+                
+                {/* Secondary CTA */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 30 }}
+                  transition={{ duration: 0.8, delay: 0.4 }}
+                  className="flex flex-col sm:flex-row gap-4"
+                >
+                  <Link 
+                    href="/judges"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold transition-all"
+                  >
+                    <Search className="w-5 h-5" />
+                    Browse All Judges
+                  </Link>
+                  <Link 
+                    href="/compare"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-semibold transition-all"
+                  >
+                    <Scale className="w-5 h-5" />
+                    Compare Judges
+                  </Link>
+                </motion.div>
+              </div>
+              
+              {/* Right Column - Builder-Style Chat */}
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: heroInView ? 1 : 0, x: heroInView ? 0 : 30 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+                <BuilderStyleChat />
+              </motion.div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* Animated Tech Tiles Section - Replacing verbose sections */}
+        <AnimatedTechTiles />
+
+        {/* Simplified Benefits Section */}
+        <section className="py-16 px-4 bg-white dark:bg-gray-900">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {benefits.map((benefit, index) => (
+                <motion.div
+                  key={benefit.title}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.05 }}
+                  className="p-5 rounded-xl bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all"
+                >
+                  <div className={`w-10 h-10 mb-3 rounded-lg bg-gradient-to-r ${benefit.color} flex items-center justify-center`}>
+                    <benefit.icon className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="text-base font-semibold mb-1">{benefit.title}</h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">{benefit.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-blue-800">
+          <div className="max-w-4xl mx-auto text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                Ready to Get Started?
+              </h2>
+              <p className="text-xl text-white/90 mb-8">
+                Join thousands of attorneys and citizens using AI to understand judicial patterns
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  href="#hero"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white text-blue-600 font-semibold hover:bg-gray-100 transition-all transform hover:scale-105"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                  }}
+                >
+                  <MessageSquare className="w-5 h-5" />
+                  Chat with AI Assistant
+                </Link>
+                <Link 
+                  href="/sign-up"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border-2 border-white text-white font-semibold hover:bg-white/10 transition-all"
+                >
+                  Create Free Account
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
       </div>
     </>
   )

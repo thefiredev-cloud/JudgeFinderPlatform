@@ -12,7 +12,7 @@ export default function CaseStudiesPage() {
         <div className="space-y-8">
           <div className="bg-white rounded-lg shadow p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Smith & Associates</h2>
-            <p className="text-lg text-blue-600 mb-4">Increased win rate by 23% using judicial analytics</p>
+            <p className="text-lg text-enterprise-primary mb-4">Increased win rate by 23% using judicial analytics</p>
             <p className="text-gray-600 mb-6">
               "JudgeFinder's insights into Judge Martinez's ruling patterns helped us adjust our strategy 
               and present our case more effectively. The data on similar cases was invaluable."
@@ -22,7 +22,7 @@ export default function CaseStudiesPage() {
 
           <div className="bg-white rounded-lg shadow p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Rodriguez Law Firm</h2>
-            <p className="text-lg text-blue-600 mb-4">Saved 40+ hours per month on legal research</p>
+            <p className="text-lg text-enterprise-primary mb-4">Saved 40+ hours per month on legal research</p>
             <p className="text-gray-600 mb-6">
               "The ability to quickly find relevant precedents and understand judicial tendencies has 
               transformed how we prepare cases. It's like having a research team at our fingertips."
@@ -32,7 +32,7 @@ export default function CaseStudiesPage() {
 
           <div className="bg-white rounded-lg shadow p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Corporate Legal Department</h2>
-            <p className="text-lg text-blue-600 mb-4">Reduced litigation costs by 35%</p>
+            <p className="text-lg text-enterprise-primary mb-4">Reduced litigation costs by 35%</p>
             <p className="text-gray-600 mb-6">
               "Understanding judges' settlement tendencies and ruling patterns helped us make better 
               decisions about which cases to litigate and which to settle early."

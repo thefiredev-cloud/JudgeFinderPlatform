@@ -1,12 +1,12 @@
 import { notFound, redirect } from 'next/navigation'
 import { JudgeProfile } from '@/components/judges/JudgeProfile'
+import { ProfessionalBackground } from '@/components/judges/ProfessionalBackground'
 import { JudgeRulingPatterns } from '@/components/judges/JudgeRulingPatterns'
 import { RecentDecisions } from '@/components/judges/RecentDecisions'
-import { AttorneySlots } from '@/components/judges/AttorneySlots'
+import { AdvertiserSlots } from '@/components/judges/AdvertiserSlots'
 import { JudgeFAQ } from '@/components/judges/JudgeFAQ'
 import AnalyticsSliders from '@/components/judges/AnalyticsSliders'
 import { BookmarkButton } from '@/components/judges/BookmarkButton'
-import { LazyGoogleAd } from '@/components/ads/GoogleAd'
 import { SEOBreadcrumbs } from '@/components/seo/SEOBreadcrumbs'
 import { RelatedJudges } from '@/components/seo/RelatedJudges'
 import { RelatedContent } from '@/components/seo/RelatedContent'
@@ -212,7 +212,7 @@ export default async function JudgePage({ params }: JudgePageProps) {
   const relatedJudges = await getRelatedJudges(judge)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground">
       {/* SEO Monitoring and Analytics */}
       <SEOMonitoring 
         judgeName={safeName}
@@ -231,16 +231,28 @@ export default async function JudgePage({ params }: JudgePageProps) {
           ))
         }}
       />
-      {/* Hero Section */}
-      <div className="bg-gradient-to-b from-gray-900 to-gray-800 px-4 py-12 text-white">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-4 text-sm font-medium text-gray-300">
-            Home / Judges / {safeJurisdiction} / {safeName}
-          </div>
-          <h1 className="mb-2 text-4xl font-bold">
+      
+      {/* SEO Breadcrumbs - Moved to top for better visibility */}
+      <SEOBreadcrumbs 
+        items={[
+          { label: 'Judges', href: '/judges' },
+          { label: safeJurisdiction, href: `/jurisdictions/${safeJurisdiction.toLowerCase().replace(/\s+/g, '-')}` },
+          { label: safeCourtName, href: `/courts/${safeCourtName.toLowerCase().replace(/\s+/g, '-')}` },
+          { label: `Judge ${safeName}`, href: '#', current: true }
+        ]}
+        judgeName={safeName}
+        jurisdiction={safeJurisdiction}
+      />
+      
+      {/* Hero Section with Enhanced Gradient */}
+      <div className="bg-gradient-to-br from-enterprise-primary/20 via-enterprise-deep/10 to-background px-4 py-12 text-white relative overflow-hidden">
+        {/* Background pattern */}
+        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
+        <div className="mx-auto max-w-7xl relative z-10">
+          <h1 className="mb-2 text-4xl md:text-5xl font-bold bg-gradient-to-r from-enterprise-primary to-enterprise-deep bg-clip-text text-transparent">
             Judge {safeName.replace(/^(judge|justice|the honorable)\s+/i, '')} - {safeJurisdiction} {safeCourtName.includes('Superior') ? 'Superior Court' : 'Court'} Judge
           </h1>
-          <p className="text-xl text-gray-300">
+          <p className="text-xl text-muted-foreground">
             {safeCourtName} • Official Judicial Profile & Analytics
             {judge.appointed_date && (() => {
               try {
@@ -255,114 +267,29 @@ export default async function JudgePage({ params }: JudgePageProps) {
       </div>
 
 
-      {/* SEO Breadcrumbs */}
-      <SEOBreadcrumbs 
-        items={[
-          { label: 'Judges', href: '/judges' },
-          { label: safeJurisdiction, href: `/jurisdictions/${safeJurisdiction.toLowerCase().replace(/\s+/g, '-')}` },
-          { label: safeCourtName, href: `/courts/${safeCourtName.toLowerCase().replace(/\s+/g, '-')}` },
-          { label: `Judge ${safeName}`, href: '#', current: true }
-        ]}
-        judgeName={safeName}
-        jurisdiction={safeJurisdiction}
-      />
-
-
       {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 pb-12">
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Left Column - Profile and Analytics */}
           <div className="lg:col-span-2 space-y-8">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <JudgeProfile judge={judge} />
-              </div>
-              <div className="ml-4 mt-4">
-                <BookmarkButton 
-                  judgeId={judge.id} 
-                  judgeName={judge.name}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                />
-              </div>
-            </div>
+            {/* Clean Profile Card */}
+            <JudgeProfile judge={judge} />
             
-            {/* Unique SEO Content Section */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                About Judge {safeName.replace(/^(judge|justice|the honorable)\s+/i, '')}
-              </h2>
-              
-              <div className="prose prose-gray max-w-none mb-6">
-                <p className="text-gray-700 leading-relaxed mb-4">
-                  {uniqueContent.uniqueDescription}
-                </p>
-                
-                <p className="text-gray-700 leading-relaxed mb-4">
-                  {uniqueContent.jurisdictionSpecific}
-                </p>
-                
-                <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Professional Summary</h3>
-                  <p className="text-gray-700 leading-relaxed">
-                    {uniqueContent.professionalSummary}
-                  </p>
-                </div>
-              </div>
-              
-              {/* Key Highlights */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Key Highlights</h3>
-                  <ul className="space-y-2">
-                    {uniqueContent.keyHighlights.map((highlight, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                        <span className="text-gray-700">{highlight}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Practice Areas</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {uniqueContent.practiceAreas.map((area, index) => (
-                      <span 
-                        key={index}
-                        className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-                      >
-                        {area}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Professional Background Section */}
+            <ProfessionalBackground judge={judge} />
             
+            {/* AI Analytics Section */}
             <AnalyticsSliders judgeId={judge.id} judgeName={safeName} />
+            
+            {/* Recent Decisions */}
             <RecentDecisions judgeId={judge.id} />
           </div>
 
           {/* Right Column - Sidebar Content */}
           <div className="space-y-8">
-            {/* Advertisement Section */}
-            <div className="space-y-6">
-              <LazyGoogleAd 
-                slot="2345678901"
-                format="rectangle"
-                className="bg-gray-50 rounded-lg"
-                style={{ minHeight: '250px' }}
-              />
-              <LazyGoogleAd 
-                slot="2345678901"
-                format="rectangle"
-                className="bg-gray-50 rounded-lg"
-                style={{ minHeight: '250px' }}
-              />
-            </div>
-            
-            <div id="attorney-slots">
-              <AttorneySlots judgeId={judge.id} judgeName={safeName} />
+            {/* Legal Professionals Section */}
+            <div id="advertiser-slots">
+              <AdvertiserSlots judgeId={judge.id} judgeName={safeName} />
             </div>
             
             {/* Related Content System for Internal Linking */}

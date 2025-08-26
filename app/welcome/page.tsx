@@ -1,6 +1,7 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard'
+import { isAdmin } from '@/lib/auth/admin'
 
 export default async function WelcomePage() {
   const { userId } = await auth()
@@ -10,8 +11,15 @@ export default async function WelcomePage() {
     redirect('/sign-in')
   }
 
-  // Check if user has already completed onboarding
-  // This would be stored in user metadata or preferences
+  // Check if user is admin
+  const userIsAdmin = await isAdmin()
+  
+  // Admins skip onboarding and go straight to admin dashboard
+  if (userIsAdmin) {
+    redirect('/admin')
+  }
+
+  // Check if regular user has already completed onboarding
   if (user?.publicMetadata?.onboardingCompleted) {
     redirect('/dashboard')
   }

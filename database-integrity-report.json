@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-08-22T04:41:31.246Z",
+  "timestamp": "2025-08-25T05:03:20.656Z",
   "summary": {
     "total_issues": 0,
     "critical_issues": 0,
@@ -12,8 +12,8 @@
   "recommendations": [],
   "statistics": {
     "judges_count": 1810,
-    "courts_count": 3211,
-    "cases_count": 324979,
+    "courts_count": 3461,
+    "cases_count": 441614,
     "users_count": 0,
     "attorneys_count": 0,
     "attorney_slots_count": 0,

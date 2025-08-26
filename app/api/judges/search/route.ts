@@ -74,7 +74,12 @@ export async function GET(request: NextRequest) {
     const { data: judges, error, count } = await queryBuilder
 
     if (error) {
-      console.error('Supabase error:', error)
+      console.error('Supabase error:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
       return NextResponse.json(
         { error: 'Failed to search judges' },
         { status: 500 }
@@ -157,7 +162,12 @@ export async function POST(request: NextRequest) {
       })
 
     if (error) {
-      console.error('Search function error:', error)
+      console.error('Search function error:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
       return NextResponse.json(
         { error: 'Failed to search judges' },
         { status: 500 }

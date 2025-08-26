@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { User } from '@clerk/nextjs/server'
 import { 
   BookmarkIcon, 
   ClockIcon, 
@@ -11,11 +10,21 @@ import {
   UserIcon,
   BuildingIcon,
   BarChart3Icon,
-  StarIcon
+  StarIcon,
+  Megaphone
 } from 'lucide-react'
+import AdPurchaseModal from './AdPurchaseModal'
+
+interface SerializedUser {
+  id: string
+  firstName: string | null
+  lastName: string | null
+  email: string
+  createdAt: number
+}
 
 interface UserDashboardProps {
-  user: User | null
+  user: SerializedUser | null
 }
 
 interface DashboardStats {
@@ -45,6 +54,7 @@ export function UserDashboard({ user }: UserDashboardProps) {
     memberSince: ''
   })
   const [loading, setLoading] = useState(true)
+  const [showAdPurchaseModal, setShowAdPurchaseModal] = useState(false)
 
   useEffect(() => {
     async function fetchUserStats() {
@@ -119,7 +129,7 @@ export function UserDashboard({ user }: UserDashboardProps) {
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700/50 p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <TrendingUpIcon className="h-8 w-8 text-purple-400" />
+              <TrendingUpIcon className="h-8 w-8 text-blue-400" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-400">Judges Viewed</p>
@@ -145,6 +155,18 @@ export function UserDashboard({ user }: UserDashboardProps) {
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700/50 p-6">
         <h2 className="text-xl font-semibold text-white mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Buy Ad Space - Featured Button */}
+          <button
+            onClick={() => setShowAdPurchaseModal(true)}
+            className="flex items-center p-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-lg border border-blue-500 hover:from-blue-700 hover:to-blue-600 transition-all transform hover:scale-105 group shadow-lg"
+          >
+            <Megaphone className="h-6 w-6 text-white mr-3" />
+            <div className="text-left">
+              <p className="font-medium text-white">Buy Ad Space</p>
+              <p className="text-sm text-blue-100">Promote your firm on judge profiles</p>
+            </div>
+          </button>
+
           <Link
             href="/judges"
             className="flex items-center p-4 bg-gray-700/50 rounded-lg border border-gray-600/50 hover:bg-gray-600/50 transition-colors group"
@@ -171,9 +193,9 @@ export function UserDashboard({ user }: UserDashboardProps) {
             href="/search"
             className="flex items-center p-4 bg-gray-700/50 rounded-lg border border-gray-600/50 hover:bg-gray-600/50 transition-colors group"
           >
-            <SearchIcon className="h-6 w-6 text-purple-400 mr-3" />
+            <SearchIcon className="h-6 w-6 text-blue-500 mr-3" />
             <div>
-              <p className="font-medium text-white group-hover:text-purple-400">Advanced Search</p>
+              <p className="font-medium text-white group-hover:text-blue-500">Advanced Search</p>
               <p className="text-sm text-gray-400">Find specific judges and cases</p>
             </div>
           </Link>
@@ -193,9 +215,9 @@ export function UserDashboard({ user }: UserDashboardProps) {
             href="/profile"
             className="flex items-center p-4 bg-gray-700/50 rounded-lg border border-gray-600/50 hover:bg-gray-600/50 transition-colors group"
           >
-            <UserIcon className="h-6 w-6 text-pink-400 mr-3" />
+            <UserIcon className="h-6 w-6 text-blue-600 mr-3" />
             <div>
-              <p className="font-medium text-white group-hover:text-pink-400">My Profile</p>
+              <p className="font-medium text-white group-hover:text-blue-600">My Profile</p>
               <p className="text-sm text-gray-400">Manage account settings</p>
             </div>
           </Link>
@@ -290,7 +312,7 @@ export function UserDashboard({ user }: UserDashboardProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <p className="text-sm font-medium text-gray-400 mb-1">Email</p>
-            <p className="text-white">{user?.emailAddresses[0]?.emailAddress}</p>
+            <p className="text-white">{user?.email}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-gray-400 mb-1">Member Since</p>
@@ -310,6 +332,14 @@ export function UserDashboard({ user }: UserDashboardProps) {
           </div>
         </div>
       </div>
+      
+      {/* Ad Purchase Modal */}
+      {showAdPurchaseModal && (
+        <AdPurchaseModal
+          onClose={() => setShowAdPurchaseModal(false)}
+          userId={user?.id || ''}
+        />
+      )}
     </div>
   )
 }

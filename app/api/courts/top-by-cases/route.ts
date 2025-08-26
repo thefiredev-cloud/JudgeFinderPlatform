@@ -16,7 +16,12 @@ export async function GET(request: NextRequest) {
       })
 
     if (error) {
-      console.error('RPC error:', error)
+      console.error('RPC error:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
       
       // Fallback query if RPC doesn't exist - get courts with judge counts and estimate case volumes
       const { data: courts, error: courtError } = await supabase
@@ -34,7 +39,12 @@ export async function GET(request: NextRequest) {
         .limit(6)
 
       if (courtError) {
-        console.error('Court query error:', courtError)
+        console.error('Court query error:', {
+          message: courtError.message,
+          details: courtError.details,
+          hint: courtError.hint,
+          code: courtError.code
+        })
         return NextResponse.json(
           { error: 'Failed to fetch top courts' },
           { status: 500 }
