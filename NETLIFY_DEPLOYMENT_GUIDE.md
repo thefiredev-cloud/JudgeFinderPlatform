@@ -1,6 +1,6 @@
 # Netlify Deployment Guide for Judge Finder Platform
 
-## Production Deployment to sandboxmentoloop.online
+## Production Deployment to judgefinder.io
 
 This guide will walk you through deploying the Judge Finder Platform to Netlify with your custom domain.
 
@@ -8,7 +8,7 @@ This guide will walk you through deploying the Judge Finder Platform to Netlify 
 
 - GitHub repository is ready: `Apex-ai-net/judge-finder-platform`
 - Netlify account created
-- Domain `sandboxmentoloop.online` is available for configuration
+- Domain `judgefinder.io` is available for configuration
 - All API keys and services are ready (Stripe, Clerk, Supabase, AI APIs)
 
 ## Step 1: Connect GitHub to Netlify
@@ -62,7 +62,7 @@ OPENAI_API_KEY=sk-proj-[regenerate-new-key]
 GOOGLE_AI_API_KEY=[your-google-ai-key]
 
 # Site Configuration
-NEXT_PUBLIC_SITE_URL=https://sandboxmentoloop.online
+NEXT_PUBLIC_SITE_URL=https://judgefinder.io
 NODE_ENV=production
 
 # Security Keys (Use these exact values)
@@ -91,7 +91,7 @@ NEXT_PUBLIC_SENTRY_DSN=[your-public-sentry-dsn]
 1. **In Netlify Dashboard**
    - Go to **Domain settings**
    - Click "Add custom domain"
-   - Enter `sandboxmentoloop.online`
+   - Enter `judgefinder.io`
    - Follow the verification steps
 
 2. **DNS Configuration**
@@ -116,7 +116,7 @@ NEXT_PUBLIC_SENTRY_DSN=[your-public-sentry-dsn]
 1. **In Stripe Dashboard**
    - Go to Developers → Webhooks
    - Click "Add endpoint"
-   - URL: `https://sandboxmentoloop.online/api/webhooks/stripe`
+   - URL: `https://judgefinder.io/api/webhooks/stripe`
    - Select events:
      - checkout.session.completed
      - invoice.payment_succeeded
@@ -139,15 +139,15 @@ NEXT_PUBLIC_SENTRY_DSN=[your-public-sentry-dsn]
 3. **Verify Deployment**
    ```bash
    # Check site is live
-   curl -I https://sandboxmentoloop.online
+   curl -I https://judgefinder.io
    
    # Test API health
-   curl https://sandboxmentoloop.online/api/health
+   curl https://judgefinder.io/api/health
    ```
 
 ## Step 6: Post-Deployment Checklist
 
-- [ ] Site loads at https://sandboxmentoloop.online
+- [ ] Site loads at https://judgefinder.io
 - [ ] Clerk authentication works (sign up/sign in)
 - [ ] Supabase database connection successful
 - [ ] Judge search functionality works
@@ -221,5 +221,5 @@ After successful deployment:
 
 ---
 
-**Deployment Status**: Ready for production deployment to sandboxmentoloop.online
+**Deployment Status**: Ready for production deployment to judgefinder.io
 **Last Updated**: January 2025
