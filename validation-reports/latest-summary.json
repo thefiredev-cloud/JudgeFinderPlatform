@@ -1,0 +1,130 @@
+{
+  "validation_summary": {
+    "total_judges": 1000,
+    "valid_profiles": 1000,
+    "invalid_profiles": 0,
+    "accessible_urls": 45,
+    "inaccessible_urls": 955,
+    "complete_court_data": 977,
+    "incomplete_court_data": 23,
+    "data_inconsistencies": 3,
+    "profile_success_rate": "100.00%",
+    "url_success_rate": "4.50%",
+    "court_data_success_rate": "97.70%"
+  },
+  "platform_health": {
+    "api_endpoints": {
+      "/api/judges/list": {
+        "status": "HEALTHY",
+        "status_code": 200,
+        "response_time_ms": 451,
+        "description": "Judge listing API",
+        "last_checked": "2025-08-27T03:23:30.251Z"
+      },
+      "/api/judges/recent-decisions": {
+        "status": "ERROR",
+        "status_code": 400,
+        "response_time_ms": 166,
+        "description": "Recent decisions API",
+        "last_checked": "2025-08-27T03:23:30.417Z"
+      },
+      "/api/courts": {
+        "status": "HEALTHY",
+        "status_code": 200,
+        "response_time_ms": 243,
+        "description": "Courts API",
+        "last_checked": "2025-08-27T03:23:30.660Z"
+      },
+      "/api/judges/by-state?state=CA": {
+        "status": "HEALTHY",
+        "status_code": 200,
+        "response_time_ms": 241,
+        "description": "Judges by state API",
+        "last_checked": "2025-08-27T03:23:30.901Z"
+      }
+    },
+    "database_health": {
+      "connectivity": "HEALTHY",
+      "judges_table": "ACCESSIBLE",
+      "courts_table": "ACCESSIBLE",
+      "relationships": "FUNCTIONAL",
+      "last_checked": "2025-08-27T03:22:53.591Z"
+    },
+    "data_quality": {
+      "unique_jurisdictions": 1,
+      "unique_courts": 102,
+      "jurisdiction_distribution": {
+        "CA": 1000
+      },
+      "court_distribution": {
+        "Superior Court of California, County of Amador": 266,
+        "Court of Appeals for the Seventh Circuit": 111,
+        "Superior Court of California, County of San Diego": 8,
+        "Superior Court of California, County of Shasta": 6,
+        "California Court of Appeal, 6th District": 5,
+        "California Justice Court, Colusa County": 1,
+        "California Justice Court, Tuolumne County": 2,
+        "California Justice Court, Kern County": 9,
+        "Superior Court of California, County of Monterey": 10,
+        "California Justice Court, Plumas County": 1,
+        "Orange County Superior Court": 14,
+        "United States Bankruptcy Court, N.D. California": 6,
+        "Superior Court of California, County of Stanislaus": 12,
+        "Superior Court of California, County of San Benito": 37,
+        "Superior Court of California, County of Ventura": 12,
+        "Superior Court of California, County of Solano": 8,
+        "District Court, N.D. California": 8,
+        "Superior Court of California, County of San Francisco": 9,
+        "Court of Appeals for the Tenth Circuit": 4,
+        "Superior Court of California, County of Glenn": 3
+      },
+      "last_checked": "2025-08-27T03:23:29.799Z"
+    }
+  },
+  "critical_issues": [
+    {
+      "type": "API_ENDPOINT_ERROR",
+      "message": "API endpoint /api/judges/recent-decisions returned 400",
+      "severity": "HIGH",
+      "timestamp": "2025-08-27T03:23:30.417Z"
+    }
+  ],
+  "recommendations": [
+    {
+      "type": "URL_ACCESSIBILITY",
+      "priority": "HIGH",
+      "message": "955 judge profile URLs are inaccessible",
+      "action": "Check slug generation and URL routing for failed profiles",
+      "estimated_effort": "High"
+    },
+    {
+      "type": "COURT_DATA",
+      "priority": "MEDIUM",
+      "message": "23 judges have incomplete court assignment data",
+      "action": "Update court assignments and verify court-judge relationships",
+      "estimated_effort": "Medium"
+    },
+    {
+      "type": "DATA_CONSISTENCY",
+      "priority": "HIGH",
+      "message": "3 data inconsistencies found",
+      "action": "Review and resolve data inconsistencies, especially duplicate names and jurisdiction mismatches",
+      "estimated_effort": "Medium"
+    },
+    {
+      "type": "API_PERFORMANCE",
+      "priority": "CRITICAL",
+      "message": "1 API endpoints have issues",
+      "action": "Investigate and fix API endpoint errors immediately",
+      "estimated_effort": "High"
+    }
+  ],
+  "detailed_issues": 981,
+  "validation_metadata": {
+    "timestamp": "2025-08-27T03:22:52.909Z",
+    "base_url": "http://localhost:3005",
+    "total_judges_expected": 1061,
+    "total_judges_found": 1000,
+    "coverage_percentage": "94.25%"
+  }
+}

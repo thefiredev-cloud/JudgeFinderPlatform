@@ -108,7 +108,11 @@
       "mcp__clerk__getUserId",
       "mcp__convex__status",
       "mcp__stripe__retrieve_balance",
-      "Bash(stripe listen:*)"
+      "Bash(stripe listen:*)",
+      "Bash(npm view:*)",
+      "Bash(netlify init:*)",
+      "Bash(netlify deploy:*)",
+      "Bash(netlify sites:create:*)"
     ],
     "deny": [],
     "ask": [],

@@ -177,8 +177,8 @@ const nextConfig = {
   generateEtags: true,
   poweredByHeader: false,
 
-  // Optimize for Netlify deployment - standard output
-  output: undefined, // Let Next.js handle output automatically for Netlify
+  // Optimize for Netlify deployment - export output for static generation
+  output: 'export', // Use static export for Netlify without plugin
 }
 
 // Sentry configuration options

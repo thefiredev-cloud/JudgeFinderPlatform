@@ -1,8 +1,8 @@
 # Netlify Configuration for JudgeFinder Platform
 [build]
-  # Build command - simplified without plugin bypass flags
+  # Build command for static export without plugin
   command = "npm ci --production=false && npm run build"
-  publish = ".next"
+  publish = "out"
 
 [build.environment]
   # Node version
@@ -29,9 +29,7 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.clerk.com *.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' *.supabase.co *.clerk.com *.sentry.io *.courtlistener.com https://api.openai.com https://generativelanguage.googleapis.com;"
 
-# Plugin configuration  
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
+# No plugins needed for standalone Next.js deployment
 
 # Disable functions directory
 [functions]
