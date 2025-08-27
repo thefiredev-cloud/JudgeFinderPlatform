@@ -3,8 +3,6 @@
   # Build command - simplified without plugin bypass flags
   command = "npm ci --production=false && npm run build"
   publish = ".next"
-  # Disable auto plugin installation to avoid dependency issues
-  ignore = "false"
 
 [build.environment]
   # Node version
@@ -38,3 +36,9 @@
 # Disable functions directory
 [functions]
   included_files = []
+
+# Disable the Next.js plugin to avoid dependency issues
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+  [plugins.inputs]
+    enabled = false
