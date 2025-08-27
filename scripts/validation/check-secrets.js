@@ -56,12 +56,14 @@ const SECRET_PATTERNS = [
 // Files to exclude from checking
 const EXCLUDED_FILES = [
   '.env.example',
+  '.env.local.example',
   'package-lock.json',
   'yarn.lock',
   '*.test.js',
   '*.spec.js',
   '*.md',
   'check-secrets.js',
+  'deploy-rls-production.sh',  // Uses environment variables, not hardcoded secrets
 ];
 
 // Directories to exclude
