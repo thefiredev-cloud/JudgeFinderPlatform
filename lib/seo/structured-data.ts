@@ -13,7 +13,7 @@ import { createCanonicalSlug } from '@/lib/utils/slug'
 export function generateJudgeStructuredData(
   judge: Judge,
   canonicalSlug: string,
-  baseUrl: string = 'https://judgefinder.io'
+  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || 'https://judgefinder.io'
 ): any[] {
   const safeName = judge.name || 'Unknown Judge'
   const safeCourtName = judge.court_name || 'Unknown Court'

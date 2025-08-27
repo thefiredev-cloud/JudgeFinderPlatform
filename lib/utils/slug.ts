@@ -371,7 +371,7 @@ export function getSlugRedirectTarget(slug: string, judgeName: string): string |
  * Includes all the ways people might find this judge
  * 
  * @param judgeName - The judge's name
- * @param baseUrl - The base URL (e.g., 'https://judgefinder.io')
+ * @param baseUrl - The base URL for the site
  * @returns Array of URL variations for this judge
  */
 export function generateJudgeUrlVariations(judgeName: string, baseUrl: string = ''): string[] {

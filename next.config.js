@@ -61,7 +61,7 @@ const nextConfig = {
           {
             key: 'Access-Control-Allow-Origin',
             value: process.env.NODE_ENV === 'production' 
-              ? 'https://judgefinder.io'
+              ? process.env.NEXT_PUBLIC_SITE_URL || 'https://judgefinder.io'
               : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3005',
           },
           {
