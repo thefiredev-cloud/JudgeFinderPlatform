@@ -53,8 +53,8 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
 
 # Supabase (keep existing)
 NEXT_PUBLIC_SUPABASE_URL=https://xstlnicbnzdxlgfiewmg.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzdGxuaWNibnpkeGxnZmlld21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNjQ3MDgsImV4cCI6MjA3MDY0MDcwOH0.v3VThW44-3UbRViJ6sXyCE0PV8tfNepuSWRWp3gPQbI
-SUPABASE_SERVICE_ROLE_KEY=[Get from Supabase Dashboard]
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[Get from Supabase Dashboard - Settings > API > anon key]
+SUPABASE_SERVICE_ROLE_KEY=[Get from Supabase Dashboard - Settings > API > service_role key]
 
 # AI APIs
 OPENAI_API_KEY=[REGENERATE NEW KEY - OLD ONE EXPOSED]

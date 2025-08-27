@@ -46,7 +46,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_[your-publishable-key]
 
 # Supabase (From your Supabase project)
 NEXT_PUBLIC_SUPABASE_URL=https://xstlnicbnzdxlgfiewmg.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzdGxuaWNibnpkeGxnZmlld21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNjQ3MDgsImV4cCI6MjA3MDY0MDcwOH0.v3VThW44-3UbRViJ6sXyCE0PV8tfNepuSWRWp3gPQbI
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[your-supabase-anon-key-from-dashboard]
 SUPABASE_SERVICE_ROLE_KEY=[your-service-role-key]
 
 # Clerk Authentication (From Clerk Dashboard)
