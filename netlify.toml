@@ -6,7 +6,7 @@
 
 [build.environment]
   # Node version
-  NODE_VERSION = "20.11.1"
+  NODE_VERSION = "20"
   
   # Disable telemetry
   NEXT_TELEMETRY_DISABLED = "1"
@@ -29,8 +29,11 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.clerk.com *.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' *.supabase.co *.clerk.com *.sentry.io *.courtlistener.com https://api.openai.com https://generativelanguage.googleapis.com;"
 
-# No plugins needed for standalone Next.js deployment
+# Next.js plugin for proper deployment
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
-# Disable functions directory
+# Functions configuration
 [functions]
-  included_files = []
+  node_bundler = "esbuild"
+  included_files = ["**/*"]
