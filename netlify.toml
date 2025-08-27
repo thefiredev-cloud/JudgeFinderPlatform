@@ -1,31 +1,36 @@
 # Netlify Configuration for JudgeFinder Platform
 [build]
-  # Simplified build command for better reliability
+  # Build command
   command = "npm ci && npm run build"
   publish = ".next"
 
 [build.environment]
-  # Use Node 20 LTS for better compatibility
+  # Node version
   NODE_VERSION = "20"
+  
+  # Disable telemetry
   NEXT_TELEMETRY_DISABLED = "1"
-  # CRITICAL: Disable Next.js plugin to prevent @netlify/blobs version conflict
+  
+  # CRITICAL: Force skip all Netlify plugins to prevent @netlify/blobs version conflict
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
-  # Disable Neon extension completely
-  NETLIFY_USE_NEON = "false"
-  # Disable automatic plugin installation
   NETLIFY_SKIP_PLUGIN_VALIDATION = "true"
-  # Use manual Next.js build without Netlify plugins
+  NETLIFY_USE_YARN = "false"
+  NETLIFY_SKIP_FUNCTIONS_CACHE = "true"
+  
+  # Disable Neon database extension
+  NETLIFY_USE_NEON = "false"
+  
+  # Disable automatic plugin installation completely
   USE_NETLIFY_PLUGIN = "false"
   
-  # Secrets Scanning Configuration - Expanded exclusions to prevent false positives
-  # Skip scanning in all script directories, documentation, and test files
-  SECRETS_SCAN_OMIT_PATHS = "scripts/**,*.example,*.md,*.txt,docs/**,reports/**,*.json,test/**,tests/**,**/*.test.js,**/*.test.ts,**/*.spec.js,**/*.spec.ts"
-  # Exclude all environment variable names and build-time variables
-  SECRETS_SCAN_OMIT_KEYS = "NODE_VERSION,NEXT_TELEMETRY_DISABLED,NPM_FLAGS,NETLIFY_*,NEXT_PUBLIC_*,BUILD_*,CI,DEPLOY_*,REVIEW_ID,SITE_*,URL,DEPLOY_URL,DEPLOY_PRIME_URL,CACHED_COMMIT_REF,COMMIT_REF,PULL_REQUEST,INCOMING_HOOK_*,CONTEXT,BRANCH"
-  # Prevent security scripts from running during build
+  # Build environment flag
   NETLIFY_BUILD = "true"
+  
+  # Secrets scanning configuration - prevent false positives
+  SECRETS_SCAN_OMIT_PATHS = "scripts/**,*.example,*.md,*.txt,docs/**,reports/**,*.json,test/**,tests/**,**/*.test.js,**/*.test.ts,**/*.spec.js,**/*.spec.ts"
+  SECRETS_SCAN_OMIT_KEYS = "NODE_VERSION,NEXT_TELEMETRY_DISABLED,NPM_FLAGS,NETLIFY_*,NEXT_PUBLIC_*,BUILD_*,CI,DEPLOY_*,REVIEW_ID,SITE_*,URL,DEPLOY_URL,DEPLOY_PRIME_URL,CACHED_COMMIT_REF,COMMIT_REF,PULL_REQUEST,INCOMING_HOOK_*,CONTEXT,BRANCH"
 
-# Headers for security and performance
+# Security headers
 [[headers]]
   for = "/*"
   [headers.values]
@@ -46,18 +51,6 @@
 [context.branch-deploy]
   command = "npm ci && npm run build"
 
-# Explicitly disable all plugins to prevent @netlify/blobs conflict
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-  # Disable the Next.js plugin
-  [plugins.inputs]
-    enable = false
-
-# Disable Neon database plugin
+# Disable functions directory
 [functions]
   included_files = []
-  
-# Edge Functions directory (commented out until functions are created)
-# [[edge_functions]]
-#   path = "/api/*"
-#   function = "api-handler"
