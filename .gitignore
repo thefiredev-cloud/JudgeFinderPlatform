@@ -131,6 +131,9 @@ credentials.json
 credentials.txt
 config.secret.js
 config.secret.json
+NETLIFY_ENV_VARIABLES.txt
+NETLIFY_ENV_VARIABLES_*.txt
+*_ENV_VARIABLES.txt
 
 # API Key Files
 **/api-keys/

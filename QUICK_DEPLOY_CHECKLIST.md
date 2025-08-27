@@ -26,10 +26,10 @@ Publish directory: .next
 
 Copy these secure keys:
 ```bash
-# Security Keys (Use these exact values)
-SYNC_API_KEY=448cb89dfcf4b9d7ac97f57d187545c672083091d850c836f31958d94a386614
-CRON_SECRET=3447bdbadf5a4f81cd33f94cc7c75206e7549c1b4879132db7df2b224e8bc314
-SESSION_SECRET=a76c01543d8ce5b5527354950fc90146e2f382cc3621009e86a6809ad15dd557
+# Security Keys (Generate your own secure values)
+SYNC_API_KEY=[GENERATE_YOUR_OWN_SECURE_KEY]
+CRON_SECRET=[GENERATE_YOUR_OWN_SECURE_KEY]
+SESSION_SECRET=[GENERATE_YOUR_OWN_SECURE_KEY]
 
 # Site Configuration
 NEXT_PUBLIC_SITE_URL=https://judgefinder.io
