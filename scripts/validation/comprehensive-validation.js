@@ -15,6 +15,9 @@
  * 6. Automated issue detection and remediation
  */
 
+// Load environment variables first
+require('dotenv').config({ path: '.env.local' })
+
 const { createClient } = require('@supabase/supabase-js')
 const fetch = require('node-fetch')
 const fs = require('fs').promises
@@ -22,7 +25,7 @@ const path = require('path')
 
 // Configuration
 const CONFIG = {
-  SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://awqrfxrwnslqsnrrwuaz.supabase.co',
+  SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   SUPABASE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   BASE_URL: process.env.NODE_ENV === 'production' ? 'https://judgefinder.io' : 'http://localhost:3005',
   BATCH_SIZE: 50,
