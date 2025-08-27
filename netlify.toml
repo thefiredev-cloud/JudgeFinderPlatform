@@ -1,15 +1,13 @@
 # Netlify Configuration for JudgeFinder Platform
 [build]
-  # Force installation of all dependencies including devDependencies
-  command = "npm ci --production=false && npm run build"
+  # Simplified build command for better reliability
+  command = "npm ci && npm run build"
   publish = ".next"
 
 [build.environment]
   # Use Node 20 LTS for better compatibility
   NODE_VERSION = "20"
   NEXT_TELEMETRY_DISABLED = "1"
-  # Ensure all dependencies are installed
-  NPM_FLAGS = "--production=false"
   # CRITICAL: Disable Next.js plugin to prevent @netlify/blobs version conflict
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
   # Disable Neon extension completely
@@ -40,13 +38,13 @@
 
 # Environment-specific configurations
 [context.production]
-  command = "npm ci --production=false && npm run build"
+  command = "npm ci && npm run build"
   
 [context.deploy-preview]
-  command = "npm ci --production=false && npm run build"
+  command = "npm ci && npm run build"
 
 [context.branch-deploy]
-  command = "npm ci --production=false && npm run build"
+  command = "npm ci && npm run build"
 
 # Explicitly disable all plugins to prevent @netlify/blobs conflict
 [[plugins]]
