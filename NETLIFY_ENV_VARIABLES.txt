@@ -1,0 +1,64 @@
+# NETLIFY ENVIRONMENT VARIABLES
+# Copy these into Netlify Dashboard: Site Settings > Environment Variables
+# https://app.netlify.com/sites/[your-site]/settings/env
+
+# ==== SITE CONFIGURATION ====
+NODE_ENV=production
+NEXT_PUBLIC_SITE_URL=https://judgefinder.io
+NEXT_PUBLIC_APP_URL=https://judgefinder.io
+NEXT_PUBLIC_APP_NAME=JudgeFinder Platform
+
+# ==== SECURITY KEYS (Pre-generated) ====
+SYNC_API_KEY=448cb89dfcf4b9d7ac97f57d187545c672083091d850c836f31958d94a386614
+CRON_SECRET=3447bdbadf5a4f81cd33f94cc7c75206e7549c1b4879132db7df2b224e8bc314
+SESSION_SECRET=a76c01543d8ce5b5527354950fc90146e2f382cc3621009e86a6809ad15dd557
+COURTLISTENER_WEBHOOK_SECRET=wh_sec_8f3a2b5c9d7e6a4f1b8c9e2d5a7f3e1b
+COURTLISTENER_WEBHOOK_VERIFY_TOKEN=verify_7d4a3f2e9b1c8a5d6e2f9a3b7c1d5e8f
+
+# ==== SUPABASE (Existing) ====
+NEXT_PUBLIC_SUPABASE_URL=https://xstlnicbnzdxlgfiewmg.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzdGxuaWNibnpkeGxnZmlld21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNjQ3MDgsImV4cCI6MjA3MDY0MDcwOH0.v3VThW44-3UbRViJ6sXyCE0PV8tfNepuSWRWp3gPQbI
+SUPABASE_SERVICE_ROLE_KEY=[GET FROM SUPABASE DASHBOARD: Settings > API > Service Role Key]
+
+# ==== CLERK AUTHENTICATION ====
+# Get from: https://dashboard.clerk.com/apps/[app-id]/instances
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=[GET FROM CLERK DASHBOARD]
+CLERK_SECRET_KEY=[GET FROM CLERK DASHBOARD]
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/welcome
+
+# ==== AI SERVICES ====
+# OpenAI - Get from: https://platform.openai.com/api-keys
+# IMPORTANT: Generate a NEW key - old one was exposed
+OPENAI_API_KEY=[GENERATE NEW KEY FROM OPENAI]
+
+# Google AI (Gemini) - Get from: https://makersuite.google.com/app/apikey
+GOOGLE_AI_API_KEY=[GET FROM GOOGLE AI DASHBOARD]
+
+# ==== EXTERNAL APIs ====
+# CourtListener - Get from: https://www.courtlistener.com/api/
+COURTLISTENER_API_KEY=[GET FROM COURTLISTENER IF AVAILABLE]
+
+# ==== STRIPE PAYMENT PROCESSING ====
+# Get from: https://dashboard.stripe.com/apikeys
+STRIPE_SECRET_KEY=[GET FROM STRIPE DASHBOARD - Live Secret Key]
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=[GET FROM STRIPE DASHBOARD - Live Publishable Key]
+STRIPE_WEBHOOK_SECRET=[WILL BE GENERATED WHEN YOU CREATE WEBHOOK]
+NEXT_PUBLIC_STRIPE_PRICE_ID=[CREATE IN STRIPE OR LEAVE EMPTY]
+
+# ==== RATE LIMITING (Optional but recommended) ====
+# Get from: https://console.upstash.com/
+UPSTASH_REDIS_REST_URL=[GET FROM UPSTASH OR LEAVE EMPTY]
+UPSTASH_REDIS_REST_TOKEN=[GET FROM UPSTASH OR LEAVE EMPTY]
+
+# ==== ERROR MONITORING (Optional but recommended) ====
+# Get from: https://sentry.io/
+SENTRY_DSN=[GET FROM SENTRY OR LEAVE EMPTY]
+NEXT_PUBLIC_SENTRY_DSN=[GET FROM SENTRY OR LEAVE EMPTY]
+SENTRY_AUTH_TOKEN=[GET FROM SENTRY OR LEAVE EMPTY]
+
+# ==== ADMIN CONFIGURATION ====
+# Add your Clerk user ID here once you sign up
+ADMIN_USER_IDS=[YOUR_CLERK_USER_ID]

@@ -14,6 +14,10 @@
   # Build environment flag
   NETLIFY_BUILD = "true"
   
+  # Skip automatic Next.js plugin installation to avoid @netlify/blobs error
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  NETLIFY_USE_YARN = "false"
+  
   # Secrets scanning configuration - prevent false positives
   SECRETS_SCAN_OMIT_PATHS = "scripts/**,*.example,*.md,*.txt,docs/**,reports/**,*.json,test/**,tests/**,**/*.test.js,**/*.test.ts,**/*.spec.js,**/*.spec.ts"
   SECRETS_SCAN_OMIT_KEYS = "NODE_VERSION,NEXT_TELEMETRY_DISABLED,NPM_FLAGS,NETLIFY_*,NEXT_PUBLIC_*,BUILD_*,CI,DEPLOY_*,REVIEW_ID,SITE_*,URL,DEPLOY_URL,DEPLOY_PRIME_URL,CACHED_COMMIT_REF,COMMIT_REF,PULL_REQUEST,INCOMING_HOOK_*,CONTEXT,BRANCH"
