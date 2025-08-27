@@ -12,6 +12,8 @@
   NPM_FLAGS = "--production=false"
   # Enable Next.js build cache
   NETLIFY_NEXT_PLUGIN_SKIP = "false"
+  # Disable Neon extension to prevent @netlify/blobs version conflict
+  NETLIFY_USE_NEON = "false"
   
   # Secrets Scanning Configuration - Expanded exclusions to prevent false positives
   # Skip scanning in all script directories, documentation, and test files
