@@ -1,7 +1,7 @@
 # Netlify Configuration for JudgeFinder Platform
 [build]
-  # Build command
-  command = "npm ci --production=false && npm run build"
+  # Build command - using legacy-peer-deps to handle version conflicts
+  command = "npm ci --legacy-peer-deps && npm run build"
   publish = ".next"
 
 [build.environment]
@@ -17,6 +17,10 @@
   # Skip automatic Next.js plugin installation to avoid @netlify/blobs error
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
   NETLIFY_USE_YARN = "false"
+  
+  # Skip all extensions and plugins to prevent version conflicts
+  NETLIFY_SKIP_FUNCTIONS_CACHE = "true"
+  NETLIFY_SKIP_PLUGIN_INSTALLATION = "true"
   
   # Secrets scanning configuration - prevent false positives
   SECRETS_SCAN_OMIT_PATHS = "scripts/**,*.example,*.md,*.txt,docs/**,reports/**,*.json,test/**,tests/**,**/*.test.js,**/*.test.ts,**/*.spec.js,**/*.spec.ts"
