@@ -112,7 +112,9 @@
       "Bash(npm view:*)",
       "Bash(netlify init:*)",
       "Bash(netlify deploy:*)",
-      "Bash(netlify sites:create:*)"
+      "Bash(netlify sites:create:*)",
+      "Bash(vercel:*)",
+      "Bash(netlify:*)"
     ],
     "deny": [],
     "ask": [],
