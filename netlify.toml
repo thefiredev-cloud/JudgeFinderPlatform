@@ -37,5 +37,9 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.clerk.com *.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' *.supabase.co *.clerk.com *.sentry.io *.courtlistener.com https://api.openai.com https://generativelanguage.googleapis.com;"
 
-# Netlify will auto-detect Next.js - no plugin needed
-# This avoids the @netlify/blobs dependency issue
+# Explicitly define Next.js plugin to override UI configuration
+# Using stable version 5.11.6 to avoid @netlify/blobs@10.0.9 issue
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+  [plugins.inputs]
+    enable = true
