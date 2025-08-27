@@ -23,10 +23,6 @@
   # Prevent security scripts from running during build
   NETLIFY_BUILD = "true"
 
-# Next.js Build Settings
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-
 # Headers for security and performance
 [[headers]]
   for = "/*"
