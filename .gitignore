@@ -209,3 +209,4 @@ public
 .yarn/install-state.gz
 .pnp.*
 
+.cursor/
