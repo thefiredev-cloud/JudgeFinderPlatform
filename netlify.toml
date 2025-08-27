@@ -1,6 +1,6 @@
 # Netlify Configuration for JudgeFinder Platform
 [build]
-  # Build command for static export without plugin
+  # Build command
   command = "npm ci --production=false && npm run build"
   publish = "out"
 
