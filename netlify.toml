@@ -26,9 +26,11 @@
   # Include build output directories to avoid false positives from compiled JavaScript
   # Also exclude specific files that contain the domain name
   # Updated to exclude directories with false positives: data/**, lib/security/**, supabase/**
-  SECRETS_SCAN_OMIT_PATHS = ".next/**,.netlify/**,scripts/**,*.example,*.md,*.txt,docs/**,reports/**,*.json,test/**,tests/**,**/*.test.js,**/*.test.ts,**/*.spec.js,**/*.spec.ts,lib/seo/structured-data.ts,lib/utils/slug.ts,next.config.js,public/robots.txt,data/**,lib/security/**,supabase/**,netlify.toml"
+  # Added SEO files that contain hardcoded platform name
+  SECRETS_SCAN_OMIT_PATHS = ".next/**,.netlify/**,scripts/**,*.example,*.md,*.txt,docs/**,reports/**,*.json,test/**,tests/**,**/*.test.js,**/*.test.ts,**/*.spec.js,**/*.spec.ts,lib/seo/structured-data.ts,lib/utils/slug.ts,next.config.js,public/robots.txt,data/**,lib/security/**,supabase/**,netlify.toml,lib/seo/**,components/seo/**,lib/seo/metadata-generator.ts,components/seo/StructuredData.tsx"
   # Include domain patterns and common URL patterns to prevent false positives
-  SECRETS_SCAN_OMIT_KEYS = "NODE_VERSION,NEXT_TELEMETRY_DISABLED,NPM_FLAGS,NETLIFY_*,NEXT_PUBLIC_*,BUILD_*,CI,DEPLOY_*,REVIEW_ID,SITE_*,URL,DEPLOY_URL,DEPLOY_PRIME_URL,CACHED_COMMIT_REF,COMMIT_REF,PULL_REQUEST,INCOMING_HOOK_*,CONTEXT,BRANCH,judgefinder.io,https://judgefinder.io,http://judgefinder.io,*.judgefinder.io"
+  # Added "JudgeFinder Platform" literal string since it's not a secret
+  SECRETS_SCAN_OMIT_KEYS = "NODE_VERSION,NEXT_TELEMETRY_DISABLED,NPM_FLAGS,NETLIFY_*,NEXT_PUBLIC_*,BUILD_*,CI,DEPLOY_*,REVIEW_ID,SITE_*,URL,DEPLOY_URL,DEPLOY_PRIME_URL,CACHED_COMMIT_REF,COMMIT_REF,PULL_REQUEST,INCOMING_HOOK_*,CONTEXT,BRANCH,judgefinder.io,https://judgefinder.io,http://judgefinder.io,*.judgefinder.io,JudgeFinder Platform,JudgeFinder.io"
 
 # Security headers
 [[headers]]
