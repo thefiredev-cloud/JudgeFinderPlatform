@@ -5,6 +5,12 @@
  * Install: Add to .git/hooks/pre-commit or use with husky
  */
 
+// Prevent execution during Netlify builds or production
+if (process.env.NETLIFY_BUILD === 'true' || process.env.NETLIFY === 'true' || process.env.NODE_ENV === 'production') {
+  // Exit silently without any output
+  process.exit(0);
+}
+
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');

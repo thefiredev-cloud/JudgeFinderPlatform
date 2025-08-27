@@ -1,5 +1,14 @@
 const { withSentryConfig } = require('@sentry/nextjs')
 
+// Suppress console output in production and Netlify builds to prevent secrets exposure
+if (process.env.NODE_ENV === 'production' || process.env.NETLIFY_BUILD === 'true' || process.env.NETLIFY === 'true') {
+  console.log = () => {};
+  console.info = () => {};
+  console.warn = () => {};
+  console.debug = () => {};
+  // Keep console.error for critical errors only
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,

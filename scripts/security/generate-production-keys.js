@@ -2,19 +2,14 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-// Prevent execution during Netlify builds
-if (process.env.NETLIFY_BUILD === 'true' || process.env.NETLIFY === 'true') {
-  console.log('⏭️ Skipping security key generation during Netlify build');
+// Prevent execution during Netlify builds or production
+if (process.env.NETLIFY_BUILD === 'true' || process.env.NETLIFY === 'true' || process.env.NODE_ENV === 'production') {
+  // Exit silently without any output
   process.exit(0);
 }
 
 // Only log in development environment
 const isDevelopment = process.env.NODE_ENV !== 'production';
-
-if (isDevelopment) {
-  console.log('🔐 GENERATING PRODUCTION SECURITY KEYS\n');
-  console.log('=' .repeat(60));
-}
 
 // Generate secure random keys
 const keys = {
@@ -26,12 +21,10 @@ const keys = {
   SESSION_SECRET: crypto.randomBytes(32).toString('hex')
 };
 
-// Display keys only in development
+// Never display actual keys in console
 if (isDevelopment) {
-  console.log('\n📋 Generated Security Keys:\n');
-  for (const [key, value] of Object.entries(keys)) {
-    console.log(`${key}=${value}`);
-  }
+  console.log('\n📋 Security keys generated successfully (saved to file only)\n');
+  console.log('Keys generated for:', Object.keys(keys).join(', '));
 }
 
 // Create production keys file
@@ -55,9 +48,5 @@ fs.writeFileSync(productionKeysPath, content);
 
 if (isDevelopment) {
   console.log('\n✅ Keys saved to PRODUCTION_KEYS.txt');
-  console.log('📌 Next steps:');
-  console.log('1. Copy these keys to your production environment');
-  console.log('2. Update .env.production with these values');
-  console.log('3. Configure remaining service keys from their dashboards');
-  console.log('\n⚠️ SECURITY REMINDER: Never commit these keys to git!');
+  console.log('⚠️ Check the file for your generated keys - never commit to git!');
 }

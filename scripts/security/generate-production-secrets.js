@@ -7,18 +7,16 @@
 
 const crypto = require('crypto');
 
-// Prevent execution during Netlify builds
-if (process.env.NETLIFY_BUILD === 'true' || process.env.NETLIFY === 'true') {
-  console.log('⏭️ Skipping security key generation during Netlify build');
+// Prevent execution during Netlify builds or production
+if (process.env.NETLIFY_BUILD === 'true' || process.env.NETLIFY === 'true' || process.env.NODE_ENV === 'production') {
+  // Exit silently without any output
   process.exit(0);
 }
 
 // Only log in development environment
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-if (isDevelopment) {
-  console.log('🔐 JudgeFinder Platform - Production Security Key Generator\n');
-}
+// Removed to prevent any output during builds
 
 // Generate secure 32-byte (256-bit) random keys
 const keys = {
@@ -28,31 +26,13 @@ const keys = {
   COURTLISTENER_WEBHOOK_VERIFY_TOKEN: crypto.randomBytes(32).toString('hex'),
 };
 
+// Never output actual keys to console
 if (isDevelopment) {
-  console.log('Generated secure keys for production:\n');
-  console.log('# Copy these values to your production environment variables');
-  console.log('# DO NOT commit these keys to version control\n');
-
-  Object.entries(keys).forEach(([key, value]) => {
-    console.log(`${key}=${value}`);
-  });
+  console.log('✅ Security keys generated (saved to file only)');
+  console.log('Keys created for:', Object.keys(keys).join(', '));
 }
 
-if (isDevelopment) {
-  console.log('\n📋 Deployment Checklist:');
-  console.log('1. Copy these keys to your deployment platform (Vercel/Netlify/etc.)');
-  console.log('2. Set NODE_ENV=production');
-  console.log('3. Configure your production Supabase and Clerk keys');
-  console.log('4. Set up your production domain URL');
-  console.log('5. Enable analytics and monitoring services');
-
-  console.log('\n⚠️  Security Notes:');
-  console.log('- These keys are cryptographically secure (256-bit entropy)');
-  console.log('- Each key is unique and should be used only once');
-  console.log('- Store keys securely in your deployment platform\'s env vars');
-  console.log('- Never expose these keys in client-side code');
-  console.log('- Rotate keys quarterly for enhanced security');
-}
+// Removed detailed logging to prevent secrets exposure
 
 // Save to file for reference (will be gitignored)
 const fs = require('fs');
@@ -71,6 +51,5 @@ ${Object.entries(keys).map(([key, value]) => `${key}=${value}`).join('\n')}
 
 fs.writeFileSync(filename, fileContent);
 if (isDevelopment) {
-  console.log(`\n💾 Keys saved to: ${filename}`);
-  console.log('   (This file is gitignored and should be deleted after use)');
+  console.log(`💾 Keys saved to: ${filename} (check file for actual keys)`);
 }
