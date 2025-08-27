@@ -10,10 +10,14 @@
   NEXT_TELEMETRY_DISABLED = "1"
   # Ensure all dependencies are installed
   NPM_FLAGS = "--production=false"
-  # Enable Next.js build cache
-  NETLIFY_NEXT_PLUGIN_SKIP = "false"
-  # Disable Neon extension to prevent @netlify/blobs version conflict
+  # CRITICAL: Disable Next.js plugin to prevent @netlify/blobs version conflict
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  # Disable Neon extension completely
   NETLIFY_USE_NEON = "false"
+  # Disable automatic plugin installation
+  NETLIFY_SKIP_PLUGIN_VALIDATION = "true"
+  # Use manual Next.js build without Netlify plugins
+  USE_NETLIFY_PLUGIN = "false"
   
   # Secrets Scanning Configuration - Expanded exclusions to prevent false positives
   # Skip scanning in all script directories, documentation, and test files
@@ -44,6 +48,17 @@
 [context.branch-deploy]
   command = "npm ci --production=false && npm run build"
 
+# Explicitly disable all plugins to prevent @netlify/blobs conflict
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+  # Disable the Next.js plugin
+  [plugins.inputs]
+    enable = false
+
+# Disable Neon database plugin
+[functions]
+  included_files = []
+  
 # Edge Functions directory (commented out until functions are created)
 # [[edge_functions]]
 #   path = "/api/*"
