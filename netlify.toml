@@ -41,5 +41,3 @@
 # Using stable version 5.11.6 to avoid @netlify/blobs@10.0.9 issue
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-  [plugins.inputs]
-    enable = true
