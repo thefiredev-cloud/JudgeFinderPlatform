@@ -1,19 +1,13 @@
 'use client'
 
 import { ClerkProvider } from '@clerk/nextjs'
-import { ReactNode, useState, useEffect } from 'react'
+import { ReactNode } from 'react'
 import { ThemeProvider } from './ThemeProvider'
 
 // Skip authentication during build to prevent errors
 const SKIP_AUTH_BUILD = process.env.SKIP_AUTH_BUILD === 'true'
 
 export function Providers({ children }: { children: ReactNode }) {
-  const [isClient, setIsClient] = useState(false)
-  
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-  
   // Get the publishable key - Netlify will provide this at runtime
   const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ''
   
@@ -24,10 +18,13 @@ export function Providers({ children }: { children: ReactNode }) {
     !clerkPublishableKey.includes('CONFIGURE') &&
     !clerkPublishableKey.includes('dummy')
   
-  // During build or when auth is disabled, skip ClerkProvider
-  const shouldUseClerk = !SKIP_AUTH_BUILD && hasValidKey && isClient
+  // Check if we're in a browser environment
+  const isClient = typeof window !== 'undefined'
   
-  // Log warning in production if no valid key
+  // During build or when auth is disabled, skip ClerkProvider
+  const shouldUseClerk = !SKIP_AUTH_BUILD && hasValidKey
+  
+  // Log warning in production if no valid key (only on client)
   if (isClient && !hasValidKey && process.env.NODE_ENV === 'production') {
     console.warn('Clerk authentication not configured - running without auth')
   }
@@ -43,15 +40,15 @@ export function Providers({ children }: { children: ReactNode }) {
     </ThemeProvider>
   )
   
-  // Only render ClerkProvider on client with valid key
+  // Always render the same structure on server and client
   if (shouldUseClerk) {
     return (
       <ClerkProvider
         publishableKey={clerkPublishableKey}
         signInUrl="/sign-in"
         signUpUrl="/sign-up"
-        afterSignInUrl="/dashboard"
-        afterSignUpUrl="/welcome"
+        signInFallbackRedirectUrl="/dashboard"
+        signUpFallbackRedirectUrl="/welcome"
       >
         {content}
       </ClerkProvider>

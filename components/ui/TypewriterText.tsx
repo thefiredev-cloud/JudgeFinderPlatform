@@ -8,9 +8,19 @@ interface TypewriterTextProps {
 }
 
 export function TypewriterText({ text, delay = 50 }: TypewriterTextProps) {
-  const [displayText, setDisplayText] = useState('')
+  // Start with full text to prevent hydration mismatch
+  const [displayText, setDisplayText] = useState(text)
+  const [mounted, setMounted] = useState(false)
   
   useEffect(() => {
+    setMounted(true)
+  }, [])
+  
+  useEffect(() => {
+    // Only animate after mount to avoid hydration issues
+    if (!mounted) return
+    
+    // Reset and start typewriter animation
     setDisplayText('')
     
     if (!text) return
@@ -29,7 +39,8 @@ export function TypewriterText({ text, delay = 50 }: TypewriterTextProps) {
     return () => {
       clearInterval(timer)
     }
-  }, [text, delay])
+  }, [text, delay, mounted])
   
-  return <span>{displayText}</span>
+  // Use suppressHydrationWarning since we know the text will change after mount
+  return <span suppressHydrationWarning>{displayText}</span>
 }

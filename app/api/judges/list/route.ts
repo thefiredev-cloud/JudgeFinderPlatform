@@ -47,6 +47,21 @@ export async function GET(request: NextRequest) {
       includeDecisions
     })
 
+    // Check for required environment variables
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      logger.error('Missing Supabase environment variables')
+      
+      // Return empty data structure instead of error
+      return NextResponse.json({
+        judges: [],
+        total_count: 0,
+        page,
+        per_page: limit,
+        has_more: false,
+        error: 'Database configuration pending'
+      })
+    }
+
     const supabase = await createServerClient()
     const from = (page - 1) * limit
     const to = from + limit - 1
@@ -96,13 +111,21 @@ export async function GET(request: NextRequest) {
         query: sanitizedQuery,
         jurisdiction,
         court_id,
-        error: judgesError.message 
+        error: judgesError.message,
+        code: judgesError.code,
+        details: judgesError.details
       })
       
-      return NextResponse.json(
-        { error: 'Failed to list judges' }, 
-        { status: 500 }
-      )
+      // Return empty result set instead of error for better UX
+      return NextResponse.json({
+        judges: [],
+        total_count: 0,
+        page,
+        per_page: limit,
+        has_more: false,
+        error: 'Unable to fetch judges at this time',
+        errorDetails: process.env.NODE_ENV === 'development' ? judgesError.message : undefined
+      })
     }
 
     // Transform raw data to include court information
