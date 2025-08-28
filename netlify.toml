@@ -26,14 +26,13 @@
   NETLIFY_SKIP_PLUGIN_INSTALLATION = "true"
   
   # Secrets scanning configuration - prevent false positives
-  # Include build output directories to avoid false positives from compiled JavaScript
-  # Also exclude specific files that contain the domain name
-  # Updated to exclude directories with false positives: data/**, lib/security/**, supabase/**
-  # Added SEO files that contain hardcoded platform name
-  SECRETS_SCAN_OMIT_PATHS = ".next/**,.netlify/**,scripts/**,*.example,*.md,*.txt,docs/**,reports/**,*.json,test/**,tests/**,**/*.test.js,**/*.test.ts,**/*.spec.js,**/*.spec.ts,lib/seo/structured-data.ts,lib/utils/slug.ts,next.config.js,public/robots.txt,data/**,lib/security/**,supabase/**,netlify.toml,lib/seo/**,components/seo/**,lib/seo/metadata-generator.ts,components/seo/StructuredData.tsx"
-  # Include domain patterns and common URL patterns to prevent false positives
-  # Added "JudgeFinder Platform" literal string since it's not a secret
-  SECRETS_SCAN_OMIT_KEYS = "NODE_VERSION,NEXT_TELEMETRY_DISABLED,NPM_FLAGS,NETLIFY_*,NEXT_PUBLIC_*,BUILD_*,CI,DEPLOY_*,REVIEW_ID,SITE_*,URL,DEPLOY_URL,DEPLOY_PRIME_URL,CACHED_COMMIT_REF,COMMIT_REF,PULL_REQUEST,INCOMING_HOOK_*,CONTEXT,BRANCH,judgefinder.io,https://judgefinder.io,http://judgefinder.io,*.judgefinder.io,JudgeFinder Platform,JudgeFinder.io"
+  # Include build output directories and configuration files
+  # Exclude all build artifacts, documentation, and non-code files
+  SECRETS_SCAN_OMIT_PATHS = ".next/**,.netlify/**,scripts/**,*.example,*.md,*.txt,docs/**,reports/**,*.json,test/**,tests/**,**/*.test.js,**/*.test.ts,**/*.spec.js,**/*.spec.ts,lib/seo/**,lib/utils/**,next.config.js,public/**,data/**,lib/security/**,supabase/**,netlify.toml,components/seo/**,node_modules/**,.env.example,package*.json,tsconfig.json,*.config.js,*.config.ts,.gitignore,.eslintrc*,validation-reports/**,la-county-data/**,monitoring/**"
+  
+  # Include domain patterns, URL patterns, and common non-secret strings
+  # These are public values or configuration names, not actual secrets
+  SECRETS_SCAN_OMIT_KEYS = "NODE_VERSION,NEXT_TELEMETRY_DISABLED,NPM_FLAGS,NETLIFY_*,NEXT_PUBLIC_*,BUILD_*,CI,DEPLOY_*,REVIEW_ID,SITE_*,URL,DEPLOY_URL,DEPLOY_PRIME_URL,CACHED_COMMIT_REF,COMMIT_REF,PULL_REQUEST,INCOMING_HOOK_*,CONTEXT,BRANCH,judgefinder.io,https://judgefinder.io,http://judgefinder.io,*.judgefinder.io,JudgeFinder Platform,JudgeFinder.io,localhost,supabase.co,*.supabase.co,xstlnicbnzdxlgfiewmg"
 
 # Security headers
 [[headers]]

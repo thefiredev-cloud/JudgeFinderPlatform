@@ -1,0 +1,113 @@
+# Netlify Ignore File - Files and directories to exclude from deployment
+# This prevents sensitive files from being uploaded to Netlify
+
+# Environment files
+.env
+.env.*
+!.env.example
+.env.local
+.env.local.example
+.env.production
+.env.development
+.env.test
+.env.staging
+*.env
+
+# Security and secrets
+**/secrets/**
+**/credentials/**
+*-keys.txt
+*-keys.md
+PRODUCTION_KEYS.txt
+KEY_ROTATION_TRACKER.md
+CLERK_SETUP_GUIDE.md
+SECURITY_FIX_INSTRUCTIONS.md
+credentials.json
+credentials.txt
+config.secret.js
+config.secret.json
+*_ENV_VARIABLES.txt
+*.key
+*.keys
+*.pem
+*.cert
+
+# Backup files
+*-backup-*.json
+courts-backup-*.json
+judges-backup-*.json
+scripts/sync/*.json
+
+# Development and test files
+scripts/test-*.js
+scripts/fix-*.js
+scripts/temp-*.js
+scripts/security/*.js
+test/
+tests/
+coverage/
+.nyc_output/
+
+# IDE and editor files
+.vscode/
+.idea/
+.cursor/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Git files
+.git/
+.gitignore
+
+# Documentation that might contain sensitive info
+docs/security/
+docs/deployment/*ENV*.md
+NETLIFY_ENV_VARIABLES.txt
+
+# Node modules (should already be handled by build)
+node_modules/
+
+# Build artifacts
+.next/
+.netlify/
+out/
+dist/
+build/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache
+.cache/
+.parcel-cache/
+.eslintcache
+
+# Temporary files
+tmp/
+temp/
+nul
+
+# Reports with potential sensitive data
+reports/*.json
+validation-reports/*.json
+monitoring/*.json
+
+# Scripts that might contain sensitive logic
+scripts/security/
+scripts/migration/
+
+# Any file with 'secret' or 'key' in the name
+*secret*
+*key*
+!package*.json
+!tsconfig.json
