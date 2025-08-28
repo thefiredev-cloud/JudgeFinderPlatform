@@ -15,7 +15,7 @@ import {
   Users,
   TrendingUp
 } from 'lucide-react'
-import { SignOutButton } from '@clerk/nextjs'
+import { SafeSignOutButton } from '@/lib/auth/safe-clerk-components'
 
 const navigation = [
   { name: 'Overview', href: '/dashboard/advertiser', icon: Home },
@@ -97,12 +97,12 @@ export default function AdvertiserSidebar() {
           })}
           
           {/* Sign Out */}
-          <SignOutButton>
+          <SafeSignOutButton>
             <button className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-800 hover:text-white">
               <LogOut className="h-5 w-5" />
               Sign Out
             </button>
-          </SignOutButton>
+          </SafeSignOutButton>
         </div>
 
         {/* User Info */}
