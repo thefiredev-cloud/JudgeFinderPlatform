@@ -71,12 +71,41 @@ function middleware(request: NextRequest) {
   
   // Enhanced CSP with production-ready security
   const isDevelopment = process.env.NODE_ENV === 'development'
+  
+  // Common script sources for both environments
+  const scriptSources = [
+    "'self'",
+    "'unsafe-inline'", // Required for Next.js inline scripts
+    "*.supabase.co",
+    "*.clerk.accounts.dev", 
+    "https://*.clerk.com",
+    "https://*.clerk.accounts.dev",
+    "https://clerk.shared.lcl.dev",
+    "https://clerk.judgefinder.io",
+    "https://cdn.jsdelivr.net",
+    "https://checkout.stripe.com",
+    "https://www.googletagmanager.com",
+    "https://www.google-analytics.com", 
+    "https://www.clarity.ms",
+    "https://pagead2.googlesyndication.com",
+    "https://www.googleadservices.com",
+    "https://partner.googleadservices.com",
+    "https://challenges.cloudflare.com"
+  ]
+  
+  // Add development-specific sources
+  if (isDevelopment) {
+    scriptSources.push("'unsafe-eval'") // Required for hot reload in dev
+  } else {
+    scriptSources.push("'sha256-4RS22DYeB7U14dra4KcQYxmwt5HkOInieXK1NUMBmQI='") // Specific inline script hash
+  }
+  
   const csp = [
     "default-src 'self'",
-    isDevelopment 
-      ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.supabase.co *.clerk.accounts.dev https://*.clerk.com https://*.clerk.accounts.dev https://clerk.shared.lcl.dev https://clerk.judgefinder.io https://cdn.jsdelivr.net https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://pagead2.googlesyndication.com https://www.googleadservices.com https://partner.googleadservices.com https://challenges.cloudflare.com"
-      : "script-src 'self' 'sha256-4RS22DYeB7U14dra4KcQYxmwt5HkOInieXK1NUMBmQI=' 'unsafe-inline' *.supabase.co *.clerk.accounts.dev https://*.clerk.com https://*.clerk.accounts.dev https://clerk.shared.lcl.dev https://clerk.judgefinder.io https://cdn.jsdelivr.net https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://pagead2.googlesyndication.com https://www.googleadservices.com https://partner.googleadservices.com https://challenges.cloudflare.com",
+    `script-src ${scriptSources.join(' ')}`,
+    `script-src-elem ${scriptSources.join(' ')}`, // Explicit directive to prevent fallback issues
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com", // Explicit directive for styles
     "img-src 'self' blob: data: *.supabase.co https://img.clerk.com https://images.clerk.dev https://uploadthing.com https://images.unsplash.com https://www.courtlistener.com https://pagead2.googlesyndication.com https://www.google.com https://www.gstatic.com https://c.bing.com",
     "font-src 'self' data: https://fonts.gstatic.com",
     "connect-src 'self' *.supabase.co wss://*.supabase.co https://*.clerk.accounts.dev https://*.clerk.com wss://*.clerk.accounts.dev https://clerk.shared.lcl.dev https://clerk.judgefinder.io wss://clerk.judgefinder.io https://cdn.jsdelivr.net https://api.openai.com https://www.courtlistener.com https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://www.googletagmanager.com https://www.clarity.ms https://pagead2.googlesyndication.com https://challenges.cloudflare.com",
@@ -86,8 +115,10 @@ function middleware(request: NextRequest) {
     "base-uri 'self'",
     "form-action 'self' *.clerk.accounts.dev *.clerk.com clerk.judgefinder.io",
     "object-src 'none'",
-    "upgrade-insecure-requests",
-    "block-all-mixed-content"
+    ...(process.env.NODE_ENV === 'production' ? [
+      "upgrade-insecure-requests",
+      "block-all-mixed-content"
+    ] : [])
   ].join('; ')
   
   response.headers.set('Content-Security-Policy', csp)
