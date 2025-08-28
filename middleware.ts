@@ -14,31 +14,51 @@ const isAdminRoute = createRouteMatcher([
   '/admin(.*)',
 ])
 
-export default clerkMiddleware(async (auth, request: NextRequest) => {
-  // Handle judge name redirects first
-  const judgeRedirect = handleJudgeRedirects(request)
-  if (judgeRedirect) {
-    return judgeRedirect
-  }
+// Check if Clerk is properly configured
+const hasValidClerkKeys = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
+                          !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.includes('YOUR_') &&
+                          process.env.CLERK_SECRET_KEY &&
+                          !process.env.CLERK_SECRET_KEY.includes('YOUR_')
 
-  // Protect routes that require authentication
-  if (isProtectedRoute(request)) {
-    await auth.protect()
-  }
+// Only use Clerk middleware if keys are configured
+const middlewareHandler = hasValidClerkKeys 
+  ? clerkMiddleware(async (auth, request: NextRequest) => {
+      // Handle judge name redirects first
+      const judgeRedirect = handleJudgeRedirects(request)
+      if (judgeRedirect) {
+        return judgeRedirect
+      }
 
-  // Protect admin routes with additional checks
-  if (isAdminRoute(request)) {
-    await auth.protect()
-    
-    // Additional admin check would happen in the actual route handler
-    // since middleware doesn't have access to full user data
-  }
+      // Protect routes that require authentication
+      if (isProtectedRoute(request)) {
+        await auth.protect()
+      }
 
-  return middleware(request)
-}, {
-  debug: process.env.NODE_ENV === 'development',
-  clockSkewInMs: 10000
-})
+      // Protect admin routes with additional checks
+      if (isAdminRoute(request)) {
+        await auth.protect()
+        
+        // Additional admin check would happen in the actual route handler
+        // since middleware doesn't have access to full user data
+      }
+
+      return middleware(request)
+    }, {
+      debug: process.env.NODE_ENV === 'development',
+      clockSkewInMs: 10000
+    })
+  : (request: NextRequest) => {
+      // Handle judge name redirects even without Clerk
+      const judgeRedirect = handleJudgeRedirects(request)
+      if (judgeRedirect) {
+        return judgeRedirect
+      }
+      
+      // If Clerk is not configured, just apply security headers
+      return middleware(request)
+    }
+
+export default middlewareHandler
 
 function middleware(request: NextRequest) {
   const response = NextResponse.next()

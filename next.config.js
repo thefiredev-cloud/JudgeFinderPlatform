@@ -140,7 +140,8 @@ const nextConfig = {
   poweredByHeader: false,
 
   // Optimize for deployment
-  // output: undefined, // Let Next.js handle output automatically
+  // Let Netlify plugin handle output configuration
+  // output: undefined, // Automatically handled by @netlify/plugin-nextjs
 }
 
 // Sentry configuration options
