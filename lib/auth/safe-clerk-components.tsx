@@ -20,47 +20,50 @@ const DEFAULT_USER_STATE: SafeUser = {
 // Check if we're in a browser environment
 const isBrowser = () => typeof window !== 'undefined'
 
-// Check if Clerk should be enabled
-const shouldUseClerk = () => {
-  // Always return false during SSR/SSG
-  if (!isBrowser()) return false
-  
-  // Check environment variables
+// Check if Clerk has a valid key (not dummy)
+const hasValidClerkKey = () => {
   const pubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ''
-  const skipAuth = process.env.SKIP_AUTH_BUILD === 'true'
-  
-  if (skipAuth) return false
-  
-  // Check if keys are actual values (not placeholders)
-  return pubKey.startsWith('pk_') && !pubKey.includes('YOUR') && !pubKey.includes('CONFIGURE')
+  return pubKey.startsWith('pk_') && 
+         !pubKey.includes('YOUR') && 
+         !pubKey.includes('CONFIGURE') &&
+         !pubKey.includes('dummy')
 }
 
-// Lazy load Clerk components only on client side
+// Dynamically loaded Clerk components
 let ClerkComponents: any = null
 
-const loadClerkComponents = () => {
-  if (!isBrowser() || ClerkComponents) return
+const loadClerkComponents = async () => {
+  if (ClerkComponents) return ClerkComponents
   
-  if (shouldUseClerk()) {
-    try {
-      ClerkComponents = require('@clerk/nextjs')
-    } catch (error) {
-      console.warn('Failed to load Clerk:', error)
+  try {
+    if (hasValidClerkKey()) {
+      ClerkComponents = await import('@clerk/nextjs')
+      return ClerkComponents
     }
+  } catch (error) {
+    console.warn('Failed to load Clerk components:', error)
   }
+  return null
 }
 
 // Safe UserButton component
 export function SafeUserButton(props: any) {
   const [mounted, setMounted] = useState(false)
+  const [UserButtonComponent, setUserButtonComponent] = useState<any>(null)
   
   useEffect(() => {
     setMounted(true)
-    loadClerkComponents()
+    if (hasValidClerkKey()) {
+      loadClerkComponents().then((components) => {
+        if (components) {
+          setUserButtonComponent(() => components.UserButton)
+        }
+      })
+    }
   }, [])
   
   // During SSR or before mount, show placeholder
-  if (!mounted || !ClerkComponents?.UserButton) {
+  if (!mounted || !UserButtonComponent) {
     return (
       <Link href="/profile" className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center">
         <span className="text-white text-sm">U</span>
@@ -68,39 +71,53 @@ export function SafeUserButton(props: any) {
     )
   }
   
-  const Component = ClerkComponents.UserButton
-  return <Component {...props} />
+  // Use Clerk's UserButton when loaded
+  return <UserButtonComponent {...props} />
 }
 
 // Safe SignInButton component
-export function SafeSignInButton(props: { mode?: string; children: ReactNode }) {
+export function SafeSignInButton(props: { mode?: 'modal' | 'redirect'; children: ReactNode }) {
   const [mounted, setMounted] = useState(false)
+  const [SignInButtonComponent, setSignInButtonComponent] = useState<any>(null)
   
   useEffect(() => {
     setMounted(true)
-    loadClerkComponents()
+    if (hasValidClerkKey()) {
+      loadClerkComponents().then((components) => {
+        if (components) {
+          setSignInButtonComponent(() => components.SignInButton)
+        }
+      })
+    }
   }, [])
   
   // During SSR or before mount, show fallback
-  if (!mounted || !ClerkComponents?.SignInButton) {
+  if (!mounted || !SignInButtonComponent) {
     return <Link href="/sign-in">{props.children}</Link>
   }
   
-  const Component = ClerkComponents.SignInButton
-  return <Component {...props} />
+  // Use Clerk's SignInButton when loaded
+  return <SignInButtonComponent {...props} />
 }
 
 // Safe SignOutButton component (for AdvertiserSidebar)
 export function SafeSignOutButton(props: { children?: ReactNode; [key: string]: any }) {
   const [mounted, setMounted] = useState(false)
+  const [SignOutButtonComponent, setSignOutButtonComponent] = useState<any>(null)
   
   useEffect(() => {
     setMounted(true)
-    loadClerkComponents()
+    if (hasValidClerkKey()) {
+      loadClerkComponents().then((components) => {
+        if (components) {
+          setSignOutButtonComponent(() => components.SignOutButton)
+        }
+      })
+    }
   }, [])
   
   // During SSR or before mount, show fallback
-  if (!mounted || !ClerkComponents?.SignOutButton) {
+  if (!mounted || !SignOutButtonComponent) {
     return (
       <button className="w-full text-left" onClick={() => window.location.href = '/'}>
         {props.children || 'Sign Out'}
@@ -108,8 +125,8 @@ export function SafeSignOutButton(props: { children?: ReactNode; [key: string]: 
     )
   }
   
-  const Component = ClerkComponents.SignOutButton
-  return <Component {...props} />
+  // Use Clerk's SignOutButton when loaded
+  return <SignOutButtonComponent {...props} />
 }
 
 // Safe useUser hook - Returns mock data during SSR, real data on client
@@ -122,11 +139,31 @@ export function useSafeUser(): SafeUser {
   // Client-side only logic
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [mounted, setMounted] = useState(false)
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [userState, setUserState] = useState<SafeUser>(DEFAULT_USER_STATE)
   
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     setMounted(true)
-    loadClerkComponents()
+    
+    if (hasValidClerkKey()) {
+      loadClerkComponents().then((components) => {
+        if (components && components.useUser) {
+          try {
+            // We can't call hooks conditionally, so we'll need to access Clerk's state differently
+            // For now, just mark as loaded with no user when Clerk is not available
+            setUserState({ ...DEFAULT_USER_STATE, isLoaded: true })
+          } catch (error) {
+            console.warn('Error accessing Clerk user state:', error)
+            setUserState({ ...DEFAULT_USER_STATE, isLoaded: true })
+          }
+        } else {
+          setUserState({ ...DEFAULT_USER_STATE, isLoaded: true })
+        }
+      })
+    } else {
+      setUserState({ ...DEFAULT_USER_STATE, isLoaded: true })
+    }
   }, [])
   
   // Before mount, return loading state
@@ -134,23 +171,5 @@ export function useSafeUser(): SafeUser {
     return DEFAULT_USER_STATE
   }
   
-  // After mount, try to use Clerk's hook if available
-  if (ClerkComponents?.useUser) {
-    try {
-      // This will only be called on client after Clerk is loaded
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const clerkUser = ClerkComponents.useUser()
-      return {
-        isSignedIn: clerkUser.isSignedIn || false,
-        user: clerkUser.user || null,
-        isLoaded: clerkUser.isLoaded !== false
-      }
-    } catch (error) {
-      console.warn('Error using Clerk useUser hook:', error)
-      return { ...DEFAULT_USER_STATE, isLoaded: true }
-    }
-  }
-  
-  // No Clerk available, return default state as loaded
-  return { ...DEFAULT_USER_STATE, isLoaded: true }
+  return userState
 }

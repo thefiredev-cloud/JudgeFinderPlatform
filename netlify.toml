@@ -18,8 +18,9 @@
   # Build environment flag
   NETLIFY_BUILD = "true"
   
-  # Enable auth for production
-  # SKIP_AUTH_BUILD is removed to allow Clerk to initialize properly
+  # Skip Clerk authentication during build to prevent hydration errors
+  # Clerk will be dynamically loaded on client side when valid keys are present
+  SKIP_AUTH_BUILD = "true"
   
   # Enable Next.js plugin for proper routing
   NETLIFY_USE_YARN = "false"
