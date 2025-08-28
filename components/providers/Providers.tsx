@@ -4,19 +4,10 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { ReactNode } from 'react'
 import { ThemeProvider } from './ThemeProvider'
 
-// Check environment variables outside of component render
-const CLERK_PUB_KEY = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ''
-
-// Determine if we should use Clerk
-// In production, always try to use Clerk even if keys are not configured
-// This allows Netlify environment variables to be used
-const shouldUseClerk = process.env.NODE_ENV === 'production' || (
-  CLERK_PUB_KEY.startsWith('pk_') && 
-  !CLERK_PUB_KEY.includes('YOUR') && 
-  !CLERK_PUB_KEY.includes('CONFIGURE')
-)
-
 export function Providers({ children }: { children: ReactNode }) {
+  // Get the publishable key - Netlify will provide this at runtime
+  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+  
   const content = (
     <ThemeProvider
       attribute="class"
@@ -28,12 +19,15 @@ export function Providers({ children }: { children: ReactNode }) {
     </ThemeProvider>
   )
   
-  if (shouldUseClerk) {
-    // In production, always wrap with ClerkProvider
-    // The provider will handle missing keys gracefully
+  // Only use ClerkProvider if we have a valid key
+  // This prevents the "useUser can only be used within ClerkProvider" error
+  if (clerkPublishableKey && 
+      clerkPublishableKey.startsWith('pk_') && 
+      !clerkPublishableKey.includes('YOUR') && 
+      !clerkPublishableKey.includes('CONFIGURE')) {
     return (
       <ClerkProvider
-        publishableKey={CLERK_PUB_KEY || undefined}
+        publishableKey={clerkPublishableKey}
         signInUrl="/sign-in"
         signUpUrl="/sign-up"
         afterSignInUrl="/dashboard"
@@ -42,6 +36,12 @@ export function Providers({ children }: { children: ReactNode }) {
         {content}
       </ClerkProvider>
     )
+  }
+  
+  // Fallback without Clerk if no valid key is available
+  // This allows the app to run without authentication
+  if (process.env.NODE_ENV === 'production') {
+    console.warn('Clerk authentication not configured - running without auth')
   }
   
   return content
