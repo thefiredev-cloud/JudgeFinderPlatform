@@ -26,13 +26,17 @@ export function generateCSP(config: SecurityConfig): string {
       "*.supabase.co",
       "*.clerk.accounts.dev",
       "https://*.clerk.com",
+      "https://*.clerk.accounts.dev",
+      "https://clerk.shared.lcl.dev",
+      "https://cdn.jsdelivr.net",
       "https://checkout.stripe.com",
       "https://www.googletagmanager.com",
       "https://www.google-analytics.com",
       "https://www.clarity.ms",
       "https://pagead2.googlesyndication.com",
       "https://www.googleadservices.com",
-      "https://partner.googleadservices.com"
+      "https://partner.googleadservices.com",
+      "https://challenges.cloudflare.com"
     ],
     'style-src': [
       "'self'",
@@ -46,6 +50,7 @@ export function generateCSP(config: SecurityConfig): string {
       "*.supabase.co",
       "https://img.clerk.com",
       "https://images.clerk.dev",
+      "https://uploadthing.com",
       "https://images.unsplash.com",
       "https://www.courtlistener.com",
       "https://pagead2.googlesyndication.com",
@@ -65,6 +70,8 @@ export function generateCSP(config: SecurityConfig): string {
       "https://*.clerk.accounts.dev",
       "https://*.clerk.com",
       "wss://*.clerk.accounts.dev",
+      "https://clerk.shared.lcl.dev",
+      "https://cdn.jsdelivr.net",
       "https://api.openai.com",
       "https://www.courtlistener.com",
       "https://api.stripe.com",
@@ -73,6 +80,7 @@ export function generateCSP(config: SecurityConfig): string {
       "https://www.googletagmanager.com",
       "https://www.clarity.ms",
       "https://pagead2.googlesyndication.com",
+      "https://challenges.cloudflare.com",
       ...(isDev ? ["http://localhost:*", "ws://localhost:*"] : [])
     ],
     'frame-src': [
@@ -80,7 +88,8 @@ export function generateCSP(config: SecurityConfig): string {
       "https://*.clerk.com",
       "https://googleads.g.doubleclick.net",
       "https://www.google.com",
-      "https://bid.g.doubleclick.net"
+      "https://bid.g.doubleclick.net",
+      "https://challenges.cloudflare.com"
     ],
     'worker-src': [
       "'self'",
