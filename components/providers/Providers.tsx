@@ -4,22 +4,23 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { ReactNode } from 'react'
 import { ThemeProvider } from './ThemeProvider'
 
-// Check if Clerk keys are available and not placeholders
-const hasValidClerkKeys = () => {
-  const pubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ''
-  
-  // Skip auth if explicitly disabled or if keys are not configured
-  if (process.env.SKIP_AUTH_BUILD === 'true') {
-    return false
+export function Providers({ children }: { children: ReactNode }) {
+  // Check if Clerk keys are available and not placeholders
+  // Move this inside the component to avoid SSR issues
+  const hasValidClerkKeys = () => {
+    // Skip auth during build or if explicitly disabled
+    if (process.env.SKIP_AUTH_BUILD === 'true' || process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+      return false
+    }
+    
+    const pubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ''
+    
+    // Check if public key is an actual value (not placeholder)
+    const isValidPubKey = pubKey.startsWith('pk_') && !pubKey.includes('YOUR') && !pubKey.includes('CONFIGURE')
+    
+    return isValidPubKey
   }
   
-  // Check if public key is an actual value (not placeholder)
-  const isValidPubKey = pubKey.startsWith('pk_') && !pubKey.includes('YOUR') && !pubKey.includes('CONFIGURE')
-  
-  return isValidPubKey
-}
-
-export function Providers({ children }: { children: ReactNode }) {
   const useClerk = hasValidClerkKeys()
   
   const content = (

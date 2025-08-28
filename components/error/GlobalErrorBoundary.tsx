@@ -45,13 +45,20 @@ export class GlobalErrorBoundary extends Component<Props, State> {
 
   private logErrorToService(error: Error, errorInfo: ErrorInfo) {
     // Replace with actual logging service (e.g., Sentry, LogRocket)
-    const errorData = {
+    const errorData: any = {
       message: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href
+      timestamp: new Date().toISOString()
+    }
+
+    // Only access browser APIs if available (client-side only)
+    if (typeof window !== 'undefined') {
+      errorData.url = window.location.href
+    }
+    
+    if (typeof navigator !== 'undefined') {
+      errorData.userAgent = navigator.userAgent
     }
 
     // For now, send to console in a structured format

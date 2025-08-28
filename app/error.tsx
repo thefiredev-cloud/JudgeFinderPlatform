@@ -11,22 +11,7 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
-    if (process.env.NODE_ENV === 'production') {
-      // Replace with actual error reporting service
-      const errorData = {
-        message: error.message,
-        stack: error.stack,
-        digest: error.digest,
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent,
-        url: window.location.href
-      }
-      
-      // For now, structured logging
-      console.error('🚨 Page Error:', errorData)
-    } else {
-      console.error('Development error:', error)
-    }
+    console.error(error)
   }, [error])
 
   return (
@@ -39,11 +24,11 @@ export default function Error({
         </div>
         
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Page Error
+          Something went wrong!
         </h2>
         
         <p className="text-gray-600 mb-6">
-          An error occurred while loading this page. Please try again or return to the homepage.
+          An error occurred while processing your request. Please try again.
         </p>
 
         <div className="space-y-3">
@@ -51,37 +36,16 @@ export default function Error({
             onClick={reset}
             className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
           >
-            Try Again
+            Try again
           </button>
           
           <a
             href="/"
-            className="block w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors"
+            className="block w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors"
           >
             Return Home
           </a>
         </div>
-
-        {process.env.NODE_ENV === 'development' && (
-          <details className="mt-6 text-left">
-            <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
-              Error Details (Development)
-            </summary>
-            <div className="mt-2 p-3 bg-gray-100 rounded text-xs font-mono overflow-auto max-h-40">
-              <div className="text-red-600 font-semibold">
-                {error.message}
-              </div>
-              {error.digest && (
-                <div className="mt-1 text-gray-600">
-                  Digest: {error.digest}
-                </div>
-              )}
-              <pre className="mt-2 text-gray-700 whitespace-pre-wrap">
-                {error.stack}
-              </pre>
-            </div>
-          </details>
-        )}
       </div>
     </div>
   )

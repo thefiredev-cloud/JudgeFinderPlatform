@@ -8,38 +8,59 @@ export default function GlobalError({
   reset: () => void
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
-        <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-          <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-          </svg>
-        </div>
-        
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Application Error
-        </h2>
-        
-        <p className="text-gray-600 mb-6">
-          A critical error occurred. Please refresh the page or contact support if the problem persists.
-        </p>
+    <html>
+      <body>
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#f9fafb',
+          padding: '1rem'
+        }}>
+          <div style={{
+            maxWidth: '28rem',
+            width: '100%',
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+            padding: '1.5rem',
+            textAlign: 'center'
+          }}>
+            <h2 style={{
+              fontSize: '1.25rem',
+              fontWeight: '600',
+              color: '#111827',
+              marginBottom: '0.5rem'
+            }}>
+              Application Error
+            </h2>
+            
+            <p style={{
+              color: '#6b7280',
+              marginBottom: '1.5rem'
+            }}>
+              A critical error occurred. Please refresh the page.
+            </p>
 
-        <div className="space-y-3">
-          <button
-            onClick={reset}
-            className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Try Again
-          </button>
-          
-          <button
-            onClick={() => window.location.reload()}
-            className="w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors"
-          >
-            Refresh Page
-          </button>
+            <button
+              onClick={() => reset()}
+              style={{
+                width: '100%',
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.375rem',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1rem'
+              }}
+            >
+              Try again
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
+      </body>
+    </html>
   )
 }
