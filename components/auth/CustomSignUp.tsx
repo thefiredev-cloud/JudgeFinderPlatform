@@ -1,9 +1,42 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { SignUp } from '@clerk/nextjs'
+import dynamicImport from 'next/dynamic'
+import Link from 'next/link'
 import { isAdminEmail } from '@/lib/auth/admin-client'
 import { CheckCircleIcon, BuildingIcon, UserIcon, ShieldIcon } from 'lucide-react'
+
+// Check if Clerk is available
+const hasValidClerkKeys = () => {
+  const pubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ''
+  
+  // Skip auth if explicitly disabled or if keys are not configured
+  if (process.env.SKIP_AUTH_BUILD === 'true') {
+    return false
+  }
+  
+  // Check if keys are actual values (not placeholders)
+  return pubKey.startsWith('pk_') && !pubKey.includes('YOUR') && !pubKey.includes('CONFIGURE')
+}
+
+// Dynamically import SignUp component only when Clerk is available
+const SignUp = hasValidClerkKeys() 
+  ? dynamicImport(() => import('@clerk/nextjs').then(mod => mod.SignUp), { 
+      ssr: false,
+      loading: () => <div className="text-center py-8"><span className="text-gray-400">Loading...</span></div>
+    })
+  : () => (
+      <div className="text-center py-8">
+        <h2 className="text-2xl font-bold text-white mb-4">Create Account</h2>
+        <p className="text-gray-400 mb-6">Authentication is currently disabled</p>
+        <Link 
+          href="/dashboard" 
+          className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-medium rounded-lg transition-all shadow-lg"
+        >
+          Continue to Dashboard
+        </Link>
+      </div>
+    )
 
 interface CustomSignUpProps {
   afterSignInUrl?: string

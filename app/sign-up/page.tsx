@@ -1,5 +1,7 @@
 import { CustomSignUp } from '@/components/auth/CustomSignUp'
 
+export const dynamic = 'force-dynamic'
+
 export default function Page() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">

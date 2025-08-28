@@ -11,14 +11,14 @@ import {
   DownloadIcon,
   TrashIcon
 } from 'lucide-react'
-import { useUser } from '@clerk/nextjs'
+import { useSafeUser } from '@/lib/auth/safe-clerk-components'
 
 interface ProfileSettingsProps {
   user: User | null
 }
 
 export function ProfileSettings({ user: serverUser }: ProfileSettingsProps) {
-  const { user: clientUser, isLoaded } = useUser()
+  const { user: clientUser, isLoaded } = useSafeUser()
   const user = clientUser || serverUser
 
   const [notifications, setNotifications] = useState({

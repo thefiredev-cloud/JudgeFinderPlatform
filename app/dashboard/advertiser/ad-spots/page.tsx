@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { getOrCreateAdvertiserProfile } from '@/lib/auth/roles'
 import AdSpotsExplorer from '@/components/dashboard/AdSpotsExplorer'
 
+export const dynamic = 'force-dynamic'
+
 interface PageProps {
   searchParams: {
     plan?: string

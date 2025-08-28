@@ -5,6 +5,8 @@ import { createServerClient } from '@/lib/supabase/server'
 import AdvertiserOverview from '@/components/dashboard/AdvertiserOverview'
 import type { AdvertiserDashboardStats } from '@/types/advertising'
 
+export const dynamic = 'force-dynamic'
+
 async function getAdvertiserStats(advertiserId: string): Promise<AdvertiserDashboardStats> {
   const supabase = await createServerClient()
 

@@ -1,10 +1,7 @@
-'use client'
+/**
+ * Safe auth wrapper that prevents build failures when Clerk is not configured
+ */
 
-import { ClerkProvider } from '@clerk/nextjs'
-import { ReactNode } from 'react'
-import { ThemeProvider } from './ThemeProvider'
-
-// Check if Clerk keys are available and not placeholders
 const hasValidClerkKeys = () => {
   const pubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ''
   const secretKey = process.env.CLERK_SECRET_KEY || ''
@@ -21,27 +18,30 @@ const hasValidClerkKeys = () => {
   return isValidPubKey && isValidSecretKey
 }
 
-export function Providers({ children }: { children: ReactNode }) {
-  const useClerk = hasValidClerkKeys()
-  
-  const content = (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="light"
-      enableSystem
-      disableTransitionOnChange
-    >
-      {children}
-    </ThemeProvider>
-  )
-  
-  if (useClerk) {
-    return (
-      <ClerkProvider>
-        {content}
-      </ClerkProvider>
-    )
+export async function safeAuth() {
+  if (!hasValidClerkKeys()) {
+    return { userId: null }
   }
   
-  return content
+  try {
+    const { auth } = await import('@clerk/nextjs/server')
+    return await auth()
+  } catch (error) {
+    console.error('Auth error:', error)
+    return { userId: null }
+  }
+}
+
+export async function safeCurrentUser() {
+  if (!hasValidClerkKeys()) {
+    return null
+  }
+  
+  try {
+    const { currentUser } = await import('@clerk/nextjs/server')
+    return await currentUser()
+  } catch (error) {
+    console.error('Current user error:', error)
+    return null
+  }
 }

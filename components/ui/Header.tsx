@@ -3,14 +3,14 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { Menu, X, Search, User, ChevronDown, Scale, Building2, BarChart3, LayoutDashboard, Settings } from 'lucide-react'
-import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
+import { SafeSignInButton, SafeUserButton, useSafeUser } from '@/lib/auth/safe-clerk-components'
 import NavLogo from './NavLogo'
 import { ThemeToggle } from './ThemeToggle'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const { isSignedIn, user } = useUser()
+  const { isSignedIn, user } = useSafeUser()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
@@ -76,7 +76,7 @@ export function Header() {
                 >
                   <LayoutDashboard className="h-5 w-5" />
                 </Link>
-                <UserButton 
+                <SafeUserButton 
                   appearance={{
                     elements: {
                       avatarBox: "w-8 h-8"
@@ -87,12 +87,12 @@ export function Header() {
               </div>
             ) : (
               <>
-                <SignInButton mode="modal">
+                <SafeSignInButton mode="modal">
                   <button className="flex items-center space-x-1 text-muted-foreground hover:text-foreground">
                     <User className="h-5 w-5" />
                     <span>Login</span>
                   </button>
-                </SignInButton>
+                </SafeSignInButton>
                 <Link href="/sign-up">
                   <button className="rounded-lg bg-gradient-to-r from-enterprise-primary to-enterprise-deep px-4 py-2 text-sm font-medium text-white hover:from-enterprise-accent hover:to-enterprise-primary shadow-md hover:shadow-lg transition-all">
                     For Professionals
@@ -166,7 +166,7 @@ export function Header() {
                   Profile Settings
                 </Link>
                 <div className="mt-3">
-                  <UserButton 
+                  <SafeUserButton 
                     appearance={{
                       elements: {
                         avatarBox: "w-8 h-8"
@@ -178,7 +178,7 @@ export function Header() {
               </div>
             ) : (
               <div className="pt-4 border-t border-border space-y-3">
-                <SignInButton mode="modal">
+                <SafeSignInButton mode="modal">
                   <button 
                     className="flex items-center w-full py-2 text-muted-foreground hover:text-foreground transition-colors"
                     onClick={() => setIsMenuOpen(false)}
@@ -186,7 +186,7 @@ export function Header() {
                     <User className="h-4 w-4 mr-3" />
                     Login
                   </button>
-                </SignInButton>
+                </SafeSignInButton>
                 <Link href="/sign-up">
                   <button
                     className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-blue-800 px-4 py-3 text-center font-medium text-white hover:from-blue-500 hover:to-blue-700 shadow-md hover:shadow-lg transition-all"

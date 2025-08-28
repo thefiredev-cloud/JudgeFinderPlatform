@@ -1,6 +1,6 @@
 'use client'
 
-import { useUser } from '@clerk/nextjs'
+import { useSafeUser } from '@/lib/auth/safe-clerk-components'
 import { useState, useEffect } from 'react'
 import { 
   Settings, 
@@ -40,7 +40,7 @@ interface SyncJob {
 }
 
 export default function AdminDashboard() {
-  const { user } = useUser()
+  const { user } = useSafeUser()
   const [stats, setStats] = useState<AdminStats>({
     totalJudges: 0,
     totalCourts: 0,

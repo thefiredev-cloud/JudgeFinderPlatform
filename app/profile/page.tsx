@@ -2,6 +2,8 @@ import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { ProfileSettings } from '@/components/profile/ProfileSettings'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ProfilePage() {
   const { userId } = await auth()
   const user = await currentUser()

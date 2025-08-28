@@ -5,6 +5,8 @@ import { BookmarkIcon, ArrowLeftIcon } from 'lucide-react'
 import { createClerkSupabaseServerClient } from '@/lib/supabase/server'
 import { generateSlug } from '@/lib/utils/slug'
 
+export const dynamic = 'force-dynamic'
+
 async function getUserBookmarks(userId: string) {
   try {
     const supabase = await createClerkSupabaseServerClient()

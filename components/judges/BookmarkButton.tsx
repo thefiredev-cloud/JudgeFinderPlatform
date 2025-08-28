@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useUser, SignInButton } from '@clerk/nextjs'
+import { useSafeUser, SafeSignInButton } from '@/lib/auth/safe-clerk-components'
 import { BookmarkIcon, LoaderIcon } from 'lucide-react'
 
 interface BookmarkButtonProps {
@@ -11,7 +11,7 @@ interface BookmarkButtonProps {
 }
 
 export function BookmarkButton({ judgeId, judgeName, className = '' }: BookmarkButtonProps) {
-  const { isSignedIn, isLoaded } = useUser()
+  const { isSignedIn, isLoaded } = useSafeUser()
   const [isBookmarked, setIsBookmarked] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -89,12 +89,12 @@ export function BookmarkButton({ judgeId, judgeName, className = '' }: BookmarkB
 
   if (!isSignedIn) {
     return (
-      <SignInButton mode="modal">
+      <SafeSignInButton mode="modal">
         <button className={`flex items-center space-x-2 px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg hover:bg-gray-600/50 transition-colors ${className}`}>
           <BookmarkIcon className="h-5 w-5 text-gray-400" />
           <span className="text-gray-300">Save Judge</span>
         </button>
-      </SignInButton>
+      </SafeSignInButton>
     )
   }
 

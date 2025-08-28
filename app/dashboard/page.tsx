@@ -2,6 +2,8 @@ import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { UserDashboard } from '@/components/dashboard/UserDashboard'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
   const { userId } = await auth()
   const user = await currentUser()

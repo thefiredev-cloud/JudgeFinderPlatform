@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { User } from '@clerk/nextjs/server'
-import { useUser } from '@clerk/nextjs'
+import { useSafeUser } from '@/lib/auth/safe-clerk-components'
 import { 
   CheckCircleIcon, 
   ArrowRightIcon, 
@@ -30,7 +30,7 @@ interface OnboardingData {
 }
 
 export function OnboardingWizard({ user: serverUser }: OnboardingWizardProps) {
-  const { user: clientUser } = useUser()
+  const { user: clientUser } = useSafeUser()
   const user = clientUser || serverUser
   const router = useRouter()
 
