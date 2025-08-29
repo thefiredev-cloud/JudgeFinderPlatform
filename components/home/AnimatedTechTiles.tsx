@@ -92,10 +92,10 @@ function TileRow({ tiles, direction = 'left' }: { tiles: TileData[], direction?:
           whileHover={{ scale: 1.05 }}
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
         >
-          <div className="relative w-64 h-32 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <div className="relative w-56 sm:w-64 h-28 sm:h-32 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
             <div className={`absolute inset-0 bg-gradient-to-br ${tile.gradient} opacity-5 group-hover:opacity-10 transition-opacity`} />
             
-            <div className="relative p-6 h-full flex flex-col justify-between">
+            <div className="relative p-4 sm:p-6 h-full flex flex-col justify-between">
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white">

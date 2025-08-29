@@ -94,7 +94,7 @@ export default function JudgeCard({ judge, compact = false }: JudgeCardProps) {
       </div>
 
       {/* Info Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 mb-4">
         <div className="flex items-center gap-2 text-sm text-gray-700">
           <MapPin className="w-4 h-4 text-gray-400" />
           <span>{judge.jurisdiction || 'California'}</span>

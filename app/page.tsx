@@ -71,7 +71,7 @@ export default function HomePage() {
       
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-black text-gray-900 dark:text-white overflow-hidden">
         {/* Simplified Hero Section */}
-        <section ref={heroRef} className="relative min-h-[90vh] flex items-center py-20">
+        <section ref={heroRef} className="relative min-h-[70vh] sm:min-h-[80vh] lg:min-h-[90vh] flex items-center py-10 sm:py-16 lg:py-20">
           {/* Subtle Background Pattern */}
           <div className="absolute inset-0 opacity-5">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
@@ -99,7 +99,7 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 30 }}
                   transition={{ duration: 0.8, delay: 0.1 }}
-                  className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
+                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6"
                 >
                   <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
                     Understand Your Judge
@@ -115,7 +115,7 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 30 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
-                  className="text-xl text-gray-600 dark:text-gray-300 mb-8"
+                  className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8"
                 >
                   AI-powered analysis of California judges. Discover bias patterns, 
                   ruling tendencies, and comprehensive analytics in seconds.

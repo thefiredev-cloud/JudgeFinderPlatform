@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { checkRateLimit, getRateLimitIdentifier } from '@/lib/rate-limit'
 import { auth } from '@clerk/nextjs/server'
 import type { Judge, SearchResult } from '@/types'
 
@@ -8,27 +7,8 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
-    // Check rate limit
+    // Get auth info
     const { userId } = await auth()
-    const identifier = getRateLimitIdentifier(request, userId || undefined)
-    const rateLimitResult = await checkRateLimit(identifier, 'search')
-
-    if (!rateLimitResult.success) {
-      return NextResponse.json(
-        {
-          error: 'Rate limit exceeded',
-          message: `Too many search requests. Limit: ${rateLimitResult.limit} per window. Try again after ${new Date(rateLimitResult.reset).toLocaleTimeString()}.`,
-          retryAfter: Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
-        },
-        {
-          status: 429,
-          headers: {
-            'Content-Type': 'application/json',
-            'Retry-After': Math.ceil((rateLimitResult.reset - Date.now()) / 1000).toString(),
-          },
-        }
-      )
-    }
 
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('q') || ''
@@ -97,14 +77,9 @@ export async function GET(request: NextRequest) {
       has_more: hasMore
     }
 
-    // Set cache headers and rate limit headers
+    // Set cache headers
     const response = NextResponse.json(result)
     response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=60')
-    
-    // Add rate limit headers
-    Object.entries(rateLimitResult.headers).forEach(([key, value]) => {
-      response.headers.set(key, value)
-    })
     
     return response
 
@@ -119,27 +94,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check rate limit for advanced search
+    // Get auth info for advanced search
     const { userId } = await auth()
-    const identifier = getRateLimitIdentifier(request, userId || undefined)
-    const rateLimitResult = await checkRateLimit(identifier, 'advancedSearch')
-
-    if (!rateLimitResult.success) {
-      return NextResponse.json(
-        {
-          error: 'Rate limit exceeded',
-          message: `Too many advanced search requests. Limit: ${rateLimitResult.limit} per window. Try again after ${new Date(rateLimitResult.reset).toLocaleTimeString()}.`,
-          retryAfter: Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
-        },
-        {
-          status: 429,
-          headers: {
-            'Content-Type': 'application/json',
-            'Retry-After': Math.ceil((rateLimitResult.reset - Date.now()) / 1000).toString(),
-          },
-        }
-      )
-    }
 
     const body = await request.json()
     const { query, filters = {} } = body
@@ -180,11 +136,6 @@ export async function POST(request: NextRequest) {
       page: filters.page || 1,
       per_page: filters.limit || 20,
       has_more: (judges?.length || 0) === (filters.limit || 20)
-    })
-
-    // Add rate limit headers
-    Object.entries(rateLimitResult.headers).forEach(([key, value]) => {
-      response.headers.set(key, value)
     })
 
     return response
