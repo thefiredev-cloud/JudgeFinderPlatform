@@ -44,7 +44,10 @@
     "test:api": "node scripts/test-api-endpoints.js",
     "test:load": "node scripts/run-load-test.js",
     "health:check": "curl http://localhost:3005/api/health",
-    "stats:dashboard": "node scripts/display-stats-dashboard.js"
+    "stats:dashboard": "node scripts/display-stats-dashboard.js",
+    "populate:production": "node scripts/populate-production.js",
+    "data:status": "node scripts/check-data-status.js",
+    "setup:cron": "node scripts/setup-netlify-cron.js"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.31.3",

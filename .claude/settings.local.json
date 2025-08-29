@@ -114,7 +114,8 @@
       "Bash(netlify deploy:*)",
       "Bash(netlify sites:create:*)",
       "Bash(vercel:*)",
-      "Bash(netlify:*)"
+      "Bash(netlify:*)",
+      "mcp__filesystem__create_directory"
     ],
     "deny": [],
     "ask": [],
