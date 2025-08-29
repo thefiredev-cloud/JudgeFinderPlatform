@@ -18,10 +18,6 @@
   # Include environment variables in functions
   included_files = [".env"]
 
-# Scheduled function for daily sync
-[[functions."scheduled-sync"]]
-  schedule = "0 10 * * *"
-
 # Important: Make environment variables available to functions
 [context.production.environment]
   # These will be merged with UI-configured variables
