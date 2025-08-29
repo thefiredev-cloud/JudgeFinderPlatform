@@ -1,43 +1,105 @@
-# Netlify Configuration for JudgeFinder Platform
-[build]
-  # Build command - using legacy-peer-deps to handle version conflicts
-  command = "npm ci --legacy-peer-deps && npm run build"
-  # No publish directory needed for Next.js with Netlify plugin
-  # The plugin handles the output automatically
+# Netlify Configuration
+# https://docs.netlify.com/configure-builds/file-based-configuration/
 
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NEXT_TELEMETRY_DISABLED = "1"
+  # Ensure Next.js uses the correct Node version
+  NODE_VERSION = "18"
+
+# Functions configuration
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  
+  # Include environment variables in functions
+  included_files = [".env"]
+
+# Scheduled function for daily sync
+[[functions."scheduled-sync"]]
+  schedule = "0 10 * * *"
+
+# Important: Make environment variables available to functions
+[context.production.environment]
+  # These will be merged with UI-configured variables
+
+[context.deploy-preview.environment]
+  # Preview deployments use the same variables
+
+[context.branch-deploy.environment]
+  # Branch deployments use the same variables
+
+# Headers for security and caching
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-store, max-age=0"
+
+# API route configuration - ensure they run as functions
+[[headers]]
+  for = "/api/admin/*"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate"
+
+# Edge Functions for API routes (optional - improves performance)
+[[edge_functions]]
+  path = "/api/judges/list"
+  function = "cache-judges"
+
+[[edge_functions]]
+  path = "/api/courts/list"
+  function = "cache-courts"
+
+# Redirects
+[[redirects]]
+  from = "/admin"
+  to = "/admin/dashboard"
+  status = 301
+
+[[redirects]]
+  from = "/judge/*"
+  to = "/judges/:splat"
+  status = 301
+
+# Important: Plugin configuration
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[build.environment]
-  # Node version
-  NODE_VERSION = "20"
-  
-  # Disable telemetry
-  NEXT_TELEMETRY_DISABLED = "1"
-  
-  # Build environment flag
-  NETLIFY_BUILD = "true"
-  
-  # Skip Clerk authentication during build to prevent hydration errors
-  # Clerk will be dynamically loaded on client side when valid keys are present
-  SKIP_AUTH_BUILD = "true"
-  
-  # Enable Next.js plugin for proper routing
-  NETLIFY_USE_YARN = "false"
-  
-  # Keep functions cache for better performance
-  NETLIFY_SKIP_FUNCTIONS_CACHE = "false"
-  
-  # Secrets scanning configuration - prevent false positives
-  # Include build output directories and configuration files
-  # Exclude all build artifacts, documentation, and non-code files
-  SECRETS_SCAN_OMIT_PATHS = ".next/**,.netlify/**,scripts/**,*.example,*.md,*.txt,docs/**,reports/**,*.json,test/**,tests/**,**/*.test.js,**/*.test.ts,**/*.spec.js,**/*.spec.ts,lib/seo/**,lib/utils/**,next.config.js,public/**,data/**,lib/security/**,supabase/**,netlify.toml,components/seo/**,node_modules/**,.env.example,package*.json,tsconfig.json,*.config.js,*.config.ts,.gitignore,.eslintrc*,validation-reports/**,la-county-data/**,monitoring/**"
-  
-  # Include domain patterns, URL patterns, and common non-secret strings
-  # These are public values or configuration names, not actual secrets
-  SECRETS_SCAN_OMIT_KEYS = "NODE_VERSION,NEXT_TELEMETRY_DISABLED,NPM_FLAGS,NETLIFY_*,NEXT_PUBLIC_*,BUILD_*,CI,DEPLOY_*,REVIEW_ID,SITE_*,URL,DEPLOY_URL,DEPLOY_PRIME_URL,CACHED_COMMIT_REF,COMMIT_REF,PULL_REQUEST,INCOMING_HOOK_*,CONTEXT,BRANCH,judgefinder.io,https://judgefinder.io,http://judgefinder.io,*.judgefinder.io,JudgeFinder Platform,JudgeFinder.io,localhost,supabase.co,*.supabase.co,xstlnicbnzdxlgfiewmg"
+[plugins.inputs]
+  # Ensure server-side rendering works properly
+  appDir = true
 
-# Security headers
-# Security headers are now handled by middleware.ts to avoid conflicts
-# The middleware provides dynamic CSP configuration based on environment
-# This prevents header duplication and ensures consistent security policy
+# Environment variable configuration hints
+# Set these in Netlify UI under Site Settings → Environment Variables:
+# 
+# Required for database connection:
+# - NEXT_PUBLIC_SUPABASE_URL
+# - NEXT_PUBLIC_SUPABASE_ANON_KEY
+# - SUPABASE_SERVICE_ROLE_KEY
+# 
+# Required for authentication:
+# - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+# - CLERK_SECRET_KEY
+# 
+# Required for data sync:
+# - COURTLISTENER_API_KEY
+# 
+# Required for site configuration:
+# - NEXT_PUBLIC_SITE_URL
+# 
+# Optional but recommended:
+# - CRON_SECRET (for scheduled functions)
+# - UPSTASH_REDIS_REST_URL (for rate limiting)
+# - UPSTASH_REDIS_REST_TOKEN (for rate limiting)
+# - SENTRY_DSN (for error tracking)

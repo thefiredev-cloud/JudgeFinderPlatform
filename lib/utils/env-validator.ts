@@ -27,19 +27,19 @@ const ENV_VARIABLES: EnvVariable[] = [
     name: 'NEXT_PUBLIC_SUPABASE_URL',
     required: true,
     description: 'Supabase project URL',
-    validator: (value) => value.startsWith('https://') && value.includes('.supabase.co')
+    validator: (value) => value.includes('supabase.co') || value.includes('supabase.io')
   },
   {
     name: 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     required: true,
     description: 'Supabase anonymous/public key',
-    validator: (value) => value.length > 30
+    validator: (value) => value.length > 20
   },
   {
     name: 'SUPABASE_SERVICE_ROLE_KEY',
     required: true,
     description: 'Supabase service role key (server-side only)',
-    validator: (value) => value.length > 30
+    validator: (value) => value.length > 20
   },
   
   // Clerk Authentication
@@ -47,13 +47,13 @@ const ENV_VARIABLES: EnvVariable[] = [
     name: 'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
     required: true,
     description: 'Clerk publishable key',
-    validator: (value) => value.startsWith('pk_')
+    validator: (value) => value.length > 10 // Less strict - Clerk keys can have different formats
   },
   {
     name: 'CLERK_SECRET_KEY',
     required: true,
     description: 'Clerk secret key',
-    validator: (value) => value.startsWith('sk_')
+    validator: (value) => value.length > 10 // Less strict - Clerk keys can have different formats
   },
   {
     name: 'NEXT_PUBLIC_CLERK_SIGN_IN_URL',

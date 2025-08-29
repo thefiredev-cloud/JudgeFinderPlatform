@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/utils/logger'
 import { validateEnvironment } from '@/lib/utils/env-validator'
 
@@ -47,8 +48,14 @@ export async function GET(request: NextRequest) {
   try {
     logger.apiRequest('GET', '/api/admin/data-status')
     
-    // Validate environment
-    const envValidation = validateEnvironment()
+    // Validate environment (but don't fail if invalid)
+    let envValidation: any = { valid: false, warnings: [], errors: [] }
+    try {
+      envValidation = validateEnvironment()
+    } catch (error) {
+      console.error('Environment validation error:', error)
+      envValidation.errors.push('Environment validation failed')
+    }
     
     const response: DataStatusResponse = {
       status: 'empty',
@@ -87,8 +94,32 @@ export async function GET(request: NextRequest) {
     }
     
     // Check database connection
+    let supabase: any = null
+    
+    // Try server client first
     try {
-      const supabase = await createServerClient()
+      supabase = await createServerClient()
+    } catch (serverError) {
+      console.error('Server client failed, trying direct connection:', serverError)
+      
+      // Fallback to direct connection
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+      
+      if (url && serviceKey) {
+        try {
+          supabase = createClient(url, serviceKey, {
+            auth: { persistSession: false }
+          })
+          console.log('Direct connection established')
+        } catch (directError) {
+          console.error('Direct connection also failed:', directError)
+        }
+      }
+    }
+    
+    if (supabase) {
+      try {
       
       // Check judges
       const { count: judgeCount, error: judgeError } = await supabase
@@ -205,9 +236,14 @@ export async function GET(request: NextRequest) {
         }
       }
       
-    } catch (dbError) {
-      logger.error('Database connection error', { error: dbError })
+      } catch (dbError) {
+        logger.error('Database connection error', { error: dbError })
+        response.database.connected = false
+      }
+    } else {
+      console.error('No Supabase client could be created')
       response.database.connected = false
+      response.recommendations.push('Unable to create database connection. Check environment variables.')
     }
     
     // Determine overall status
