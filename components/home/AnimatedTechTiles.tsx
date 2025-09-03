@@ -46,7 +46,9 @@ function TileRow({ tiles, direction = 'left' }: { tiles: TileData[], direction?:
     const scrollContainer = scrollRef.current
     if (!scrollContainer) return
     
-    const scrollSpeed = 0.5
+    // Reduce animation on mobile for performance
+    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false
+    const scrollSpeed = isMobile ? 0.3 : 0.5
     let scrollPosition = direction === 'left' ? 0 : scrollContainer.scrollWidth / 2
     
     const animate = () => {
@@ -89,24 +91,24 @@ function TileRow({ tiles, direction = 'left' }: { tiles: TileData[], direction?:
         <motion.div
           key={`${tile.id}-${index}`}
           className="flex-shrink-0 group"
-          whileHover={{ scale: 1.05 }}
+          whileHover={{ scale: 1.02 }}
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
         >
-          <div className="relative w-56 sm:w-64 h-28 sm:h-32 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <div className="relative w-48 sm:w-56 md:w-64 h-24 sm:h-28 md:h-32 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
             <div className={`absolute inset-0 bg-gradient-to-br ${tile.gradient} opacity-5 group-hover:opacity-10 transition-opacity`} />
             
-            <div className="relative p-4 sm:p-6 h-full flex flex-col justify-between">
+            <div className="relative p-3 sm:p-4 md:p-6 h-full flex flex-col justify-between">
               <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white truncate">
                     {tile.title}
                   </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1 truncate">
                     {tile.stat}
                   </p>
                 </div>
-                <div className={`p-2 rounded-lg bg-gradient-to-r ${tile.gradient}`}>
-                  <tile.icon className="w-5 h-5 text-white" />
+                <div className={`p-1.5 sm:p-2 rounded-lg bg-gradient-to-r ${tile.gradient} ml-2 flex-shrink-0`}>
+                  <tile.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
               </div>
             </div>
@@ -119,18 +121,18 @@ function TileRow({ tiles, direction = 'left' }: { tiles: TileData[], direction?:
 
 export default function AnimatedTechTiles() {
   return (
-    <section className="py-20 px-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-black overflow-hidden">
+    <section className="py-12 sm:py-16 md:py-20 px-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-black overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <motion.div 
-          className="text-center mb-12"
+          className="text-center mb-8 sm:mb-12"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
             Powered by <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Advanced Technology</span>
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto px-4">
             Real-time judicial analytics powered by cutting-edge AI and verified court data
           </p>
         </motion.div>
@@ -156,13 +158,13 @@ export default function AnimatedTechTiles() {
         </div>
         
         <motion.div
-          className="mt-12 text-center"
+          className="mt-8 sm:mt-12 text-center"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.4 }}
         >
-          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-3xl mx-auto">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 max-w-3xl mx-auto px-4">
             All data sourced from public court records. Analytics generated using machine learning algorithms with continuous validation and updates.
           </p>
         </motion.div>

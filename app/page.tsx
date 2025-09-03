@@ -14,11 +14,18 @@ import {
   Sparkles
 } from 'lucide-react'
 
-// Animated counter component - simplified
+// Animated counter component - simplified with SSR support
 function AnimatedCounter({ end, duration = 1000 }: { end: number; duration?: number }) {
   const [count, setCount] = useState(0)
+  const [mounted, setMounted] = useState(false)
   
   useEffect(() => {
+    setMounted(true)
+  }, [])
+  
+  useEffect(() => {
+    if (!mounted) return
+    
     let startTime: number | null = null
     const step = (timestamp: number) => {
       if (!startTime) startTime = timestamp
@@ -27,9 +34,10 @@ function AnimatedCounter({ end, duration = 1000 }: { end: number; duration?: num
       if (progress < 1) requestAnimationFrame(step)
     }
     requestAnimationFrame(step)
-  }, [end, duration])
+  }, [end, duration, mounted])
   
-  return <span>{count.toLocaleString()}</span>
+  // Return static number during SSR, animated number after mount
+  return <span>{mounted ? count.toLocaleString() : end.toLocaleString()}</span>
 }
 
 
@@ -71,7 +79,7 @@ export default function HomePage() {
       
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-black text-gray-900 dark:text-white overflow-hidden">
         {/* Simplified Hero Section */}
-        <section ref={heroRef} className="relative min-h-[70vh] sm:min-h-[80vh] lg:min-h-[90vh] flex items-center py-10 sm:py-16 lg:py-20">
+        <section ref={heroRef} className="relative min-h-[60vh] sm:min-h-[70vh] lg:min-h-[80vh] flex items-center py-8 sm:py-12 lg:py-16">
           {/* Subtle Background Pattern */}
           <div className="absolute inset-0 opacity-5">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
@@ -99,7 +107,7 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 30 }}
                   transition={{ duration: 0.8, delay: 0.1 }}
-                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6"
+                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight"
                 >
                   <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
                     Understand Your Judge
@@ -115,7 +123,7 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 30 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
-                  className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8"
+                  className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 leading-relaxed"
                 >
                   AI-powered analysis of California judges. Discover bias patterns, 
                   ruling tendencies, and comprehensive analytics in seconds.
@@ -126,18 +134,18 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 30 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
-                  className="flex flex-col sm:flex-row gap-4"
+                  className="flex flex-col sm:flex-row gap-3 sm:gap-4"
                 >
                   <Link 
                     href="/judges"
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold transition-all"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold transition-all text-sm sm:text-base"
                   >
                     <Search className="w-5 h-5" />
                     Browse All Judges
                   </Link>
                   <Link 
                     href="/compare"
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-semibold transition-all"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-semibold transition-all text-sm sm:text-base"
                   >
                     <Scale className="w-5 h-5" />
                     Compare Judges

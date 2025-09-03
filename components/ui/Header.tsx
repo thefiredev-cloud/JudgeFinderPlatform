@@ -105,7 +105,8 @@ export function Header() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 text-muted-foreground hover:text-foreground"
+            className="md:hidden p-2 text-muted-foreground hover:text-foreground transition-transform duration-200 ease-in-out"
+            style={{ transform: isMenuOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
           >
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -114,7 +115,7 @@ export function Header() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-border bg-background/95 backdrop-blur-md">
+        <div className="md:hidden border-t border-border bg-background/95 backdrop-blur-md absolute top-16 left-0 right-0 z-50 shadow-lg max-h-[calc(100vh-4rem)] overflow-y-auto">
           <nav className="space-y-1 px-4 py-4">
             {/* Browse Section */}
             <div className="pb-2">

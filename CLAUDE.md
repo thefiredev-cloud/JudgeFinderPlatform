@@ -1,5 +1,18 @@
 # JudgeFinder Platform - AI-Powered Judicial Transparency Tool
 
+## Claude Code Environment Configuration
+**Global MCP Tools Available:** Full-stack app development support with MCP integrations for:
+- **Clerk Authentication** - User management and authentication
+- **Stripe Payments** - Payment processing and subscription management  
+- **Supabase Database** - Real-time database and storage
+- **Netlify Deployment** - Continuous deployment and hosting
+- **Convex** - Backend infrastructure
+- **GitHub** - Version control and collaboration
+- **Docker** - Containerization
+- **Playwright/Puppeteer** - Browser automation and testing
+- **File System** - Direct file access and manipulation
+- **Sequential Thinking** - Complex problem solving
+
 ## Current Status: PRE-LAUNCH - 5 Days to Production
 
 ## 🚀 LAUNCH ACTION PLAN - Complete in 5 Days
