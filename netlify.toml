@@ -72,10 +72,6 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[plugins.inputs]
-  # Ensure server-side rendering works properly
-  appDir = true
-
 # Environment variable configuration hints
 # Set these in Netlify UI under Site Settings → Environment Variables:
 # 
