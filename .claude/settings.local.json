@@ -171,7 +171,8 @@
       "WebFetch(domain:judgefinder.io)",
       "WebFetch(domain:judge-finder-platform.netlify.app)",
       "Bash(del .netlifyfunctions-internal___netlify-server-handler.env)",
-      "mcp__playwright__browser_tabs"
+      "mcp__playwright__browser_tabs",
+      "Read(/C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform/**)"
     ],
     "deny": [],
     "ask": [],

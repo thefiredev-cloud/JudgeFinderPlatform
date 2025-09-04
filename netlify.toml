@@ -3,7 +3,8 @@
 
 [build]
   command = "npm run build"
-  publish = ".next"
+  # Don't specify publish directory - let the Next.js plugin handle it
+  # publish = ".next"
 
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
