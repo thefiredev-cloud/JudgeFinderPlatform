@@ -235,7 +235,7 @@ export default function BuilderStyleChat() {
         </div>
       </div>
       
-      <div className="flex flex-col h-[350px] sm:h-[450px] md:h-[500px] lg:h-[550px] bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+      <div className="flex flex-col h-[400px] sm:h-[450px] md:h-[500px] lg:h-[550px] bg-white dark:bg-gray-900 rounded-xl shadow-xl lg:shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
         {/* Header */}
         <ChatHeader />
 
