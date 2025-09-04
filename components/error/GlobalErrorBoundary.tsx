@@ -44,7 +44,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   }
 
   private logErrorToService(error: Error, errorInfo: ErrorInfo) {
-    // Replace with actual logging service (e.g., Sentry, LogRocket)
+    // Log error details for debugging
     const errorData: any = {
       message: error.message,
       stack: error.stack,

@@ -81,86 +81,16 @@ export function AttorneySlots({ judgeId, judgeName }: AttorneySlotsProps) {
     }
   }, [judgeId])
 
-  const availablePrice = useMemo(() => {
-    return 'Free'
-  }, [])
 
-  const [resolvedPrice, setResolvedPrice] = useState<{ priceLabel: string; priceId: string } | null>(null)
-
-  useEffect(() => {
-    let isMounted = true
-    
-    async function resolvePrice() {
-      try {
-        const res = await fetch(`/api/pricing/resolve?judgeId=${encodeURIComponent(judgeId)}`, { 
-          cache: 'no-store',
-          signal: AbortSignal.timeout(5000) // 5 second timeout
-        })
-        
-        if (!isMounted) return
-        
-        if (!res.ok) return
-        
-        const data = await res.json()
-        
-        if (isMounted && data?.priceId) {
-          setResolvedPrice({ priceLabel: data.priceLabel, priceId: data.priceId })
-        }
-      } catch (error) {
-        // Silent fail for pricing resolution
-        if (error instanceof Error && error.name !== 'AbortError') {
-          console.debug('Price resolution failed:', error.message)
-        }
-      }
-    }
-    
-    if (judgeId && isMounted) {
-      resolvePrice()
-    }
-    
-    return () => {
-      isMounted = false
-    }
-  }, [judgeId])
 
   async function claimSlot(slotId: string) {
     try {
       setClaiming(slotId)
       setError(null)
       
-      // Choose a price by environment/jurisdiction later; placeholder expects configured Stripe price ID
-      const priceId = resolvedPrice?.priceId || process.env.NEXT_PUBLIC_STRIPE_PRICE_ID || ''
-      if (!priceId) throw new Error('Missing Stripe price ID configuration')
+      // For now, just show a message since this is a free platform
+      setError('Attorney directory submissions are currently being reviewed. Please check back later.')
       
-      const res = await fetch('/api/attorney-slots/claim', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId, judgeId, slotId }),
-        signal: AbortSignal.timeout(15000) // 15 second timeout for payment flow
-      })
-      
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ error: 'Request failed' }))
-        throw new Error(errorData.error || `Request failed with status ${res.status}`)
-      }
-      
-      const data = await res.json()
-      
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        throw new Error('No checkout URL received')
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          setError('Request timed out. Please try again.')
-        } else {
-          setError(error.message || 'Checkout error')
-        }
-      } else {
-        setError('Checkout error')
-      }
     } finally {
       setClaiming(null)
     }
@@ -228,7 +158,7 @@ export function AttorneySlots({ judgeId, judgeName }: AttorneySlotsProps) {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-green-600">{resolvedPrice?.priceLabel || availablePrice}</p>
+                      <p className="text-2xl font-bold text-green-600">Free</p>
                       <p className="text-xs text-gray-500">Educational directory</p>
                     </div>
                   </div>

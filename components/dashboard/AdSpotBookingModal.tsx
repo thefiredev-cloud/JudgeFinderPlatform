@@ -55,14 +55,9 @@ export default function AdSpotBookingModal({ spot, advertiserId, onClose, onSucc
 
       const data = await response.json()
 
-      if (data.checkout_url) {
-        // Redirect to Stripe checkout
-        window.location.href = data.checkout_url
-      } else {
-        // Booking successful without payment (for demo)
-        onSuccess()
-        onClose()
-      }
+      // Booking successful (free platform)
+      onSuccess()
+      onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {

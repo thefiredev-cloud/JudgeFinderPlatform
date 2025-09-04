@@ -30,7 +30,7 @@ export function generateCSP(config: SecurityConfig): string {
       "https://clerk.shared.lcl.dev",
       "https://clerk.judgefinder.io",
       "https://cdn.jsdelivr.net",
-      "https://checkout.stripe.com",
+
       "https://www.googletagmanager.com",
       "https://www.google-analytics.com",
       "https://www.clarity.ms",
@@ -77,8 +77,7 @@ export function generateCSP(config: SecurityConfig): string {
       "https://cdn.jsdelivr.net",
       "https://api.openai.com",
       "https://www.courtlistener.com",
-      "https://api.stripe.com",
-      "https://checkout.stripe.com",
+
       "https://www.google-analytics.com",
       "https://www.googletagmanager.com",
       "https://www.clarity.ms",

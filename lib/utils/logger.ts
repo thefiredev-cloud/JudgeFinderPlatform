@@ -51,11 +51,8 @@ class Logger {
   }
 
   private sendToLoggingService(entry: LogEntry) {
-    // In production, send to external logging service
-    // For now, we'll use structured console logging
+    // In production, use structured console logging
     if (!this.isDevelopment) {
-      // Replace with actual logging service call
-      // e.g., Sentry, LogRocket, DataDog, etc.
       this.consoleLog(entry)
     }
   }

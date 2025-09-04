@@ -1,5 +1,3 @@
-const { withSentryConfig } = require('@sentry/nextjs')
-
 // Suppress console output in production and Netlify builds to prevent secrets exposure
 if (process.env.NODE_ENV === 'production' || process.env.NETLIFY_BUILD === 'true' || process.env.NETLIFY === 'true') {
   console.log = () => {};
@@ -144,23 +142,4 @@ const nextConfig = {
   // output: undefined, // Automatically handled by @netlify/plugin-nextjs
 }
 
-// Sentry configuration options
-const sentryWebpackPluginOptions = {
-  // Additional config options for the Sentry Webpack plugin. Keep in mind that
-  // the following options are set automatically, and overriding them is not
-  // recommended:
-  //   release, url, org, project, authToken, configFile, stripPrefix,
-  //   urlPrefix, include, ignore
-
-  silent: true, // Suppresses all logs
-  
-  // Upload source maps to Sentry only in production
-  dryRun: process.env.NODE_ENV !== 'production',
-}
-
-// Only wrap with Sentry in production or when explicitly enabled
-const shouldUseSentry = process.env.NODE_ENV === 'production' || process.env.SENTRY_DEBUG === 'true'
-
-module.exports = shouldUseSentry 
-  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
-  : nextConfig
+module.exports = nextConfig
