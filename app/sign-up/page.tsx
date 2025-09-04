@@ -136,8 +136,8 @@ export default function Page() {
 
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700/50 p-8 shadow-xl">
               <CustomSignUp 
-                afterSignInUrl="/dashboard"
-                afterSignUpUrl="/welcome"
+                fallbackRedirectUrl="/dashboard"
+                forceRedirectUrl="/welcome"
               />
             </div>
 

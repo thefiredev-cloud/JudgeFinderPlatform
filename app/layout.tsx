@@ -55,10 +55,14 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         <link rel="manifest" href="/manifest.json" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="JudgeFinder" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <meta name="application-name" content="JudgeFinder" />
+        <meta name="theme-color" content="#2563eb" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.svg" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="google-site-verification" content="your-google-search-console-verification-code" />
         <meta name="msvalidate.01" content="your-bing-webmaster-verification-code" />
         {process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT && (

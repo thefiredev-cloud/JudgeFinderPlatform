@@ -151,8 +151,8 @@ export default function Page() {
                     identityPreviewEditButton: 'text-blue-400 hover:text-blue-300',
                   }
                 }}
-                afterSignInUrl="/dashboard"
-                afterSignUpUrl="/dashboard"
+                fallbackRedirectUrl="/dashboard"
+                forceRedirectUrl="/dashboard"
               />
             </div>
 

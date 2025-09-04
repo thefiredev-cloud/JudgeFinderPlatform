@@ -39,11 +39,21 @@ const SignUp = hasValidClerkKeys()
     )
 
 interface CustomSignUpProps {
-  afterSignInUrl?: string
-  afterSignUpUrl?: string
+  fallbackRedirectUrl?: string
+  forceRedirectUrl?: string
+  afterSignInUrl?: string  // Keep for backward compatibility
+  afterSignUpUrl?: string  // Keep for backward compatibility
 }
 
-export function CustomSignUp({ afterSignInUrl = '/dashboard', afterSignUpUrl = '/welcome' }: CustomSignUpProps) {
+export function CustomSignUp({ 
+  fallbackRedirectUrl = '/dashboard', 
+  forceRedirectUrl = '/welcome',
+  afterSignInUrl,  // Deprecated
+  afterSignUpUrl   // Deprecated
+}: CustomSignUpProps) {
+  // Use new props if available, fall back to old ones for compatibility
+  const redirectUrl = forceRedirectUrl || afterSignUpUrl || '/welcome'
+  const signInRedirect = fallbackRedirectUrl || afterSignInUrl || '/dashboard'
   const [email, setEmail] = useState('')
   const [userType, setUserType] = useState<'admin' | 'user' | null>(null)
   const [showSignUp, setShowSignUp] = useState(false)
@@ -178,8 +188,8 @@ export function CustomSignUp({ afterSignInUrl = '/dashboard', afterSignUpUrl = '
               identityPreviewEditButton: 'text-enterprise-primary hover:text-enterprise-accent',
             }
           }}
-          afterSignInUrl={userType === 'admin' ? '/admin' : afterSignInUrl}
-          afterSignUpUrl={userType === 'admin' ? '/admin' : afterSignUpUrl}
+          fallbackRedirectUrl={userType === 'admin' ? '/admin' : signInRedirect}
+          forceRedirectUrl={userType === 'admin' ? '/admin' : redirectUrl}
         />
       )}
     </div>
