@@ -6,7 +6,6 @@ import { useInView } from 'react-intersection-observer'
 import { StructuredData } from '@/components/seo/StructuredData'
 import BuilderStyleChat from '@/components/ai/BuilderStyleChat'
 import UnifiedSearch from '@/components/ui/UnifiedSearch'
-import AnimatedTechTiles from '@/components/home/AnimatedTechTiles'
 import Link from 'next/link'
 import { 
   BarChart3, Brain,
@@ -46,27 +45,27 @@ export default function HomePage() {
   
   const benefits = [
     { 
-      icon: Bot, 
-      title: "AI Legal Assistant", 
-      desc: "Get instant answers about any California judge",
+      icon: Brain, 
+      title: "Know What to Expect", 
+      desc: "Understand your judge's approach before court",
       color: 'from-blue-500 to-blue-600'
     },
     { 
       icon: BarChart3, 
-      title: "Real-Time Analytics", 
-      desc: "Live bias detection with machine learning",
+      title: "Prepare with Confidence", 
+      desc: "Get insights to better prepare your case",
       color: 'from-green-500 to-green-600'
     },
     { 
       icon: Lock, 
-      title: "Complete Privacy", 
-      desc: "Anonymous and secure searches",
+      title: "Free & Anonymous", 
+      desc: "No sign-up required, completely private",
       color: 'from-blue-700 to-blue-900'
     },
     { 
-      icon: Database, 
-      title: "Comprehensive Data", 
-      desc: "300,000+ cases analyzed",
+      icon: MessageSquare, 
+      title: "Simple & Clear", 
+      desc: "Plain English explanations, no legal jargon",
       color: 'from-orange-500 to-orange-600'
     }
   ]
@@ -98,14 +97,14 @@ export default function HomePage() {
                 className="text-center mb-6"
               >
                 <h1 className="text-2xl sm:text-3xl font-bold mb-3 leading-tight">
-                  <span className="block">Understand Your</span>
+                  <span className="block">Just Got Assigned a Judge?</span>
                   <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent block text-3xl sm:text-4xl">
-                    Judge Instantly
+                    Get Instant Insights
                   </span>
                 </h1>
                 
                 <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-xs mx-auto">
-                  AI-powered analysis of 1,810+ California judges
+                  Find out what to expect in your upcoming court appearance
                 </p>
               </motion.div>
 
@@ -119,36 +118,20 @@ export default function HomePage() {
                 <UnifiedSearch autoFocus={false} />
               </motion.div>
 
-              {/* Trust Indicators - Mobile Optimized Grid */}
-              <div className="grid grid-cols-3 gap-4 mb-6 max-w-sm mx-auto">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: heroInView ? 1 : 0, scale: heroInView ? 1 : 0.9 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                  className="text-center bg-gray-50 dark:bg-gray-800 rounded-lg py-3 px-2"
-                >
-                  <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">1,810</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">CA Judges</div>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: heroInView ? 1 : 0, scale: heroInView ? 1 : 0.9 }}
-                  transition={{ duration: 0.6, delay: 0.3 }}
-                  className="text-center bg-gray-50 dark:bg-gray-800 rounded-lg py-3 px-2"
-                >
-                  <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">300K+</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Cases</div>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: heroInView ? 1 : 0, scale: heroInView ? 1 : 0.9 }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
-                  className="text-center bg-gray-50 dark:bg-gray-800 rounded-lg py-3 px-2"
-                >
-                  <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">95%</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Accuracy</div>
-                </motion.div>
-              </div>
+              {/* Quick Example Searches - Mobile */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: heroInView ? 1 : 0, scale: heroInView ? 1 : 0.9 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-center mb-6"
+              >
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Try searching:</p>
+                <div className="flex justify-center gap-2 flex-wrap">
+                  <button className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Smith</button>
+                  <button className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Martinez</button>
+                  <button className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Johnson</button>
+                </div>
+              </motion.div>
               
               {/* Quick Action Buttons - Mobile First */}
               <motion.div
@@ -157,23 +140,15 @@ export default function HomePage() {
                 transition={{ duration: 0.6, delay: 0.5 }}
                 className="flex flex-col gap-3 max-w-sm mx-auto"
               >
-                <Link 
-                  href="/judges"
+                <button 
+                  onClick={() => {
+                    const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement;
+                    searchInput?.focus();
+                  }}
                   className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors min-h-[48px]"
                 >
                   <Brain className="w-5 h-5" />
-                  Browse All Judges
-                </Link>
-                
-                <button 
-                  onClick={() => {
-                    const chatSection = document.getElementById('mobile-chat-section');
-                    chatSection?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors min-h-[48px]"
-                >
-                  <MessageSquare className="w-5 h-5" />
-                  Ask AI Assistant
+                  Look Up My Judge
                 </button>
               </motion.div>
             </div>
@@ -182,16 +157,6 @@ export default function HomePage() {
             <div className="hidden lg:grid lg:grid-cols-2 gap-12 items-center">
               {/* Left Column - Content */}
               <div>
-                {/* Badge */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 20 }}
-                  transition={{ duration: 0.6 }}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-semibold mb-6"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  AI-Powered Judicial Analytics
-                </motion.div>
                 
                 {/* Main Heading */}
                 <motion.h1
@@ -200,12 +165,12 @@ export default function HomePage() {
                   transition={{ duration: 0.8, delay: 0.1 }}
                   className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-6 leading-tight"
                 >
-                  <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-                    Understand Your Judge
+                  <span className="text-gray-900 dark:text-white">
+                    Just Got Assigned a Judge?
                   </span>
                   <br />
-                  <span className="text-gray-900 dark:text-white">
-                    Before You Enter Court
+                  <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                    Get Instant Insights
                   </span>
                 </motion.h1>
                 
@@ -216,8 +181,8 @@ export default function HomePage() {
                   transition={{ duration: 0.8, delay: 0.2 }}
                   className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed"
                 >
-                  AI-powered analysis of California judges. Discover bias patterns, 
-                  ruling tendencies, and comprehensive analytics in seconds.
+                  Find out what to expect in your upcoming court appearance. 
+                  Simple, clear insights to help you prepare with confidence.
                 </motion.p>
               </div>
               
@@ -229,19 +194,13 @@ export default function HomePage() {
               >
                 <UnifiedSearch />
                 
-                {/* Trust Indicators for Desktop */}
-                <div className="flex justify-center gap-8 mt-8">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">1,810</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">CA Judges</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">300K+</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Cases</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">95%</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Accuracy</div>
+                {/* Quick Example Searches for Desktop */}
+                <div className="text-center mt-8">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Try searching for:</p>
+                  <div className="flex justify-center gap-3">
+                    <button className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Smith</button>
+                    <button className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Martinez</button>
+                    <button className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Johnson</button>
                   </div>
                 </div>
               </motion.div>
@@ -274,33 +233,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Animated Tech Tiles - Hidden on Mobile, Shown on Desktop */}
-        <div className="hidden lg:block">
-          <AnimatedTechTiles />
-        </div>
 
-        {/* Simplified Mobile Stats Section */}
-        <section className="lg:hidden py-8 px-4 bg-gradient-to-r from-blue-600 to-blue-800">
-          <div className="max-w-md mx-auto text-center text-white">
-            <h2 className="text-xl font-bold mb-4">
-              Trusted by Legal Professionals
-            </h2>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <div className="text-2xl font-bold">50+</div>
-                <div className="text-xs opacity-90">Data Points</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold">Real-Time</div>
-                <div className="text-xs opacity-90">Analysis</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold">95%</div>
-                <div className="text-xs opacity-90">Accuracy</div>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* CTA Section - Mobile Optimized */}
         <section className="py-12 lg:py-20 px-4 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-black lg:bg-gradient-to-r lg:from-blue-600 lg:to-blue-800">
@@ -314,7 +247,7 @@ export default function HomePage() {
                 Start Your Search Now
               </h2>
               <p className="text-base lg:text-xl text-gray-600 dark:text-gray-300 lg:text-white/90 mb-6 lg:mb-8">
-                Free access to judicial analytics
+                Quick and easy access to judge information
               </p>
               
               {/* Mobile: Single prominent CTA */}
@@ -326,7 +259,7 @@ export default function HomePage() {
                   className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold text-lg shadow-lg transform active:scale-95 transition-all"
                 >
                   <MessageSquare className="w-5 h-5 inline-block mr-2" />
-                  Ask About Any Judge
+                  Search for Your Judge
                 </button>
               </div>
 
@@ -339,7 +272,7 @@ export default function HomePage() {
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white text-blue-600 font-semibold hover:bg-gray-100 transition-all transform hover:scale-105"
                 >
                   <MessageSquare className="w-5 h-5" />
-                  Chat with AI Assistant
+                  Find Your Judge Now
                 </button>
               </div>
             </motion.div>

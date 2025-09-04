@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Search, Mic, MicOff, X } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -12,74 +12,22 @@ interface UnifiedSearchProps {
 }
 
 const UnifiedSearch: React.FC<UnifiedSearchProps> = ({ 
-  placeholder = "Search judges, courts, or ask a question...", 
+  placeholder = "Enter your judge's name...", 
   className = "",
   autoFocus = false 
 }) => {
   const [query, setQuery] = useState('')
-  const [isListening, setIsListening] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
   const [suggestions, setSuggestions] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
-  const recognitionRef = useRef<any>(null)
-
-  // Initialize speech recognition
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition
-      recognitionRef.current = new SpeechRecognition()
-      recognitionRef.current.continuous = false
-      recognitionRef.current.interimResults = true
-      recognitionRef.current.lang = 'en-US'
-
-      recognitionRef.current.onresult = (event: any) => {
-        const transcript = Array.from(event.results)
-          .map((result: any) => result[0])
-          .map((result: any) => result.transcript)
-          .join('')
-        setQuery(transcript)
-      }
-
-      recognitionRef.current.onend = () => {
-        setIsListening(false)
-      }
-
-      recognitionRef.current.onerror = () => {
-        setIsListening(false)
-      }
-    }
-  }, [])
-
-  const handleVoiceInput = () => {
-    if (!recognitionRef.current) {
-      alert('Voice search is not supported in your browser')
-      return
-    }
-
-    if (isListening) {
-      recognitionRef.current.stop()
-      setIsListening(false)
-    } else {
-      recognitionRef.current.start()
-      setIsListening(true)
-    }
-  }
 
   const handleSearch = () => {
     if (!query.trim()) return
 
-    // Intelligent routing based on query type
-    const lowerQuery = query.toLowerCase()
-    
-    if (lowerQuery.includes('judge') || lowerQuery.includes('bias') || lowerQuery.includes('analysis')) {
-      router.push(`/judges?search=${encodeURIComponent(query)}`)
-    } else if (lowerQuery.includes('court')) {
-      router.push(`/courts?search=${encodeURIComponent(query)}`)
-    } else {
-      // Default to general search
-      router.push(`/search?q=${encodeURIComponent(query)}`)
-    }
+    // Route to judge search
+    const searchQuery = query.trim()
+    router.push(`/judges?search=${encodeURIComponent(searchQuery)}`)
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -93,16 +41,20 @@ const UnifiedSearch: React.FC<UnifiedSearchProps> = ({
     inputRef.current?.focus()
   }
 
-  // Smart suggestions based on input
+  // Simple suggestions for common judge names
   useEffect(() => {
     if (query.length > 2) {
-      const mockSuggestions = [
-        `Search for Judge ${query}`,
-        `${query} bias analysis`,
-        `Courts in ${query}`,
-        `Recent cases for ${query}`
-      ].filter(s => s.toLowerCase().includes(query.toLowerCase()))
-      setSuggestions(mockSuggestions.slice(0, 3))
+      const exampleJudges = [
+        'Judge Smith',
+        'Judge Martinez',
+        'Judge Johnson',
+        'Judge Williams',
+        'Judge Brown'
+      ]
+      const filtered = exampleJudges
+        .filter(name => name.toLowerCase().includes(query.toLowerCase()))
+        .slice(0, 3)
+      setSuggestions(filtered)
     } else {
       setSuggestions([])
     }
@@ -136,7 +88,7 @@ const UnifiedSearch: React.FC<UnifiedSearchProps> = ({
           />
         </button>
 
-        {/* Input Field - Optimized for Mobile */}
+        {/* Input Field */}
         <input
           ref={inputRef}
           type="search"
@@ -177,28 +129,6 @@ const UnifiedSearch: React.FC<UnifiedSearchProps> = ({
           )}
         </AnimatePresence>
 
-        {/* Voice Search Button */}
-        <button
-          onClick={handleVoiceInput}
-          className={`
-            mr-2 p-3 rounded-xl
-            transition-all duration-200
-            min-w-[48px] min-h-[48px]
-            flex items-center justify-center
-            ${isListening 
-              ? 'bg-red-500 text-white animate-pulse' 
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-            }
-          `}
-          aria-label="Voice search"
-        >
-          {isListening ? (
-            <MicOff className="w-5 h-5" />
-          ) : (
-            <Mic className="w-5 h-5" />
-          )}
-        </button>
-
         {/* Search Button */}
         <button
           onClick={handleSearch}
@@ -217,7 +147,7 @@ const UnifiedSearch: React.FC<UnifiedSearchProps> = ({
         </button>
       </div>
 
-      {/* Smart Suggestions Dropdown */}
+      {/* Simple Suggestions Dropdown */}
       <AnimatePresence>
         {isFocused && suggestions.length > 0 && (
           <motion.div
@@ -236,7 +166,7 @@ const UnifiedSearch: React.FC<UnifiedSearchProps> = ({
               <button
                 key={index}
                 onClick={() => {
-                  setQuery(suggestion.replace(/^(Search for |Recent cases for )/, '').replace(' bias analysis', ''))
+                  setQuery(suggestion)
                   handleSearch()
                 }}
                 className="
@@ -253,25 +183,6 @@ const UnifiedSearch: React.FC<UnifiedSearchProps> = ({
                 </span>
               </button>
             ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Voice Listening Indicator */}
-      <AnimatePresence>
-        {isListening && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="
-              absolute -top-16 left-1/2 transform -translate-x-1/2
-              bg-red-500 text-white px-4 py-2 rounded-lg
-              shadow-lg flex items-center gap-2
-            "
-          >
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-            <span className="text-sm font-medium">Listening...</span>
           </motion.div>
         )}
       </AnimatePresence>

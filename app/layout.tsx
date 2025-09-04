@@ -8,12 +8,12 @@ import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'JudgeFinder.io - Legal Analytics & Judge Research Platform',
-  description: 'Comprehensive legal analytics platform providing insights into judicial decisions, ruling patterns, and case outcomes. Research judges and courts with data-driven intelligence.',
-  keywords: 'legal analytics, judge research, court decisions, judicial patterns, case outcomes, legal intelligence',
+  title: 'JudgeFinder.io - Find Information About Your Judge',
+  description: 'Find information about your assigned judge. Understand what to expect in your court appearance with simple, clear insights.',
+  keywords: 'find judge, court appearance, judge information, California judges, court preparation',
   openGraph: {
-    title: 'JudgeFinder.io - Legal Analytics Platform',
-    description: 'Research judges and courts with data-driven intelligence',
+    title: 'JudgeFinder.io - Find Your Judge',
+    description: 'Get information about your assigned judge',
     url: 'https://judgefinder.io',
     siteName: 'JudgeFinder.io',
     images: [
@@ -28,8 +28,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'JudgeFinder.io - Legal Analytics Platform',
-    description: 'Research judges and courts with data-driven intelligence',
+    title: 'JudgeFinder.io - Find Your Judge',
+    description: 'Get information about your assigned judge',
     images: ['/twitter-image.png'],
   },
   robots: {
