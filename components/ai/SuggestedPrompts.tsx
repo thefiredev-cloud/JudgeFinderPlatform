@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, MapPin, Scale, Users } from 'lucide-react'
+import { Search, MapPin, Scale } from 'lucide-react'
 
 interface SuggestedPromptsProps {
   onSelectPrompt: (prompt: string) => void
@@ -22,11 +22,6 @@ export default function SuggestedPrompts({ onSelectPrompt }: SuggestedPromptsPro
       icon: MapPin,
       text: "Find judges in Orange County Superior Court",
       shortText: "Find by court"
-    },
-    {
-      icon: Users,
-      text: "Compare multiple judges side by side",
-      shortText: "Compare judges"
     }
   ]
 

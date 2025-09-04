@@ -216,14 +216,6 @@ export function Header() {
               >
                 About
               </Link>
-              <Link 
-                href="/compare" 
-                className="flex items-center py-2 text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <BarChart3 className="h-4 w-4 mr-3 text-primary" />
-                Compare Judges
-              </Link>
             </div>
           </nav>
         </div>

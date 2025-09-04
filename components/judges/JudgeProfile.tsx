@@ -1,6 +1,6 @@
 'use client'
 
-import { Calendar, GraduationCap, Building2, MapPin, Clock, Users, BarChart3 } from 'lucide-react'
+import { Calendar, GraduationCap, Building2, MapPin, Clock, Users } from 'lucide-react'
 import Link from 'next/link'
 import { BookmarkButton } from './BookmarkButton'
 import type { Judge } from '@/types'
@@ -101,13 +101,6 @@ export function JudgeProfile({ judge }: JudgeProfileProps) {
                   judgeName={judge.name}
                   className="inline-flex items-center justify-center bg-white text-blue-700 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors font-medium text-sm"
                 />
-                <Link
-                  href={`/compare?judges=${judge.id}`}
-                  className="inline-flex items-center justify-center bg-white/20 backdrop-blur hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors font-medium text-sm"
-                >
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Compare
-                </Link>
               </div>
             </div>
           </div>

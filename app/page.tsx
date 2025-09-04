@@ -8,7 +8,7 @@ import BuilderStyleChat from '@/components/ai/BuilderStyleChat'
 import AnimatedTechTiles from '@/components/home/AnimatedTechTiles'
 import Link from 'next/link'
 import { 
-  Scale, Search, 
+  Search, 
   BarChart3, Brain,
   MessageSquare, Bot, ArrowRight, Database, Lock,
   Sparkles
@@ -142,13 +142,6 @@ export default function HomePage() {
                   >
                     <Search className="w-5 h-5" />
                     Browse All Judges
-                  </Link>
-                  <Link 
-                    href="/compare"
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-semibold transition-all text-sm sm:text-base"
-                  >
-                    <Scale className="w-5 h-5" />
-                    Compare Judges
                   </Link>
                 </motion.div>
               </div>
