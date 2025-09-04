@@ -63,15 +63,15 @@
    - Configure Upstash Redis for rate limiting
    - Set up Sentry error tracking
 
-2. **Deploy to Vercel**
+2. **Deploy to Netlify**
    ```bash
-   vercel --env preview        # Deploy to staging first
-   vercel --prod              # Deploy to production
+   netlify deploy --dir=.next    # Deploy to draft URL
+   netlify deploy --prod         # Deploy to production
    ```
-   - Connect GitHub repository
-   - Configure environment variables
-   - Set up custom domain
-   - Enable SSL certificate
+   - GitHub repository already connected for continuous deployment
+   - Configure environment variables in Netlify dashboard
+   - Custom domain configuration (judgefinder.io)
+   - SSL certificate auto-enabled by Netlify
 
 ### Phase 4: Final Validation (Priority 4 - 1 day)
 
@@ -111,8 +111,9 @@ npm run sync:judges && npm run sync:decisions && npm run analytics:generate
 # 2. Replace placeholder keys in .env.production
 # 3. Configure OAuth providers
 
-# Deploy to Staging
-vercel --env preview
+# Deploy to Netlify (already configured for continuous deployment)
+# Production URL: https://olms-4375-tw501-x421.netlify.app/
+netlify deploy --prod
 ```
 
 ### Platform Overview
@@ -124,7 +125,12 @@ Advanced judicial transparency and AI-powered bias detection platform for citize
 - **1,810 California Judges** - Complete judicial directory with AI analytics
 - **909 Courts** - Full California coverage with relationship mapping
 - **300,204+ Cases** - Comprehensive case database with real-time updates
-- **Development Server:** http://localhost:3005
+
+### Deployment URLs
+- **Production (Netlify):** https://olms-4375-tw501-x421.netlify.app/
+- **Local Development:** http://localhost:3005
+- **Continuous Deployment:** GitHub → Netlify (automatic on push to main)
+- **Testing:** Use Playwright to test deployed version via production URL
 
 ### Major Platform Features
 
@@ -358,6 +364,14 @@ npm run integrity:full                 # Complete data validation
 npm run assignments:update             # Update assignments
 npm run cron:daily                     # Manual daily sync
 npm run cron:weekly                    # Manual weekly sync
+
+# Netlify Deployment
+netlify deploy --dir=.next            # Deploy draft
+netlify deploy --prod                 # Deploy to production
+netlify open                          # Open Netlify dashboard
+
+# Test Deployed Version
+# Use Playwright with https://olms-4375-tw501-x421.netlify.app/
 ```
 
 #### Quality Assurance
@@ -387,6 +401,9 @@ npm run cron:weekly                    # Manual weekly sync
 - **Upstash Redis:** Rate limiting and caching
 - **Sentry:** Error monitoring and performance tracking
 
-**Platform Status:** Production-ready AI-powered judicial transparency platform with comprehensive California coverage, advanced bias detection, and automated data processing capabilities. The platform represents the most advanced judicial transparency tool available, combining real-time data updates with sophisticated AI analysis for unprecedented insight into judicial patterns and potential bias indicators.
+**Platform Status:** Live production deployment on Netlify with continuous integration from GitHub. AI-powered judicial transparency platform with comprehensive California coverage, advanced bias detection, and automated data processing capabilities. The platform represents the most advanced judicial transparency tool available, combining real-time data updates with sophisticated AI analysis for unprecedented insight into judicial patterns and potential bias indicators.
+
+**Live Production URL:** https://olms-4375-tw501-x421.netlify.app/
+**Deployment Method:** Continuous deployment via GitHub → Netlify pipeline
 
 For detailed information about AI agents and automation systems, see `agents.md`.

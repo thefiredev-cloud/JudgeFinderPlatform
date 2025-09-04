@@ -132,7 +132,12 @@
       "Read(/C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform\\components\\ai/**)",
       "Read(/C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform\\components\\ai/**)",
       "Read(/C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform\\components\\ai/**)",
-      "Read(/C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform\\components\\ai/**)"
+      "Read(/C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform\\components\\ai/**)",
+      "Read(/C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform\\app/**)",
+      "Read(/C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform\\app/**)",
+      "Read(/C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform\\app/**)",
+      "Read(/C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform\\components\\ui/**)",
+      "Read(/C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform\\public/**)"
     ],
     "deny": [],
     "ask": [],

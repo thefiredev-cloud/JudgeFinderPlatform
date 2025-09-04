@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import { StructuredData } from '@/components/seo/StructuredData'
 import BuilderStyleChat from '@/components/ai/BuilderStyleChat'
+import UnifiedSearch from '@/components/ui/UnifiedSearch'
 import AnimatedTechTiles from '@/components/home/AnimatedTechTiles'
 import Link from 'next/link'
 import { 
@@ -96,53 +97,77 @@ export default function HomePage() {
                 transition={{ duration: 0.6 }}
                 className="text-center mb-6"
               >
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold mb-3">
-                  <Sparkles className="w-3 h-3" />
-                  AI-Powered Judicial Analytics
-                </div>
-                
-                <h1 className="text-2xl font-bold mb-2 leading-tight">
-                  <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-                    Understand Your Judge
+                <h1 className="text-3xl font-bold mb-3 leading-tight">
+                  Find Your Judge in
+                  <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent block">
+                    Seconds
                   </span>
                 </h1>
                 
-                <p className="text-sm text-gray-600 dark:text-gray-300 px-4">
-                  Get instant AI analysis of California judges
+                <p className="text-base text-gray-600 dark:text-gray-300 px-4">
+                  AI-powered analysis of California judges
                 </p>
               </motion.div>
 
-              {/* Chat Interface - Primary Focus on Mobile */}
+              {/* Unified Search - Primary Focus on Mobile */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: heroInView ? 1 : 0, scale: heroInView ? 1 : 0.95 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="mb-8"
+                className="mb-8 px-2"
               >
-                <BuilderStyleChat />
+                <UnifiedSearch autoFocus={false} />
               </motion.div>
 
-              {/* Quick Stats - Simplified for Mobile */}
-              <div className="grid grid-cols-2 gap-3 mb-8">
+              {/* Trust Indicators - 3 Key Metrics */}
+              <div className="flex justify-center gap-8 mb-8 px-4">
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 20 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: heroInView ? 1 : 0, scale: heroInView ? 1 : 0.9 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
-                  className="bg-white dark:bg-gray-800 rounded-lg p-3 text-center border border-gray-200 dark:border-gray-700"
+                  className="text-center"
                 >
-                  <div className="text-2xl font-bold text-blue-600">1,810</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">CA Judges</div>
+                  <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">1,810</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Judges</div>
                 </motion.div>
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 20 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: heroInView ? 1 : 0, scale: heroInView ? 1 : 0.9 }}
                   transition={{ duration: 0.6, delay: 0.3 }}
-                  className="bg-white dark:bg-gray-800 rounded-lg p-3 text-center border border-gray-200 dark:border-gray-700"
+                  className="text-center"
                 >
-                  <div className="text-2xl font-bold text-green-600">300K+</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Cases Analyzed</div>
+                  <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">300K+</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Cases</div>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: heroInView ? 1 : 0, scale: heroInView ? 1 : 0.9 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  className="text-center"
+                >
+                  <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">95%</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Accuracy</div>
                 </motion.div>
               </div>
+              
+              {/* AI Chat Assistant - Progressive Disclosure */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 20 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+                className="px-4"
+              >
+                <details className="group">
+                  <summary className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors min-h-[48px]">
+                    <MessageSquare className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Chat with AI Assistant</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">(Optional)</span>
+                  </summary>
+                  <div className="mt-4">
+                    <BuilderStyleChat />
+                  </div>
+                </details>
+              </motion.div>
             </div>
 
             {/* Desktop Layout: Traditional Two-Column */}
@@ -188,13 +213,29 @@ export default function HomePage() {
                 </motion.p>
               </div>
               
-              {/* Right Column - Chat */}
+              {/* Right Column - Unified Search */}
               <motion.div
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: heroInView ? 1 : 0, x: heroInView ? 0 : 30 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
               >
-                <BuilderStyleChat />
+                <UnifiedSearch />
+                
+                {/* Trust Indicators for Desktop */}
+                <div className="flex justify-center gap-8 mt-8">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">1,810</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">CA Judges</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">300K+</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Cases</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">95%</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Accuracy</div>
+                  </div>
+                </div>
               </motion.div>
             </div>
           </div>

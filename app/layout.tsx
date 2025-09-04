@@ -2,6 +2,8 @@ import './globals.css'
 import { Providers } from '@/components/providers/Providers'
 import { Header } from '@/components/ui/Header'
 import { Footer } from '@/components/ui/Footer'
+import BottomNavigation from '@/components/ui/BottomNavigation'
+import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary'
 import { Metadata } from 'next'
 
@@ -51,6 +53,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="JudgeFinder" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <meta name="google-site-verification" content="your-google-search-console-verification-code" />
         <meta name="msvalidate.01" content="your-bing-webmaster-verification-code" />
         {process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT && (
@@ -64,10 +72,14 @@ export default function RootLayout({
       <body className="min-h-screen bg-background font-sans antialiased">
         <GlobalErrorBoundary>
           <Providers>
+            <ServiceWorkerRegistration />
             <div className="relative flex min-h-screen flex-col">
               <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
+              <main className="flex-1 pb-16 md:pb-0">{children}</main>
+              <div className="mb-16 md:mb-0">
+                <Footer />
+              </div>
+              <BottomNavigation />
             </div>
           </Providers>
         </GlobalErrorBoundary>
