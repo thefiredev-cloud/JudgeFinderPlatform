@@ -279,13 +279,6 @@ export default function HomePage() {
                   <MessageSquare className="w-5 h-5 inline-block mr-2" />
                   Ask About Any Judge
                 </button>
-                
-                <Link 
-                  href="/sign-up"
-                  className="inline-block mt-4 text-sm text-gray-600 dark:text-gray-400 underline"
-                >
-                  Create account for more features
-                </Link>
               </div>
 
               {/* Desktop: Two CTAs */}
@@ -299,13 +292,6 @@ export default function HomePage() {
                   <MessageSquare className="w-5 h-5" />
                   Chat with AI Assistant
                 </button>
-                <Link 
-                  href="/sign-up"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border-2 border-white text-white font-semibold hover:bg-white/10 transition-all"
-                >
-                  Create Free Account
-                  <ArrowRight className="w-5 h-5" />
-                </Link>
               </div>
             </motion.div>
           </div>

@@ -220,68 +220,79 @@ export default function BuilderStyleChat() {
 
   return (
     <div className="flex flex-col">
-      {/* AI Disclaimer - Professional styling */}
-      <div className="mb-3 sm:mb-4 p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg">
-        <div className="flex items-start gap-2">
-          <div className="w-4 h-4 mt-0.5 text-blue-600 dark:text-blue-400 flex-shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-            </svg>
-          </div>
-          <p className="text-[10px] sm:text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            <span className="font-semibold">Legal Notice:</span> This AI assistant provides informational analysis only. 
-            Judicial patterns and analytics are AI-generated and should not replace professional legal counsel.
-          </p>
+      {/* AI Disclaimer - Simplified */}
+      <div className="mb-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+        <p className="text-[10px] sm:text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+          <span className="font-semibold">ℹ️ Note:</span> AI analysis for informational purposes only.
+        </p>
+      </div>
+      
+      {/* Suggested Prompts - Moved outside and simplified */}
+      <div className="mb-3">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => handleSuggestedPrompt("Search for Judge Thompson in Los Angeles")}
+            className="px-3 py-1.5 text-xs bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full transition-colors"
+          >
+            🔍 Search judge
+          </button>
+          <button
+            onClick={() => handleSuggestedPrompt("Show bias analysis for Judge Martinez")}
+            className="px-3 py-1.5 text-xs bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full transition-colors"
+          >
+            📊 Bias analysis
+          </button>
+          <button
+            onClick={() => handleSuggestedPrompt("Find judges in Orange County Superior Court")}
+            className="px-3 py-1.5 text-xs bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full transition-colors"
+          >
+            📍 Find by court
+          </button>
         </div>
       </div>
       
-      <div className="flex flex-col h-[400px] sm:h-[450px] md:h-[500px] lg:h-[550px] bg-white dark:bg-gray-900 rounded-xl shadow-xl lg:shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+      <div className="flex flex-col h-[450px] sm:h-[500px] lg:h-[550px] bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         {/* Header */}
         <ChatHeader />
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2 sm:space-y-3 lg:space-y-4 bg-gradient-to-b from-white via-slate-50/50 to-white dark:from-gray-900 dark:via-gray-800/50 dark:to-gray-900 custom-scrollbar">
-        {messages.map((message) => (
-          <div key={message.id}>
-            {message.type === 'judge_card' && message.judgeData ? (
-              <JudgeCard judge={message.judgeData} />
-            ) : message.type === 'judge_list' && message.judgesData ? (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-600 mb-2">I found multiple judges matching your query:</p>
-                {message.judgesData.slice(0, 3).map((judge, idx) => (
-                  <JudgeCard key={idx} judge={judge} compact />
-                ))}
-              </div>
-            ) : (
-              <ChatMessage message={message} />
-            )}
-          </div>
-        ))}
-        
-        {isLoading && !isStreaming && (
-          <div className="flex items-center gap-2 text-gray-500">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="text-sm">AI is thinking...</span>
-          </div>
-        )}
-        
-        <div ref={messagesEndRef} />
-      </div>
+        {/* Messages Area - Increased height since prompts are outside */}
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 custom-scrollbar">
+          {messages.map((message) => (
+            <div key={message.id}>
+              {message.type === 'judge_card' && message.judgeData ? (
+                <JudgeCard judge={message.judgeData} />
+              ) : message.type === 'judge_list' && message.judgesData ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-600 mb-2">I found multiple judges matching your query:</p>
+                  {message.judgesData.slice(0, 3).map((judge, idx) => (
+                    <JudgeCard key={idx} judge={judge} compact />
+                  ))}
+                </div>
+              ) : (
+                <ChatMessage message={message} />
+              )}
+            </div>
+          ))}
+          
+          {isLoading && !isStreaming && (
+            <div className="flex items-center gap-2 text-gray-500">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="text-sm">AI is thinking...</span>
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
 
-      {/* Suggested Prompts */}
-      {messages.length <= 1 && (
-        <SuggestedPrompts onSelectPrompt={handleSuggestedPrompt} />
-      )}
-
-      {/* Input Area */}
-      <ChatInput
-        input={input}
-        setInput={setInput}
-        onSubmit={handleSubmit}
-        isLoading={isLoading}
-        isStreaming={isStreaming}
-        onStopStreaming={stopStreaming}
-      />
+        {/* Input Area */}
+        <ChatInput
+          input={input}
+          setInput={setInput}
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+          isStreaming={isStreaming}
+          onStopStreaming={stopStreaming}
+        />
       </div>
     </div>
   )
