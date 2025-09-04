@@ -48,15 +48,6 @@
   [headers.values]
     Cache-Control = "no-store, no-cache, must-revalidate"
 
-# Edge Functions for API routes (optional - improves performance)
-[[edge_functions]]
-  path = "/api/judges/list"
-  function = "cache-judges"
-
-[[edge_functions]]
-  path = "/api/courts/list"
-  function = "cache-courts"
-
 # Redirects
 [[redirects]]
   from = "/admin"
