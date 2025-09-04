@@ -115,7 +115,8 @@
       "Bash(netlify sites:create:*)",
       "Bash(vercel:*)",
       "Bash(netlify:*)",
-      "mcp__filesystem__create_directory"
+      "mcp__filesystem__create_directory",
+      "mcp__playwright__browser_resize"
     ],
     "deny": [],
     "ask": [],

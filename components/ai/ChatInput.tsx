@@ -28,15 +28,15 @@ export default function ChatInput({
   }
 
   return (
-    <form onSubmit={onSubmit} className="p-3 sm:p-4 border-t border-gray-100 bg-white">
+    <form onSubmit={onSubmit} className="p-3 sm:p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
       <div className="flex gap-2">
         <div className="flex-1 relative">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask me about any California judge..."
-            className="w-full px-4 py-3 pr-12 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-500"
+            placeholder="Ask about any California judge, court, or case..."
+            className="w-full px-4 py-3 pr-12 bg-white dark:bg-gray-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent resize-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
             rows={1}
             disabled={isLoading}
             style={{ 
@@ -45,7 +45,7 @@ export default function ChatInput({
               overflowY: 'auto'
             }}
           />
-          <div className="absolute right-2 bottom-2 text-xs text-gray-400">
+          <div className="absolute right-2 bottom-2 text-xs text-gray-400 dark:text-gray-500">
             {input.length > 0 && `${input.length}/500`}
           </div>
         </div>
@@ -54,7 +54,7 @@ export default function ChatInput({
           <button
             type="button"
             onClick={onStopStreaming}
-            className="px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center"
+            className="px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center shadow-sm"
             title="Stop generating"
           >
             <Square className="w-5 h-5" />
@@ -63,7 +63,7 @@ export default function ChatInput({
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center min-w-[52px]"
+            className="px-4 py-3 bg-gradient-to-r from-[#2563eb] to-[#1e40af] text-white rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center min-w-[52px] shadow-sm"
           >
             {isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -74,7 +74,7 @@ export default function ChatInput({
         )}
       </div>
       
-      <p className="text-xs text-gray-500 mt-2 text-center">
+      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 text-center">
         Press Enter to send • Shift+Enter for new line
       </p>
     </form>

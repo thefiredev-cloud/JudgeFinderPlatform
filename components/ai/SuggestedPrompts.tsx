@@ -10,28 +10,41 @@ export default function SuggestedPrompts({ onSelectPrompt }: SuggestedPromptsPro
   const prompts = [
     {
       icon: Search,
-      text: "Search for a judge by name",
-      color: "from-blue-500 to-blue-600"
+      text: "Search for Judge Thompson in Los Angeles",
+      shortText: "Search judge"
+    },
+    {
+      icon: Scale,
+      text: "Show bias analysis for Judge Martinez",
+      shortText: "Bias analysis"
     },
     {
       icon: MapPin,
-      text: "Find judges in your area",
-      color: "from-purple-500 to-purple-600"
+      text: "Find judges in Orange County Superior Court",
+      shortText: "Find by court"
+    },
+    {
+      icon: Users,
+      text: "Compare multiple judges side by side",
+      shortText: "Compare judges"
     }
   ]
 
   return (
-    <div className="px-4 py-3 border-t border-gray-100">
-      <div className="flex gap-2">
+    <div className="px-4 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+      <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 font-medium">Suggested queries:</p>
+      <div className="grid grid-cols-2 gap-2">
         {prompts.map((prompt, index) => (
           <button
             key={index}
             onClick={() => onSelectPrompt(prompt.text)}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm bg-gray-50 hover:bg-gray-100 rounded-lg transition-all duration-200"
+            className="flex items-center gap-2 px-3 py-2.5 text-xs bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md text-left"
           >
-            <prompt.icon className="w-4 h-4 text-gray-600" />
-            <span className="text-gray-700">
-              {prompt.text}
+            <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-[#2563eb]/10 to-[#1e40af]/10 dark:from-[#2563eb]/20 dark:to-[#1e40af]/20 rounded-lg flex-shrink-0">
+              <prompt.icon className="w-4 h-4 text-[#2563eb] dark:text-[#3b82f6]" />
+            </div>
+            <span className="text-slate-700 dark:text-slate-300 font-medium">
+              {prompt.shortText}
             </span>
           </button>
         ))}
