@@ -166,7 +166,11 @@
       "mcp__filesystem__read_multiple_files",
       "Bash(copy .env.production .netlifyfunctions-internal___netlify-server-handler.env)",
       "WebFetch(domain:olms-4375-tw501-x421.netlify.app)",
-      "Read(/C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform/**)"
+      "Read(/C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform/**)",
+      "Read(/C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform/**)",
+      "WebFetch(domain:judgefinder.io)",
+      "WebFetch(domain:judge-finder-platform.netlify.app)",
+      "Bash(del .netlifyfunctions-internal___netlify-server-handler.env)"
     ],
     "deny": [],
     "ask": [],
