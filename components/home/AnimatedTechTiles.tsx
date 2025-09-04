@@ -31,7 +31,7 @@ const bottomRowTiles: TileData[] = [
   { id: '9', title: 'Google Gemini', stat: 'AI Engine', icon: Cpu, gradient: 'from-cyan-500 to-cyan-600' },
   { id: '10', title: 'GPT-4', stat: 'Fallback Processing', icon: GitBranch, gradient: 'from-violet-500 to-violet-600' },
   { id: '11', title: 'Redis', stat: 'Analytics Cache', icon: Server, gradient: 'from-amber-500 to-amber-600' },
-  { id: '12', title: 'CourtListener', stat: 'Data Source', icon: Search, gradient: 'from-emerald-500 to-emerald-600' },
+  { id: '12', title: 'Public Court Data', stat: 'Data Source', icon: Search, gradient: 'from-emerald-500 to-emerald-600' },
   { id: '13', title: 'Supabase', stat: 'Database Platform', icon: Database, gradient: 'from-blue-500 to-blue-600' },
   { id: '14', title: 'Next.js 14', stat: 'Framework', icon: Zap, gradient: 'from-gray-600 to-gray-700' },
   { id: '15', title: 'Secure', stat: 'Anonymous Searches', icon: Lock, gradient: 'from-purple-500 to-purple-600' },

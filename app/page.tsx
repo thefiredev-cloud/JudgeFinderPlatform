@@ -79,7 +79,7 @@ export default function HomePage() {
       
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-black text-gray-900 dark:text-white overflow-hidden">
         {/* Mobile-First Hero Section */}
-        <section ref={heroRef} className="relative flex flex-col items-center pt-4 pb-8 lg:pt-16 lg:pb-12">
+        <section ref={heroRef} className="relative flex flex-col items-center pt-6 pb-8 lg:pt-16 lg:pb-12">
           {/* Subtle Background Pattern - Hidden on mobile */}
           <div className="absolute inset-0 opacity-5 hidden lg:block">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
@@ -88,85 +88,93 @@ export default function HomePage() {
           
           {/* Main Content - Mobile First Layout */}
           <div className="relative z-10 w-full max-w-7xl mx-auto px-4">
-            {/* Mobile Layout: Chat First, then brief intro */}
+            {/* Mobile Layout: Optimized for small screens */}
             <div className="lg:hidden">
-              {/* Compact Header for Mobile */}
+              {/* Compact Header for Mobile - Fixed text cutoff */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 20 }}
                 transition={{ duration: 0.6 }}
                 className="text-center mb-6"
               >
-                <h1 className="text-3xl font-bold mb-3 leading-tight">
-                  Find Your Judge in
-                  <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent block">
-                    Seconds
+                <h1 className="text-2xl sm:text-3xl font-bold mb-3 leading-tight">
+                  <span className="block">Understand Your</span>
+                  <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent block text-3xl sm:text-4xl">
+                    Judge Instantly
                   </span>
                 </h1>
                 
-                <p className="text-base text-gray-600 dark:text-gray-300 px-4">
-                  AI-powered analysis of California judges
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-xs mx-auto">
+                  AI-powered analysis of 1,810+ California judges
                 </p>
               </motion.div>
 
-              {/* Unified Search - Primary Focus on Mobile */}
+              {/* Unified Search - Optimized for Mobile Touch */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: heroInView ? 1 : 0, scale: heroInView ? 1 : 0.95 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="mb-8 px-2"
+                className="mb-6"
               >
                 <UnifiedSearch autoFocus={false} />
               </motion.div>
 
-              {/* Trust Indicators - 3 Key Metrics */}
-              <div className="flex justify-center gap-8 mb-8 px-4">
+              {/* Trust Indicators - Mobile Optimized Grid */}
+              <div className="grid grid-cols-3 gap-4 mb-6 max-w-sm mx-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: heroInView ? 1 : 0, scale: heroInView ? 1 : 0.9 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
-                  className="text-center"
+                  className="text-center bg-gray-50 dark:bg-gray-800 rounded-lg py-3 px-2"
                 >
-                  <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">1,810</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Judges</div>
+                  <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">1,810</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">CA Judges</div>
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: heroInView ? 1 : 0, scale: heroInView ? 1 : 0.9 }}
                   transition={{ duration: 0.6, delay: 0.3 }}
-                  className="text-center"
+                  className="text-center bg-gray-50 dark:bg-gray-800 rounded-lg py-3 px-2"
                 >
-                  <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">300K+</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Cases</div>
+                  <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">300K+</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Cases</div>
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: heroInView ? 1 : 0, scale: heroInView ? 1 : 0.9 }}
                   transition={{ duration: 0.6, delay: 0.4 }}
-                  className="text-center"
+                  className="text-center bg-gray-50 dark:bg-gray-800 rounded-lg py-3 px-2"
                 >
-                  <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">95%</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Accuracy</div>
+                  <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">95%</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Accuracy</div>
                 </motion.div>
               </div>
               
-              {/* AI Chat Assistant - Progressive Disclosure */}
+              {/* Quick Action Buttons - Mobile First */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 20 }}
                 transition={{ duration: 0.6, delay: 0.5 }}
-                className="px-4"
+                className="flex flex-col gap-3 max-w-sm mx-auto"
               >
-                <details className="group">
-                  <summary className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors min-h-[48px]">
-                    <MessageSquare className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Chat with AI Assistant</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">(Optional)</span>
-                  </summary>
-                  <div className="mt-4">
-                    <BuilderStyleChat />
-                  </div>
-                </details>
+                <Link 
+                  href="/judges"
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors min-h-[48px]"
+                >
+                  <Brain className="w-5 h-5" />
+                  Browse All Judges
+                </Link>
+                
+                <button 
+                  onClick={() => {
+                    const chatSection = document.getElementById('mobile-chat-section');
+                    chatSection?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors min-h-[48px]"
+                >
+                  <MessageSquare className="w-5 h-5" />
+                  Ask AI Assistant
+                </button>
               </motion.div>
             </div>
 

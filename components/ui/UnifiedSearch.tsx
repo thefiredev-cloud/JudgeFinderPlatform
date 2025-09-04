@@ -114,27 +114,32 @@ const UnifiedSearch: React.FC<UnifiedSearchProps> = ({
         className={`
           relative flex items-center w-full
           bg-white dark:bg-gray-800 
-          rounded-2xl shadow-lg
+          rounded-xl lg:rounded-2xl shadow-lg
           border-2 transition-all duration-200
+          min-h-[52px] lg:min-h-[56px]
           ${isFocused 
-            ? 'border-blue-500 shadow-xl scale-[1.02]' 
+            ? 'border-blue-500 shadow-xl lg:scale-[1.02]' 
             : 'border-gray-200 dark:border-gray-700'
           }
         `}
       >
         {/* Search Icon */}
-        <div className="pl-5 pr-3">
+        <button
+          onClick={handleSearch}
+          className="pl-4 pr-3 py-3 lg:pl-5 lg:pr-3 touch-target"
+          aria-label="Search"
+        >
           <Search 
-            className={`w-5 h-5 transition-colors ${
+            className={`w-5 h-5 lg:w-5 lg:h-5 transition-colors ${
               isFocused ? 'text-blue-500' : 'text-gray-400'
             }`}
           />
-        </div>
+        </button>
 
-        {/* Input Field */}
+        {/* Input Field - Optimized for Mobile */}
         <input
           ref={inputRef}
-          type="text"
+          type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyPress={handleKeyPress}
@@ -142,12 +147,17 @@ const UnifiedSearch: React.FC<UnifiedSearchProps> = ({
           onBlur={() => setTimeout(() => setIsFocused(false), 200)}
           placeholder={placeholder}
           autoFocus={autoFocus}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
           className="
-            flex-1 py-4 pr-2
+            flex-1 py-3 lg:py-4 pr-2
             bg-transparent
-            text-base font-medium
+            text-base lg:text-base font-medium
             placeholder:text-gray-400 dark:placeholder:text-gray-500
             focus:outline-none
+            appearance-none
             min-h-[56px]
           "
         />
