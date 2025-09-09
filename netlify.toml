@@ -16,8 +16,8 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
   
-  # Include environment variables in functions
-  included_files = [".env"]
+  # Don't include .env files - use Netlify environment variables instead
+  # included_files = []
 
 # Important: Make environment variables available to functions
 [context.production.environment]

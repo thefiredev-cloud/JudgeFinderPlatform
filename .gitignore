@@ -210,3 +210,9 @@ public
 .pnp.*
 
 .cursor/
+
+# Environment variables
+.env
+.env.local
+.env.production.local
+.env.development.local
