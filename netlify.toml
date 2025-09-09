@@ -2,7 +2,7 @@
 # https://docs.netlify.com/configure-builds/file-based-configuration/
 
 [build]
-  command = "npm run build"
+  command = "npm ci --legacy-peer-deps && npm run build"
   # Don't specify publish directory - let the Next.js plugin handle it
   # publish = ".next"
 
