@@ -5,9 +5,9 @@ import { createServerClient } from '@/lib/supabase/server'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
 
-const openai = new OpenAI({
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-})
+}) : null
 
 const SYSTEM_PROMPT = `You are JudgeFinder AI, a legal information assistant for California's court system.
 
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     if (stream) {
       // Create streaming response
-      const streamResponse = await openai.chat.completions.create({
+      const streamResponse = await openai!.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: chatMessages as any,
         temperature: 0.7,
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       })
     } else {
       // Non-streaming response
-      const completion = await openai.chat.completions.create({
+      const completion = await openai!.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: chatMessages as any,
         temperature: 0.7,
