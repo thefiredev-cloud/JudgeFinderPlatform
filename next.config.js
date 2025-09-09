@@ -111,12 +111,10 @@ const nextConfig = {
 
   // Optimize bundle for legal research platform
   webpack: (config, { dev, isServer }) => {
-    if (!dev && !isServer) {
-      // Production optimizations
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        '@': require('path').resolve(__dirname),
-      }
+    // Set up @ alias for all builds
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname),
     }
     
     // Windows memory optimization to prevent worker process crashes
