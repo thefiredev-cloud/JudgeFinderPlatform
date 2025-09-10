@@ -3,8 +3,7 @@
 
 [build]
   command = "npm install --legacy-peer-deps && npm run build"
-  # Don't specify publish directory - let the Next.js plugin handle it
-  # publish = ".next"
+  publish = ".next"
 
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
@@ -16,8 +15,8 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
   
-  # Don't include .env files - use Netlify environment variables instead
-  # included_files = []
+  # Include environment variables in functions
+  included_files = [".env"]
 
 # Important: Make environment variables available to functions
 [context.production.environment]
