@@ -225,69 +225,105 @@ export async function GET(request: NextRequest) {
 }
 
 async function searchJudges(supabase: any, query: string, limit: number): Promise<JudgeSearchResult[]> {
-  const { data, error } = await supabase
-    .from('judges')
-    .select('id, name, court_name, jurisdiction, total_cases, profile_image_url')
-    .ilike('name', `%${query}%`)
-    .limit(limit)
-    .order('name')
+  try {
+    // Match the working query structure from /api/judges/search
+    const { data, error, count } = await supabase
+      .from('judges')
+      .select('id, name, court_name, jurisdiction, total_cases, profile_image_url, slug', { count: 'exact' })
+      .ilike('name', `%${query}%`)
+      .range(0, limit - 1)
+      .order('name')
 
-  if (error) {
-    logger.error('Error searching judges', { query, error: error.message })
+    if (error) {
+      logger.error('Error searching judges', { 
+        query, 
+        error: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
+      return []
+    }
+
+    logger.info(`Judge search results`, { 
+      query, 
+      resultsFound: data?.length || 0,
+      totalCount: count || 0 
+    })
+
+    return (data || []).map((judge: any): JudgeSearchResult => {
+      // Use slug from database if available, otherwise generate it
+      const slug = judge.slug || judge.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')
+      
+      return {
+        id: judge.id,
+        type: 'judge',
+        title: judge.name,
+        subtitle: judge.court_name || 'Court information pending',
+        description: `${judge.jurisdiction || 'CA'} jurisdiction • ${judge.total_cases || 0} cases`,
+        url: `/judges/${slug}`,
+        court_name: judge.court_name,
+        jurisdiction: judge.jurisdiction || 'CA',
+        total_cases: judge.total_cases || 0,
+        profile_image_url: judge.profile_image_url,
+        relevanceScore: calculateRelevanceScore(query, judge.name)
+      }
+    })
+  } catch (error) {
+    logger.error('Unexpected error in searchJudges', { query, error })
     return []
   }
-
-  return (data || []).map((judge: any): JudgeSearchResult => {
-    const slug = judge.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')
-    
-    return {
-      id: judge.id,
-      type: 'judge',
-      title: judge.name,
-      subtitle: judge.court_name,
-      description: `${judge.jurisdiction} jurisdiction • ${judge.total_cases || 0} cases`,
-      url: `/judges/${slug}`,
-      court_name: judge.court_name,
-      jurisdiction: judge.jurisdiction,
-      total_cases: judge.total_cases,
-      profile_image_url: judge.profile_image_url,
-      relevanceScore: calculateRelevanceScore(query, judge.name)
-    }
-  })
 }
 
 async function searchCourts(supabase: any, query: string, limit: number): Promise<CourtSearchResult[]> {
-  const { data, error } = await supabase
-    .from('courts')
-    .select('id, name, type, jurisdiction, address, phone, website, judge_count')
-    .ilike('name', `%${query}%`)
-    .limit(limit)
-    .order('name')
+  try {
+    const { data, error, count } = await supabase
+      .from('courts')
+      .select('id, name, type, jurisdiction, address, phone, website, judge_count', { count: 'exact' })
+      .ilike('name', `%${query}%`)
+      .range(0, limit - 1)
+      .order('name')
 
-  if (error) {
-    logger.error('Error searching courts', { query, error: error.message })
+    if (error) {
+      logger.error('Error searching courts', { 
+        query, 
+        error: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
+      return []
+    }
+
+    logger.info(`Court search results`, { 
+      query, 
+      resultsFound: data?.length || 0,
+      totalCount: count || 0 
+    })
+
+    return (data || []).map((court: any): CourtSearchResult => {
+      const slug = court.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')
+      
+      return {
+        id: court.id,
+        type: 'court',
+        title: court.name,
+        subtitle: `${court.type || 'Superior'} Court`,
+        description: `${court.jurisdiction || 'CA'} • ${court.judge_count || 0} judges`,
+        url: `/courts/${slug}`,
+        court_type: court.type || 'Superior',
+        jurisdiction: court.jurisdiction || 'CA',
+        address: court.address,
+        judge_count: court.judge_count || 0,
+        phone: court.phone,
+        website: court.website,
+        relevanceScore: calculateRelevanceScore(query, court.name)
+      }
+    })
+  } catch (error) {
+    logger.error('Unexpected error in searchCourts', { query, error })
     return []
   }
-
-  return (data || []).map((court: any): CourtSearchResult => {
-    const slug = court.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')
-    
-    return {
-      id: court.id,
-      type: 'court',
-      title: court.name,
-      subtitle: `${court.type} Court`,
-      description: `${court.jurisdiction} • ${court.judge_count || 0} judges`,
-      url: `/courts/${slug}`,
-      court_type: court.type,
-      jurisdiction: court.jurisdiction,
-      address: court.address,
-      judge_count: court.judge_count,
-      phone: court.phone,
-      website: court.website,
-      relevanceScore: calculateRelevanceScore(query, court.name)
-    }
-  })
 }
 
 async function searchJurisdictions(query: string, limit: number): Promise<JurisdictionSearchResult[]> {

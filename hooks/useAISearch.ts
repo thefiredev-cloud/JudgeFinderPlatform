@@ -98,19 +98,10 @@ export function useAISearch() {
     setError(null)
 
     try {
-      const response = await fetch('/api/search/ai', {
-        method: 'POST',
+      // Use the fixed /api/search endpoint instead of non-existent /api/search/ai
+      const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}&type=all&limit=20&suggestions=false`, {
+        method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: searchQuery,
-          context: {
-            previousQueries: searchMemory.queries.slice(-5),
-            userLocation: searchMemory.preferences.jurisdiction,
-            searchHistory: searchMemory.selectedResults.slice(-10)
-          },
-          includeSuggestions: true,
-          limit: 20
-        }),
         signal: abortControllerRef.current.signal
       })
 
@@ -129,12 +120,23 @@ export function useAISearch() {
         return
       }
 
-      const data: AISearchResponse = await response.json()
+      const data = await response.json()
 
-      setResults(data.results || [])
+      // Map the search response to AISearchResult format
+      const mappedResults: AISearchResult[] = (data.results || []).map((result: any) => ({
+        id: result.id,
+        type: result.type,
+        title: result.title,
+        subtitle: result.subtitle,
+        description: result.description,
+        url: result.url,
+        relevanceScore: result.relevanceScore
+      }))
+
+      setResults(mappedResults)
       setSuggestions(data.suggestions || [])
-      setIntent(data.intent)
-      setConversationalResponse(data.conversationalResponse || null)
+      setIntent(null) // No AI intent from basic search
+      setConversationalResponse(null) // No conversational response from basic search
 
       // Update search memory
       const updatedMemory = {
@@ -171,7 +173,7 @@ export function useAISearch() {
     }
 
     try {
-      const response = await fetch(`/api/search/ai?q=${encodeURIComponent(partialQuery)}`)
+      const response = await fetch(`/api/search?q=${encodeURIComponent(partialQuery)}&suggestions=true&limit=5`)
       if (response.ok) {
         const data = await response.json()
         setSuggestions(data.suggestions || [])
