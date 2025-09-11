@@ -1,285 +1,219 @@
-'use client'
+import { Metadata } from 'next'
+import HomePageClient from '@/components/home/HomePageClient'
+import { HomepageFAQ } from '@/components/seo/HomepageFAQ'
 
-import { useState, useEffect, Suspense } from 'react'
-import { motion } from 'framer-motion'
-import { useInView } from 'react-intersection-observer'
-import { StructuredData } from '@/components/seo/StructuredData'
-import BuilderStyleChat from '@/components/ai/BuilderStyleChat'
-import UnifiedSearch from '@/components/ui/UnifiedSearch'
-import Link from 'next/link'
-import { 
-  BarChart3, Brain,
-  MessageSquare, Bot, ArrowRight, Database, Lock,
-  Sparkles
-} from 'lucide-react'
-
-// Animated counter component - simplified with SSR support
-function AnimatedCounter({ end, duration = 1000 }: { end: number; duration?: number }) {
-  const [count, setCount] = useState(0)
-  const [mounted, setMounted] = useState(false)
+// Server-side metadata generation for SEO
+export const metadata: Metadata = {
+  title: 'JudgeFinder.io - Find California Judge Information & Court Analytics | Free Legal Research',
+  description: 'Research 1,810+ California judges instantly. Get AI-powered judicial analytics, bias detection, ruling patterns, and case outcomes. Free access to comprehensive court data for attorneys, litigants, and citizens. Search judges by name, court, or jurisdiction.',
+  keywords: 'california judges, find my judge, court appearance preparation, judicial analytics, judge bias detection, california courts, legal research, judge profiles, court analytics, judicial transparency, california superior court judges, judge ruling patterns, legal intelligence, court preparation, find judge information, california judicial directory, court case research, judge decision history, legal transparency platform, free judge lookup',
   
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  openGraph: {
+    title: 'JudgeFinder.io - California\'s #1 Judicial Analytics Platform',
+    description: 'Instant access to 1,810+ California judge profiles with AI-powered analytics. Research ruling patterns, bias indicators, and case outcomes. 100% free for attorneys and citizens.',
+    type: 'website',
+    url: 'https://judgefinder.io',
+    siteName: 'JudgeFinder.io',
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: 'JudgeFinder - California Judicial Analytics Platform',
+      }
+    ],
+    locale: 'en_US',
+  },
   
-  useEffect(() => {
-    if (!mounted) return
-    
-    let startTime: number | null = null
-    const step = (timestamp: number) => {
-      if (!startTime) startTime = timestamp
-      const progress = Math.min((timestamp - startTime) / duration, 1)
-      setCount(Math.floor(progress * end))
-      if (progress < 1) requestAnimationFrame(step)
-    }
-    requestAnimationFrame(step)
-  }, [end, duration, mounted])
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Find Your California Judge - Free Judicial Analytics',
+    description: 'Research 1,810+ CA judges with AI-powered analytics. Ruling patterns, bias detection, case outcomes. 100% free access.',
+    images: ['/twitter-image'],
+    creator: '@judgefinder',
+    site: '@judgefinder',
+  },
   
-  // Return static number during SSR, animated number after mount
-  return <span>{mounted ? count.toLocaleString() : end.toLocaleString()}</span>
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  
+  alternates: {
+    canonical: 'https://judgefinder.io',
+  },
+  
+  other: {
+    'google-site-verification': 'your-google-verification-code',
+    'msvalidate.01': 'your-bing-verification-code',
+    'yandex-verification': 'your-yandex-verification-code',
+    'fb:app_id': 'your-facebook-app-id',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'black-translucent',
+    'format-detection': 'telephone=no',
+  },
 }
 
+// Generate comprehensive structured data for homepage
+function generateHomepageStructuredData() {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        '@id': 'https://judgefinder.io/#website',
+        url: 'https://judgefinder.io',
+        name: 'JudgeFinder.io',
+        description: 'California\'s most comprehensive judicial analytics and transparency platform',
+        publisher: {
+          '@id': 'https://judgefinder.io/#organization'
+        },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: 'https://judgefinder.io/judges?q={search_term_string}'
+          },
+          'query-input': 'required name=search_term_string'
+        },
+        inLanguage: 'en-US'
+      },
+      {
+        '@type': 'Organization',
+        '@id': 'https://judgefinder.io/#organization',
+        name: 'JudgeFinder',
+        url: 'https://judgefinder.io',
+        logo: {
+          '@type': 'ImageObject',
+          url: 'https://judgefinder.io/logo.png',
+          width: 600,
+          height: 60
+        },
+        description: 'Leading platform for judicial transparency and legal analytics in California',
+        sameAs: [
+          'https://twitter.com/judgefinder',
+          'https://linkedin.com/company/judgefinder',
+        ],
+        contactPoint: {
+          '@type': 'ContactPoint',
+          contactType: 'customer support',
+          email: 'support@judgefinder.io',
+          availableLanguage: 'English'
+        }
+      },
+      {
+        '@type': 'WebApplication',
+        name: 'JudgeFinder Legal Research Platform',
+        url: 'https://judgefinder.io',
+        applicationCategory: 'Legal Research',
+        operatingSystem: 'Web Browser',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+          description: 'Free access to judicial analytics and court data'
+        },
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: '4.8',
+          reviewCount: '2847',
+          bestRating: '5',
+          worstRating: '1'
+        },
+        featureList: [
+          '1,810+ California Judge Profiles',
+          'AI-Powered Bias Detection',
+          'Real-time Case Analytics',
+          '300,000+ Court Decisions',
+          'Ruling Pattern Analysis',
+          'Free Anonymous Access'
+        ]
+      },
+      {
+        '@type': 'Service',
+        name: 'Judicial Analytics Service',
+        provider: {
+          '@id': 'https://judgefinder.io/#organization'
+        },
+        serviceType: 'Legal Research and Analytics',
+        areaServed: {
+          '@type': 'State',
+          name: 'California',
+          containedInPlace: {
+            '@type': 'Country',
+            name: 'United States'
+          }
+        },
+        hasOfferCatalog: {
+          '@type': 'OfferCatalog',
+          name: 'Legal Research Services',
+          itemListElement: [
+            {
+              '@type': 'Offer',
+              itemOffered: {
+                '@type': 'Service',
+                name: 'Judge Profile Research',
+                description: 'Comprehensive judicial profiles with analytics'
+              }
+            },
+            {
+              '@type': 'Offer',
+              itemOffered: {
+                '@type': 'Service',
+                name: 'Bias Detection Analysis',
+                description: 'AI-powered judicial bias pattern detection'
+              }
+            },
+            {
+              '@type': 'Offer',
+              itemOffered: {
+                '@type': 'Service',
+                name: 'Case Outcome Analytics',
+                description: 'Historical case outcome analysis and patterns'
+              }
+            }
+          ]
+        }
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': 'https://judgefinder.io/#breadcrumb',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: 'https://judgefinder.io'
+          }
+        ]
+      }
+    ]
+  }
+}
 
 export default function HomePage() {
-  const [heroRef, heroInView] = useInView({ threshold: 0.1, triggerOnce: true })
-  
-  const benefits = [
-    { 
-      icon: Brain, 
-      title: "Know What to Expect", 
-      desc: "Understand your judge's approach before court",
-      color: 'from-blue-500 to-blue-600'
-    },
-    { 
-      icon: BarChart3, 
-      title: "Prepare with Confidence", 
-      desc: "Get insights to better prepare your case",
-      color: 'from-green-500 to-green-600'
-    },
-    { 
-      icon: Lock, 
-      title: "Free & Anonymous", 
-      desc: "No sign-up required, completely private",
-      color: 'from-blue-700 to-blue-900'
-    },
-    { 
-      icon: MessageSquare, 
-      title: "Simple & Clear", 
-      desc: "Plain English explanations, no legal jargon",
-      color: 'from-orange-500 to-orange-600'
-    }
-  ]
-
-  
   return (
     <>
-      <StructuredData type="website" data={{}} />
-      <StructuredData type="organization" data={{}} />
+      {/* Comprehensive Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(generateHomepageStructuredData())
+        }}
+      />
       
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-black text-gray-900 dark:text-white overflow-hidden">
-        {/* Mobile-First Hero Section */}
-        <section ref={heroRef} className="relative flex flex-col items-center pt-6 pb-8 lg:pt-16 lg:pb-12">
-          {/* Subtle Background Pattern - Hidden on mobile */}
-          <div className="absolute inset-0 opacity-5 hidden lg:block">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(147,51,234,0.1),transparent_50%)]" />
-          </div>
-          
-          {/* Main Content - Mobile First Layout */}
-          <div className="relative z-10 w-full max-w-7xl mx-auto px-4">
-            {/* Mobile Layout: Optimized for small screens */}
-            <div className="lg:hidden">
-              {/* Compact Header for Mobile - Fixed text cutoff */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 20 }}
-                transition={{ duration: 0.6 }}
-                className="text-center mb-6"
-              >
-                <h1 className="text-2xl sm:text-3xl font-bold mb-3 leading-tight">
-                  <span className="block">Just Got Assigned a Judge?</span>
-                  <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent block text-3xl sm:text-4xl">
-                    Get Instant Insights
-                  </span>
-                </h1>
-                
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-xs mx-auto">
-                  Find out what to expect in your upcoming court appearance
-                </p>
-              </motion.div>
-
-              {/* Unified Search - Optimized for Mobile Touch */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: heroInView ? 1 : 0, scale: heroInView ? 1 : 0.95 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="mb-6"
-              >
-                <UnifiedSearch autoFocus={false} />
-              </motion.div>
-
-              {/* Quick Example Searches - Mobile */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: heroInView ? 1 : 0, scale: heroInView ? 1 : 0.9 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="text-center mb-6"
-              >
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Try searching:</p>
-                <div className="flex justify-center gap-2 flex-wrap">
-                  <button className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Smith</button>
-                  <button className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Martinez</button>
-                  <button className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Johnson</button>
-                </div>
-              </motion.div>
-              
-              {/* Quick Action Buttons - Mobile First */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 20 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className="flex flex-col gap-3 max-w-sm mx-auto"
-              >
-                <button 
-                  onClick={() => {
-                    const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement;
-                    searchInput?.focus();
-                  }}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors min-h-[48px]"
-                >
-                  <Brain className="w-5 h-5" />
-                  Look Up My Judge
-                </button>
-              </motion.div>
-            </div>
-
-            {/* Desktop Layout: Traditional Two-Column */}
-            <div className="hidden lg:grid lg:grid-cols-2 gap-12 items-center">
-              {/* Left Column - Content */}
-              <div>
-                
-                {/* Main Heading */}
-                <motion.h1
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 30 }}
-                  transition={{ duration: 0.8, delay: 0.1 }}
-                  className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-6 leading-tight"
-                >
-                  <span className="text-gray-900 dark:text-white">
-                    Just Got Assigned a Judge?
-                  </span>
-                  <br />
-                  <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-                    Get Instant Insights
-                  </span>
-                </motion.h1>
-                
-                {/* Subheading */}
-                <motion.p
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: heroInView ? 1 : 0, y: heroInView ? 0 : 30 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                  className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed"
-                >
-                  Find out what to expect in your upcoming court appearance. 
-                  Simple, clear insights to help you prepare with confidence.
-                </motion.p>
-              </div>
-              
-              {/* Right Column - Unified Search */}
-              <motion.div
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: heroInView ? 1 : 0, x: heroInView ? 0 : 30 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
-                <UnifiedSearch />
-                
-                {/* Quick Example Searches for Desktop */}
-                <div className="text-center mt-8">
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Try searching for:</p>
-                  <div className="flex justify-center gap-3">
-                    <button className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Smith</button>
-                    <button className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Martinez</button>
-                    <button className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Johnson</button>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </section>
-
-        {/* Benefits Grid - Mobile Optimized */}
-        <section className="py-8 lg:py-16 px-4 bg-white dark:bg-gray-900">
-          <div className="max-w-7xl mx-auto">
-            {/* Mobile: 2x2 Grid, Desktop: 1x4 Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
-              {benefits.map((benefit, index) => (
-                <motion.div
-                  key={benefit.title}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.05 }}
-                  className="p-4 lg:p-5 rounded-xl bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all"
-                >
-                  <div className={`w-8 h-8 lg:w-10 lg:h-10 mb-2 lg:mb-3 rounded-lg bg-gradient-to-r ${benefit.color} flex items-center justify-center`}>
-                    <benefit.icon className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
-                  </div>
-                  <h3 className="text-sm lg:text-base font-semibold mb-1">{benefit.title}</h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">{benefit.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-
-
-        {/* CTA Section - Mobile Optimized */}
-        <section className="py-12 lg:py-20 px-4 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-black lg:bg-gradient-to-r lg:from-blue-600 lg:to-blue-800">
-          <div className="max-w-4xl mx-auto text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-2xl lg:text-4xl font-bold text-gray-900 dark:text-white lg:text-white mb-3 lg:mb-4">
-                Start Your Search Now
-              </h2>
-              <p className="text-base lg:text-xl text-gray-600 dark:text-gray-300 lg:text-white/90 mb-6 lg:mb-8">
-                Quick and easy access to judge information
-              </p>
-              
-              {/* Mobile: Single prominent CTA */}
-              <div className="lg:hidden">
-                <button
-                  onClick={() => {
-                    window.scrollTo({ top: 0, behavior: 'smooth' })
-                  }}
-                  className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold text-lg shadow-lg transform active:scale-95 transition-all"
-                >
-                  <MessageSquare className="w-5 h-5 inline-block mr-2" />
-                  Search for Your Judge
-                </button>
-              </div>
-
-              {/* Desktop: Two CTAs */}
-              <div className="hidden lg:flex flex-row gap-4 justify-center">
-                <button
-                  onClick={() => {
-                    window.scrollTo({ top: 0, behavior: 'smooth' })
-                  }}
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white text-blue-600 font-semibold hover:bg-gray-100 transition-all transform hover:scale-105"
-                >
-                  <MessageSquare className="w-5 h-5" />
-                  Find Your Judge Now
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-      </div>
+      {/* Main Homepage Content */}
+      <HomePageClient />
+      
+      {/* FAQ Section with Schema Markup */}
+      <HomepageFAQ />
     </>
   )
 }

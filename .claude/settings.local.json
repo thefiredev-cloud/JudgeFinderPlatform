@@ -182,7 +182,10 @@
       "WebFetch(domain:app.netlify.com)",
       "Bash(npm update:*)",
       "Bash(npm uninstall:*)",
-      "Bash(npm ci:*)"
+      "Bash(npm ci:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(del \"C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform\\data\\PROJECT_INDEX.json\")",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": [],
