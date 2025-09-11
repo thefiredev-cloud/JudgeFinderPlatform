@@ -153,7 +153,6 @@ judges-backup-*.json
 database-integrity-report.json
 court-judge-validation-report.json
 /data/*.json
-!/data/PROJECT_INDEX.json
 /reports/
 
 # Temporary Scripts
