@@ -2,6 +2,9 @@ import { createServerClient } from '@/lib/supabase/server'
 import { CourtsPageClient } from '@/components/courts/CourtsPageClient'
 import type { Metadata } from 'next'
 
+// Force dynamic rendering since we need to query the database with cookies
+export const dynamic = 'force-dynamic'
+
 interface Court {
   id: string
   name: string

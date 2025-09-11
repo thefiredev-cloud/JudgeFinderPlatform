@@ -2,6 +2,9 @@ import type { MetadataRoute } from 'next'
 import { createServerClient } from '@/lib/supabase/server'
 import { createCanonicalSlug } from '@/lib/utils/slug'
 
+// Force dynamic rendering since we need to query the database
+export const dynamic = 'force-dynamic'
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://judgefinder.io').replace(/\/$/, '')
   const supabase = await createServerClient()

@@ -9,8 +9,8 @@
   NEXT_TELEMETRY_DISABLED = "1"
   # Ensure Next.js uses the correct Node version
   NODE_VERSION = "18"
-  # Exclude build output from secrets scanning (only scan source files)
-  SECRETS_SCAN_OMIT_PATHS = ".next/**,netlify/functions/**"
+  # Exclude build output from secrets scanning - scan source files only
+  SECRETS_SCAN_OMIT_PATHS = ".next/**,.netlify/**,netlify/**,_next/**,*.js.map"
 
 # Functions configuration
 [functions]
