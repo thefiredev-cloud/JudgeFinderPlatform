@@ -107,6 +107,7 @@ const UnifiedSearch: React.FC<UnifiedSearchProps> = ({
             flex-1 py-3 lg:py-4 pr-2
             bg-transparent
             text-base lg:text-base font-medium
+            text-gray-900 dark:text-white
             placeholder:text-gray-400 dark:placeholder:text-gray-500
             focus:outline-none
             appearance-none
