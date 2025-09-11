@@ -30,13 +30,13 @@ const BottomNavigation = () => {
     },
     { 
       name: 'Saved', 
-      href: isSignedIn ? '/dashboard' : '/sign-in', 
+      href: isSignedIn ? '/dashboard' : '/auth/login', 
       icon: Bookmark,
       activeGradient: 'from-blue-600 to-blue-700'
     },
     { 
       name: 'Account', 
-      href: isSignedIn ? '/profile' : '/sign-in', 
+      href: isSignedIn ? '/profile' : '/auth/login', 
       icon: User,
       activeGradient: 'from-blue-600 to-blue-700'
     },

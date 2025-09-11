@@ -49,7 +49,7 @@ async function getAdvertiserStats(advertiserId: string): Promise<AdvertiserDashb
 export default async function AdvertiserDashboardPage() {
   const user = await currentUser()
   if (!user) {
-    redirect('/sign-in')
+    redirect('/auth/login')
   }
 
   // Get or check advertiser profile

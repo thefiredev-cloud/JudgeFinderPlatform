@@ -9,7 +9,7 @@ export default async function DashboardPage() {
   const user = await currentUser()
 
   if (!userId) {
-    redirect('/sign-in')
+    redirect('/auth/login')
   }
 
   // Serialize the user data to pass to client component

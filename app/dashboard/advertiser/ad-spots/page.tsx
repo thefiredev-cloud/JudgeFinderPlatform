@@ -15,7 +15,7 @@ interface PageProps {
 export default async function AdSpotsPage({ searchParams }: PageProps) {
   const user = await currentUser()
   if (!user) {
-    redirect('/sign-in')
+    redirect('/auth/login')
   }
 
   const advertiserProfile = await getOrCreateAdvertiserProfile()

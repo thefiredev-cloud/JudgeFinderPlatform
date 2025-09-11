@@ -45,7 +45,7 @@ export default async function BookmarksPage() {
   const { userId } = await auth()
 
   if (!userId) {
-    redirect('/sign-in')
+    redirect('/auth/login')
   }
 
   const bookmarkedJudges = await getUserBookmarks(userId)

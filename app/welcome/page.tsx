@@ -8,7 +8,7 @@ export default async function WelcomePage() {
   const user = await currentUser()
 
   if (!userId) {
-    redirect('/sign-in')
+    redirect('/auth/login')
   }
 
   // Check if user is admin
