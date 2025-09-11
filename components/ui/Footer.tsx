@@ -3,37 +3,107 @@
 import Link from 'next/link'
 
 export function Footer() {
+  const popularCounties = [
+    'Los Angeles', 'Orange', 'San Diego', 'San Bernardino', 
+    'Riverside', 'Santa Clara'
+  ]
+  
   return (
     <footer className="bg-muted/50 text-muted-foreground border-t border-border pb-20 md:pb-0">
-      {/* Simplified Footer */}
       <div className="container mx-auto px-4 py-6 md:py-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          {/* Company Info */}
-          <div className="text-center md:text-left">
-            <h3 className="text-sm font-semibold text-foreground">JudgeFinder.io</h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              Find information about your assigned judge
-            </p>
+        {/* SEO-Optimized Links Section */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {/* Quick Links */}
+          <div>
+            <h3 className="text-xs font-semibold text-foreground mb-2">Find Judges</h3>
+            <ul className="space-y-1">
+              <li>
+                <Link href="/judges" className="text-xs hover:text-foreground transition-colors">
+                  All CA Judges
+                </Link>
+              </li>
+              <li>
+                <Link href="/compare" className="text-xs hover:text-foreground transition-colors">
+                  Compare Judges
+                </Link>
+              </li>
+              <li>
+                <Link href="/courts" className="text-xs hover:text-foreground transition-colors">
+                  Courts Directory
+                </Link>
+              </li>
+            </ul>
           </div>
-
-          {/* Legal Links */}
-          <div className="flex items-center justify-center md:justify-end gap-4 md:gap-6">
-            <Link href="/privacy" className="text-xs hover:text-foreground transition-colors">
-              Privacy
-            </Link>
-            <Link href="/terms" className="text-xs hover:text-foreground transition-colors">
-              Terms
-            </Link>
-            <Link href="/contact" className="text-xs hover:text-foreground transition-colors">
-              Contact
-            </Link>
+          
+          {/* Popular Counties */}
+          <div>
+            <h3 className="text-xs font-semibold text-foreground mb-2">Top Counties</h3>
+            <ul className="space-y-1">
+              {popularCounties.slice(0, 3).map(county => (
+                <li key={county}>
+                  <Link 
+                    href={`/jurisdictions/${county.toLowerCase().replace(/\s+/g, '-')}-county`}
+                    className="text-xs hover:text-foreground transition-colors"
+                  >
+                    {county} County
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          {/* Resources */}
+          <div>
+            <h3 className="text-xs font-semibold text-foreground mb-2">Resources</h3>
+            <ul className="space-y-1">
+              <li>
+                <Link href="/about" className="text-xs hover:text-foreground transition-colors">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/analytics" className="text-xs hover:text-foreground transition-colors">
+                  Analytics
+                </Link>
+              </li>
+              <li>
+                <Link href="/sitemap.xml" className="text-xs hover:text-foreground transition-colors">
+                  Sitemap
+                </Link>
+              </li>
+            </ul>
+          </div>
+          
+          {/* Legal */}
+          <div>
+            <h3 className="text-xs font-semibold text-foreground mb-2">Legal</h3>
+            <ul className="space-y-1">
+              <li>
+                <Link href="/privacy" className="text-xs hover:text-foreground transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="text-xs hover:text-foreground transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="text-xs hover:text-foreground transition-colors">
+                  Contact
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
-
-        {/* Copyright */}
-        <div className="mt-4 pt-4 border-t border-border/50 text-center">
+        
+        {/* SEO Description */}
+        <div className="text-center py-3 border-t border-border/50">
+          <p className="text-xs text-muted-foreground mb-2">
+            JudgeFinder.io - Research 1,810+ California judges with AI-powered analytics and bias detection
+          </p>
           <p className="text-xs text-muted-foreground">
-            &copy; 2024 JudgeFinder.io. All rights reserved.
+            &copy; {new Date().getFullYear()} JudgeFinder. Free judicial transparency for California citizens.
           </p>
         </div>
       </div>
