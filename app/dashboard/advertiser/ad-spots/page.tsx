@@ -6,10 +6,10 @@ import AdSpotsExplorer from '@/components/dashboard/AdSpotsExplorer'
 export const dynamic = 'force-dynamic'
 
 interface PageProps {
-  searchParams: {
+  searchParams: Promise<{
     plan?: string
     preselected?: string
-  }
+  }>
 }
 
 export default async function AdSpotsPage({ searchParams }: PageProps) {
@@ -24,7 +24,8 @@ export default async function AdSpotsPage({ searchParams }: PageProps) {
     redirect('/dashboard/advertiser/onboarding')
   }
 
-  const { plan, preselected } = searchParams
+  const resolvedSearchParams = await searchParams
+  const { plan, preselected } = resolvedSearchParams
   const showPlanContext = preselected === 'true'
 
   return (

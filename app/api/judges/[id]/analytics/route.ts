@@ -45,16 +45,17 @@ interface CaseAnalytics {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params
     const supabase = await createServerClient()
     
     // Get judge data
     const { data: judge, error: judgeError } = await supabase
       .from('judges')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', resolvedParams.id)
       .single()
 
     if (judgeError || !judge) {
@@ -65,11 +66,11 @@ export async function GET(
     }
 
     // Check if we have cached analytics (less than 7 days old for real data)
-    const cachedData = await getCachedAnalytics(supabase, params.id)
+    const cachedData = await getCachedAnalytics(supabase, resolvedParams.id)
     
     // Only use cached data if it has the new format (with confidence fields)
     if (cachedData && isDataFresh(cachedData.created_at, 7 * 24) && cachedData.analytics.confidence_civil) { // 7 days
-      console.log(`📊 Using cached analytics for judge ${params.id}`)
+      console.log(`📊 Using cached analytics for judge ${resolvedParams.id}`)
       return NextResponse.json({ 
         analytics: cachedData.analytics,
         cached: true,
@@ -78,7 +79,7 @@ export async function GET(
       })
     }
     
-    console.log(`🔄 Regenerating analytics for judge ${params.id} (${cachedData ? 'old format' : 'no cache'})`)
+    console.log(`🔄 Regenerating analytics for judge ${resolvedParams.id} (${cachedData ? 'old format' : 'no cache'})`)
 
     // Get cases for this judge from the last 3 years (2022-2025)
     const threeYearsAgo = new Date()
@@ -88,7 +89,7 @@ export async function GET(
     const { data: cases, error: casesError } = await supabase
       .from('cases')
       .select('*')
-      .eq('judge_id', params.id)
+      .eq('judge_id', resolvedParams.id)
       .gte('filing_date', threeYearsAgoDate) // Only cases filed in last 3 years
       .order('filing_date', { ascending: false })
       .limit(500) // Increased limit for 3-year data
@@ -110,7 +111,7 @@ export async function GET(
     }
 
     // Cache the results
-    await cacheAnalytics(supabase, params.id, analytics)
+    await cacheAnalytics(supabase, resolvedParams.id, analytics)
 
     return NextResponse.json({ 
       analytics,
@@ -521,9 +522,10 @@ function isDataFresh(createdAt: string, maxAgeHours: number): boolean {
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params
     const { searchParams } = new URL(request.url)
     const forceRefresh = searchParams.get('force') === 'true'
     
@@ -540,10 +542,10 @@ export async function POST(
     await supabase
       .from('judge_analytics_cache')
       .delete()
-      .eq('judge_id', params.id)
+      .eq('judge_id', resolvedParams.id)
 
     // Regenerate analytics
-    const response = await GET(request, { params })
+    const response = await GET(request, { params: Promise.resolve(resolvedParams) })
     const data = await response.json()
     
     return NextResponse.json({

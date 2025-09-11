@@ -5,10 +5,11 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const judgeId = params.id
+    const resolvedParams = await params
+    const judgeId = resolvedParams.id
     const { searchParams } = new URL(request.url)
     const limitParam = searchParams.get('limit')
     const limit = Math.min(Math.max(parseInt(limitParam || '4', 10) || 4, 1), 25)

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { Component, ErrorInfo, ReactNode } from 'react'
+import Link from 'next/link'
 
 interface Props {
   children: ReactNode
@@ -113,12 +114,12 @@ export class GlobalErrorBoundary extends Component<Props, State> {
                 Refresh Page
               </button>
               
-              <a
+              <Link
                 href="/"
                 className="block w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors"
               >
                 Return Home
-              </a>
+              </Link>
             </div>
 
             {process.env.NODE_ENV === 'development' && this.state.error && (

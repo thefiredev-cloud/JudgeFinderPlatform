@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     if (!signature || !verifyWebhookSignature(body, signature)) {
       logger.warn('Invalid webhook signature', { 
         hasSignature: !!signature,
-        ip: request.ip
+        ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
       })
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }

@@ -159,9 +159,9 @@ export default function Page() {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-400">
                 New to JudgeFinder?{' '}
-                <a href="/sign-up" className="text-blue-400 hover:text-blue-300 font-medium">
+                <Link href="/sign-up" className="text-blue-400 hover:text-blue-300 font-medium">
                   Create your free account
-                </a>
+                </Link>
               </p>
             </div>
           </div>

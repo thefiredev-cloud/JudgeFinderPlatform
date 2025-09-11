@@ -4,7 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 export const dynamic = 'force-dynamic'
 
 interface BiasAnalysisParams {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 interface CaseTypePattern {
@@ -53,8 +53,9 @@ interface BiasMetrics {
 
 export async function GET(request: NextRequest, { params }: BiasAnalysisParams) {
   try {
+    const resolvedParams = await params
     const supabase = await createServerClient()
-    const judgeId = params.id
+    const judgeId = resolvedParams.id
 
     // Verify judge exists
     const { data: judge, error: judgeError } = await supabase

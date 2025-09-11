@@ -1,4 +1,5 @@
 import { CustomSignUp } from '@/components/auth/CustomSignUp'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -144,9 +145,9 @@ export default function Page() {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-400">
                 Already have an account?{' '}
-                <a href="/sign-in" className="text-blue-400 hover:text-blue-300 font-medium">
+                <Link href="/sign-in" className="text-blue-400 hover:text-blue-300 font-medium">
                   Sign in here
-                </a>
+                </Link>
               </p>
             </div>
 

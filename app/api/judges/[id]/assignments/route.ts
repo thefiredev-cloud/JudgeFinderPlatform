@@ -6,9 +6,10 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params
     const supabase = await createServerClient()
     const { searchParams } = new URL(request.url)
     const includeHistory = searchParams.get('history') === 'true'
@@ -16,7 +17,7 @@ export async function GET(
 
     // Get current assignments
     const { data: currentAssignments, error: currentError } = await supabase
-      .rpc('get_current_court_assignments', { judge_uuid: params.id })
+      .rpc('get_current_court_assignments', { judge_uuid: resolvedParams.id })
 
     if (currentError) {
       console.error('Error fetching current assignments:', currentError)
@@ -50,7 +51,7 @@ export async function GET(
     // Get assignment history if requested
     if (includeHistory) {
       const { data: assignmentHistory, error: historyError } = await supabase
-        .rpc('get_judge_assignment_history', { judge_uuid: params.id, years_back: yearsBack })
+        .rpc('get_judge_assignment_history', { judge_uuid: resolvedParams.id, years_back: yearsBack })
 
       if (historyError) {
         console.error('Error fetching assignment history:', historyError)
@@ -76,9 +77,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params
     const supabase = await createServerClient()
     const body = await request.json()
 
@@ -109,7 +111,7 @@ export async function POST(
     // Validate assignment using the database function
     const { data: validation, error: validationError } = await supabase
       .rpc('validate_court_assignment', {
-        p_judge_id: params.id,
+        p_judge_id: resolvedParams.id,
         p_court_id: court_id,
         p_assignment_type: assignment_type,
         p_start_date: assignment_start_date,
@@ -136,7 +138,7 @@ export async function POST(
 
     // Create the assignment
     const assignmentData = {
-      judge_id: params.id,
+      judge_id: resolvedParams.id,
       court_id,
       assignment_start_date,
       assignment_end_date,

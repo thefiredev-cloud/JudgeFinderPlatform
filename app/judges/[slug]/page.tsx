@@ -170,20 +170,22 @@ async function getJudgeFallback(slug: string): Promise<Judge | null> {
 }
 
 interface JudgePageProps {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 export default async function JudgePage({ params }: JudgePageProps) {
+  const resolvedParams = await params
+  
   // Add param validation
-  if (!params.slug || typeof params.slug !== 'string') {
-    console.error('Invalid slug parameter:', params.slug)
+  if (!resolvedParams.slug || typeof resolvedParams.slug !== 'string') {
+    console.error('Invalid slug parameter:', resolvedParams.slug)
     notFound()
   }
 
-  const judge = await getJudge(params.slug)
+  const judge = await getJudge(resolvedParams.slug)
 
   if (!judge) {
-    console.log(`Judge not found for slug: ${params.slug}`)
+    console.log(`Judge not found for slug: ${resolvedParams.slug}`)
     notFound()
   }
 
@@ -195,8 +197,8 @@ export default async function JudgePage({ params }: JudgePageProps) {
 
   // Check if current URL is canonical and redirect if necessary
   const canonicalSlug = judge.slug || createCanonicalSlug(judge.name)
-  if (params.slug !== canonicalSlug) {
-    console.log(`Redirecting from non-canonical slug ${params.slug} to canonical ${canonicalSlug}`)
+  if (resolvedParams.slug !== canonicalSlug) {
+    console.log(`Redirecting from non-canonical slug ${resolvedParams.slug} to canonical ${canonicalSlug}`)
     redirect(`/judges/${canonicalSlug}`)
   }
 
@@ -217,7 +219,7 @@ export default async function JudgePage({ params }: JudgePageProps) {
       <SEOMonitoring 
         judgeName={safeName}
         jurisdiction={safeJurisdiction}
-        slug={params.slug}
+        slug={resolvedParams.slug}
       />
       
       {/* Enhanced Comprehensive Structured Data for Maximum SEO Dominance */}
@@ -369,12 +371,14 @@ function getCoordinatesForJurisdiction(jurisdiction: string): string {
 }
 
 interface MetadataProps {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 export async function generateMetadata({ params }: MetadataProps) {
+  const resolvedParams = await params
+  
   // Validate params
-  if (!params.slug || typeof params.slug !== 'string') {
+  if (!resolvedParams.slug || typeof resolvedParams.slug !== 'string') {
     return {
       title: 'Invalid Request | JudgeFinder',
       description: 'The requested page is invalid. Please check the URL and try again.',
@@ -385,7 +389,7 @@ export async function generateMetadata({ params }: MetadataProps) {
     }
   }
 
-  const judge = await getJudge(params.slug)
+  const judge = await getJudge(resolvedParams.slug)
   
   if (!judge) {
     return {
@@ -403,7 +407,7 @@ export async function generateMetadata({ params }: MetadataProps) {
     ? 'https://judgefinder.io' 
     : 'http://localhost:3005'
     
-  const seoData = generateJudgeMetadata(judge, params, baseUrl)
+  const seoData = generateJudgeMetadata(judge, resolvedParams, baseUrl)
   
   // Additional safety checks for metadata generation
   const safeName = judge.name || 'Unknown Judge'

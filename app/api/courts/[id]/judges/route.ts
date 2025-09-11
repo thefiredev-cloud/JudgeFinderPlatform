@@ -32,13 +32,14 @@ interface CourtJudgesResponse {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const startTime = Date.now()
   
   try {
+    const resolvedParams = await params
     // Validate court ID parameter
-    const paramsValidation = validateParams(courtIdParamsSchema, params, 'courts/[id]/judges')
+    const paramsValidation = validateParams(courtIdParamsSchema, resolvedParams, 'courts/[id]/judges')
     if (!paramsValidation.success) {
       return paramsValidation.response
     }
@@ -173,11 +174,11 @@ export async function GET(
   } catch (error) {
     const duration = Date.now() - startTime
     logger.error('API error in courts/[id]/judges', { 
-      courtId: params.id,
+      courtId: (await params).id,
       duration 
     }, error instanceof Error ? error : undefined)
     
-    logger.apiResponse('GET', `/api/courts/${params.id}/judges`, 500, duration)
+    logger.apiResponse('GET', `/api/courts/${(await params).id}/judges`, 500, duration)
     
     return NextResponse.json(
       { error: 'Internal server error' },
