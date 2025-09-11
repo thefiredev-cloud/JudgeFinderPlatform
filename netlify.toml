@@ -2,7 +2,7 @@
 # https://docs.netlify.com/configure-builds/file-based-configuration/
 
 [build]
-  command = "npm install --legacy-peer-deps && npm run build"
+  command = "npm ci --legacy-peer-deps && npm run build"
   publish = ".next"
 
 [build.environment]
@@ -14,9 +14,6 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
-  
-  # Include environment variables in functions
-  included_files = [".env"]
 
 # Important: Make environment variables available to functions
 [context.production.environment]
