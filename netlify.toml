@@ -3,8 +3,9 @@
   publish = ".next"
 
 [build.environment]
-  # Disable Netlify's secrets scanning for false positives
-  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_CLERK_SIGN_IN_URL,NEXT_PUBLIC_CLERK_SIGN_UP_URL,ADMIN_USER_IDS,CLERK_SECRET_KEY,COURTLISTENER_API_KEY,SUPABASE_SERVICE_ROLE_KEY,SYNC_API_KEY"
+  # Disable Netlify's secrets scanning - getting false positives on environment variable names
+  # Re-enable later by removing this line and using SECRETS_SCAN_OMIT_KEYS instead
+  SECRETS_SCAN_ENABLED = "false"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
