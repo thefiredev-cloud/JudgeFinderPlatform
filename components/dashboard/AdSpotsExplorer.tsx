@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Search, Filter, MapPin, Users, TrendingUp, Calendar, ChevronRight, Star } from 'lucide-react'
 import AdSpotBookingModal from './AdSpotBookingModal'
 import type { AdSpotWithDetails } from '@/types/advertising'
@@ -27,11 +27,7 @@ export default function AdSpotsExplorer({ advertiserId, preselectedPlan, showPla
   const [selectedSpot, setSelectedSpot] = useState<AdSpotWithDetails | null>(null)
   const [showBookingModal, setShowBookingModal] = useState(false)
 
-  useEffect(() => {
-    fetchAdSpots()
-  }, [entityType, courtLevel, priceRange, jurisdiction])
-
-  async function fetchAdSpots() {
+  const fetchAdSpots = useCallback(async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams({
@@ -52,7 +48,11 @@ export default function AdSpotsExplorer({ advertiserId, preselectedPlan, showPla
     } finally {
       setLoading(false)
     }
-  }
+  }, [entityType, courtLevel, priceRange, jurisdiction])
+
+  useEffect(() => {
+    fetchAdSpots()
+  }, [fetchAdSpots])
 
   const filteredSpots = spots.filter(spot => {
     if (searchQuery) {

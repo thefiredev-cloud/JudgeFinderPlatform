@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { ExternalLink, Briefcase, Phone, Mail, Award, Shield, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface CourtAdvertiserSlotsProps {
   courtId: string
@@ -34,11 +35,7 @@ export function CourtAdvertiserSlots({ courtId, courtName }: CourtAdvertiserSlot
   const [slots, setSlots] = useState<AdSlot[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchAdSlots()
-  }, [courtId])
-
-  async function fetchAdSlots() {
+  const fetchAdSlots = useCallback(async () => {
     try {
       setLoading(true)
       // Fetch active ad slots for this court
@@ -58,7 +55,11 @@ export function CourtAdvertiserSlots({ courtId, courtName }: CourtAdvertiserSlot
     } finally {
       setLoading(false)
     }
-  }
+  }, [courtId])
+
+  useEffect(() => {
+    fetchAdSlots()
+  }, [fetchAdSlots])
 
   function getDemoSlots(): AdSlot[] {
     return [
@@ -133,10 +134,12 @@ export function CourtAdvertiserSlots({ courtId, courtName }: CourtAdvertiserSlot
                   </p>
                 </div>
                 {slot.advertiser.logo_url && (
-                  <img
+                  <Image
                     src={slot.advertiser.logo_url}
                     alt={slot.advertiser.firm_name}
-                    className="w-12 h-12 object-contain"
+                    width={48}
+                    height={48}
+                    className="object-contain"
                   />
                 )}
               </div>
