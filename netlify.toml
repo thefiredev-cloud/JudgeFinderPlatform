@@ -78,12 +78,7 @@
   to = "/judges/:splat"
   status = 301
 
-# PWA fallback for offline
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  conditions = {Role = ["offline"]}
+# Note: PWA offline fallback removed - Next.js handles routing
 
 # Important: Plugin configuration
 [[plugins]]
