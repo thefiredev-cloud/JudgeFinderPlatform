@@ -45,8 +45,8 @@ export function Providers({ children }: { children: ReactNode }) {
     return (
       <ClerkProvider
         publishableKey={clerkPublishableKey}
-        signInUrl="/sign-in"
-        signUpUrl="/sign-up"
+        signInUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL || '/auth/login'}
+        signUpUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL || '/auth/register'}
         signInFallbackRedirectUrl="/dashboard"
         signUpFallbackRedirectUrl="/welcome"
       >

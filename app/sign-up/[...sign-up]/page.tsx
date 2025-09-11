@@ -143,7 +143,7 @@ export default function Page() {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-400">
                 Already have an account?{' '}
-                <Link href="/sign-in" className="text-blue-400 hover:text-blue-300 font-medium">
+                <Link href="/auth/login" className="text-blue-400 hover:text-blue-300 font-medium">
                   Sign in here
                 </Link>
               </p>
