@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
+import { useRouter } from 'next/navigation'
 import BuilderStyleChat from '@/components/ai/BuilderStyleChat'
 import UnifiedSearch from '@/components/ui/UnifiedSearch'
 import Link from 'next/link'
@@ -39,6 +40,7 @@ function AnimatedCounter({ end, duration = 1000 }: { end: number; duration?: num
 }
 
 export default function HomePageClient() {
+  const router = useRouter()
   const [heroRef, heroInView] = useInView({ threshold: 0.1, triggerOnce: true })
   
   const benefits = [
@@ -120,9 +122,9 @@ export default function HomePageClient() {
             >
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Try searching:</p>
               <div className="flex justify-center gap-2 flex-wrap">
-                <button className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Smith</button>
-                <button className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Martinez</button>
-                <button className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Johnson</button>
+                <button onClick={() => router.push('/search?q=Judge%20Smith')} className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Smith</button>
+                <button onClick={() => router.push('/search?q=Judge%20Martinez')} className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Martinez</button>
+                <button onClick={() => router.push('/search?q=Judge%20Johnson')} className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Johnson</button>
               </div>
             </motion.div>
             
@@ -191,9 +193,9 @@ export default function HomePageClient() {
               <div className="text-center mt-8">
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Try searching for:</p>
                 <div className="flex justify-center gap-3">
-                  <button className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Smith</button>
-                  <button className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Martinez</button>
-                  <button className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Johnson</button>
+                  <button onClick={() => router.push('/search?q=Judge%20Smith')} className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Smith</button>
+                  <button onClick={() => router.push('/search?q=Judge%20Martinez')} className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Martinez</button>
+                  <button onClick={() => router.push('/search?q=Judge%20Johnson')} className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">Judge Johnson</button>
                 </div>
               </div>
             </motion.div>

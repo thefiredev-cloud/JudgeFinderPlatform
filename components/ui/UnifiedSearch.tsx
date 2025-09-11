@@ -25,9 +25,9 @@ const UnifiedSearch: React.FC<UnifiedSearchProps> = ({
   const handleSearch = () => {
     if (!query.trim()) return
 
-    // Route to judge search
+    // Route to search results page
     const searchQuery = query.trim()
-    router.push(`/judges?search=${encodeURIComponent(searchQuery)}`)
+    router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

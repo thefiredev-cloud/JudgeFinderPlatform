@@ -316,9 +316,9 @@ export function SearchSection() {
         <p className="text-sm text-muted-foreground mb-4">Popular searches:</p>
         <div className="flex flex-wrap justify-center gap-2">
           {[
-            { term: 'California Superior Court', type: 'court', url: '/courts' },
+            { term: 'California Superior Court', type: 'court', url: '/search?q=California%20Superior%20Court&type=court' },
             { term: 'Los Angeles County', type: 'jurisdiction', url: '/jurisdictions/los-angeles-county' },
-            { term: 'Federal Court', type: 'court', url: '/jurisdictions/federal' },
+            { term: 'Federal Court', type: 'court', url: '/search?q=Federal%20Court&type=court' },
             { term: 'Orange County', type: 'jurisdiction', url: '/jurisdictions/orange-county' }
           ].map(({ term, type, url }, index) => (
             <motion.button

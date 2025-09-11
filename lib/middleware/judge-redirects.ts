@@ -125,16 +125,20 @@ export function handleJudgeRedirects(request: NextRequest): NextResponse | null 
     }
   }
   
-  // Handle query parameter redirects for judge searches
+  // Don't redirect search page queries - let the search page handle them
+  // Only redirect if we have a specific judge parameter (not general search)
   const searchParams = request.nextUrl.searchParams
-  const judgeQuery = searchParams.get('judge') || 
-                    searchParams.get('name') || 
-                    searchParams.get('q')
+  const judgeQuery = searchParams.get('judge') || searchParams.get('name')
   
-  if (judgeQuery && (pathname === '/search' || pathname === '/judges')) {
-    // Redirect to direct judge search with canonical slug
+  // Skip redirect for the search page - let it handle its own query parameters
+  if (pathname === '/search') {
+    return null
+  }
+  
+  if (judgeQuery && pathname === '/judges') {
+    // Only redirect specific judge lookups, not general searches
     const canonicalSlug = createCanonicalSlug(judgeQuery)
-    console.log(`SEO Search Redirect: ${pathname}?${searchParams} -> /judges/${canonicalSlug}`)
+    console.log(`SEO Judge Redirect: ${pathname}?${searchParams} -> /judges/${canonicalSlug}`)
     return NextResponse.redirect(
       new URL(`/judges/${canonicalSlug}`, request.url),
       302

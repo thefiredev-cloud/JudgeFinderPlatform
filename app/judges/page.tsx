@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Gavel, MapPin, Scale, Search, Loader2, Calendar, Users, ArrowRight, Shield, TrendingUp, ChevronRight, Sparkles } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import type { Judge, JudgeDecisionSummary } from '@/types'
 import { generateSlug } from '@/lib/utils/slug'
 import { useSearchDebounce } from '@/lib/hooks/useDebounce'
@@ -29,7 +30,9 @@ export default function JudgesPage() {
   const { scrollYProgress } = useScroll()
   const y = useTransform(scrollYProgress, [0, 1], [0, -50])
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.3])
+  const searchParams = useSearchParams()
   
+  // Initialize search from URL parameter
   const [searchInput, setSearchInput] = useState('')
   const [selectedJurisdiction, setSelectedJurisdiction] = useState('CA')
   const [judges, setJudges] = useState<JudgeWithDecisions[]>([])
@@ -47,6 +50,14 @@ export default function JudgesPage() {
     avgExperience: "12 Years Experience",
     updateFrequency: "Weekly Data Updates"
   })
+
+  // Initialize search from URL on mount
+  useEffect(() => {
+    const searchQuery = searchParams.get('search') || searchParams.get('q') || ''
+    if (searchQuery) {
+      setSearchInput(searchQuery)
+    }
+  }, [searchParams])
 
   // Use debounced search
   const { debouncedSearchQuery, isSearching } = useSearchDebounce(searchInput, 300)
