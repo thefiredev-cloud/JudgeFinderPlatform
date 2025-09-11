@@ -26,9 +26,18 @@ interface AISearchRequest {
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
+  let body: AISearchRequest | undefined
 
   try {
-    const body: AISearchRequest = await request.json()
+    body = await request.json()
+    
+    if (!body) {
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      )
+    }
+    
     const { query, context, includeSuggestions = true, limit = 20 } = body
 
     if (!query?.trim()) {
