@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import { useRouter } from 'next/navigation'
 import BuilderStyleChat from '@/components/ai/BuilderStyleChat'
-import UnifiedSearch from '@/components/ui/UnifiedSearch'
+import AIUnifiedSearch from '@/components/ui/AIUnifiedSearch'
 import Link from 'next/link'
 import { 
   BarChart3, Brain,
@@ -110,7 +110,7 @@ export default function HomePageClient() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="mb-6"
             >
-              <UnifiedSearch autoFocus={false} />
+              <AIUnifiedSearch autoFocus={false} showVoiceSearch={true} showHistory={true} />
             </motion.div>
 
             {/* Quick Example Searches - Mobile */}
@@ -187,7 +187,7 @@ export default function HomePageClient() {
               animate={{ opacity: heroInView ? 1 : 0, x: heroInView ? 0 : 30 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <UnifiedSearch />
+              <AIUnifiedSearch autoFocus={false} showVoiceSearch={true} showHistory={true} />
               
               {/* Quick Example Searches for Desktop */}
               <div className="text-center mt-8">
