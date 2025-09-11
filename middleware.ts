@@ -14,11 +14,10 @@ const isAdminRoute = createRouteMatcher([
   '/admin(.*)',
 ])
 
-// Check if Clerk is properly configured
+// Check if Clerk is properly configured (only check public key for client-side safety)
 const hasValidClerkKeys = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
                           !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.includes('YOUR_') &&
-                          process.env.CLERK_SECRET_KEY &&
-                          !process.env.CLERK_SECRET_KEY.includes('YOUR_')
+                          !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.includes('CONFIGURE')
 
 // Only use Clerk middleware if keys are configured
 const middlewareHandler = hasValidClerkKeys 

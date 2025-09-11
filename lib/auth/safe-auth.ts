@@ -4,18 +4,18 @@
 
 const hasValidClerkKeys = () => {
   const pubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ''
-  const secretKey = process.env.CLERK_SECRET_KEY || ''
   
   // Skip auth if explicitly disabled or if keys are not configured
   if (process.env.SKIP_AUTH_BUILD === 'true') {
     return false
   }
   
-  // Check if keys are actual values (not placeholders)
+  // Check if public key is an actual value (not placeholder)
+  // Note: We only check the public key here for client-side safety
+  // The secret key validation happens server-side only
   const isValidPubKey = pubKey.startsWith('pk_') && !pubKey.includes('YOUR') && !pubKey.includes('CONFIGURE')
-  const isValidSecretKey = secretKey.startsWith('sk_') && !secretKey.includes('YOUR') && !secretKey.includes('CONFIGURE')
   
-  return isValidPubKey && isValidSecretKey
+  return isValidPubKey
 }
 
 export async function safeAuth() {
