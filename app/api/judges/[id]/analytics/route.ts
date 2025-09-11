@@ -17,6 +17,12 @@ interface CaseAnalytics {
   criminal_sentencing_severity: number
   criminal_plea_acceptance: number
   
+  // New metrics
+  bail_release_rate: number
+  appeal_reversal_rate: number
+  settlement_encouragement_rate: number
+  motion_grant_rate: number
+  
   // Enhanced confidence metrics
   confidence_civil: number
   confidence_custody: number
@@ -24,6 +30,10 @@ interface CaseAnalytics {
   confidence_contracts: number
   confidence_sentencing: number
   confidence_plea: number
+  confidence_bail: number
+  confidence_reversal: number
+  confidence_settlement: number
+  confidence_motion: number
   overall_confidence: number
   
   // Sample sizes for transparency
@@ -33,6 +43,10 @@ interface CaseAnalytics {
   sample_size_contracts: number
   sample_size_sentencing: number
   sample_size_plea: number
+  sample_size_bail: number
+  sample_size_reversal: number
+  sample_size_settlement: number
+  sample_size_motion: number
   
   total_cases_analyzed: number
   analysis_quality: string
@@ -174,7 +188,11 @@ function analyzeJudicialPatterns(judge: any, cases: any[]): CaseAnalytics {
     alimony: { total: 0, awarded: 0 },
     contracts: { total: 0, enforced: 0 },
     criminal: { total: 0, strict_sentences: 0 },
-    plea: { total: 0, accepted: 0 }
+    plea: { total: 0, accepted: 0 },
+    bail: { total: 0, granted: 0 },
+    reversal: { total: 0, reversed: 0 },
+    settlement: { total: 0, encouraged: 0 },
+    motion: { total: 0, granted: 0 }
   }
   
   // Analyze each case based on case_type and outcome
@@ -232,6 +250,44 @@ function analyzeJudicialPatterns(judge: any, cases: any[]): CaseAnalytics {
         stats.plea.accepted++
       }
     }
+    
+    // Bail/Pretrial Release decisions
+    if (caseType.includes('criminal') || summary.includes('bail') || summary.includes('pretrial') || summary.includes('release')) {
+      stats.bail.total++
+      if (outcome.includes('bail granted') || outcome.includes('released') || summary.includes('release granted') || 
+          summary.includes('bail set') || !outcome.includes('remanded') && !outcome.includes('detained')) {
+        stats.bail.granted++
+      }
+    }
+    
+    // Appeal/Reversal tracking
+    if (caseType.includes('appeal') || summary.includes('appeal') || outcome.includes('appeal')) {
+      stats.reversal.total++
+      if (outcome.includes('reversed') || outcome.includes('overturned') || summary.includes('judgment reversed') ||
+          summary.includes('decision overturned')) {
+        stats.reversal.reversed++
+      }
+    }
+    
+    // Settlement encouragement
+    if (caseType.includes('civil') || caseType.includes('contract') || caseType.includes('tort')) {
+      if (summary.includes('settlement') || outcome.includes('settlement')) {
+        stats.settlement.total++
+        if (outcome.includes('settled') || summary.includes('settlement reached') || summary.includes('parties settled') ||
+            summary.includes('settlement conference')) {
+          stats.settlement.encouraged++
+        }
+      }
+    }
+    
+    // Motion grant rate
+    if (summary.includes('motion') || outcome.includes('motion')) {
+      stats.motion.total++
+      if (outcome.includes('granted') || outcome.includes('motion granted') || summary.includes('granted the motion') ||
+          summary.includes('motion approved')) {
+        stats.motion.granted++
+      }
+    }
   })
   
   // Calculate percentages with confidence based on sample sizes (improved for 3-year data)
@@ -263,6 +319,10 @@ function analyzeJudicialPatterns(judge: any, cases: any[]): CaseAnalytics {
   const contractMetrics = calculateMetrics(stats.contracts, 'Contracts')
   const criminalMetrics = calculateMetrics(stats.criminal, 'Criminal')
   const pleaMetrics = calculateMetrics(stats.plea, 'Plea')
+  const bailMetrics = calculateMetrics(stats.bail, 'Bail')
+  const reversalMetrics = calculateMetrics(stats.reversal, 'Reversal')
+  const settlementMetrics = calculateMetrics(stats.settlement, 'Settlement')
+  const motionMetrics = calculateMetrics(stats.motion, 'Motion')
   
   // Calculate overall confidence based on 3-year data
   const totalCases = cases.length
@@ -303,12 +363,22 @@ function analyzeJudicialPatterns(judge: any, cases: any[]): CaseAnalytics {
     criminal_sentencing_severity: criminalMetrics.percentage,
     criminal_plea_acceptance: pleaMetrics.percentage,
     
+    // New metrics
+    bail_release_rate: bailMetrics.percentage,
+    appeal_reversal_rate: reversalMetrics.percentage,
+    settlement_encouragement_rate: settlementMetrics.percentage,
+    motion_grant_rate: motionMetrics.percentage,
+    
     confidence_civil: civilMetrics.confidence,
     confidence_custody: custodyMetrics.confidence,
     confidence_alimony: alimonyMetrics.confidence,
     confidence_contracts: contractMetrics.confidence,
     confidence_sentencing: criminalMetrics.confidence,
     confidence_plea: pleaMetrics.confidence,
+    confidence_bail: bailMetrics.confidence,
+    confidence_reversal: reversalMetrics.confidence,
+    confidence_settlement: settlementMetrics.confidence,
+    confidence_motion: motionMetrics.confidence,
     overall_confidence: Math.round(overallConfidence),
     
     sample_size_civil: civilMetrics.sample,
@@ -317,6 +387,10 @@ function analyzeJudicialPatterns(judge: any, cases: any[]): CaseAnalytics {
     sample_size_contracts: contractMetrics.sample,
     sample_size_sentencing: criminalMetrics.sample,
     sample_size_plea: pleaMetrics.sample,
+    sample_size_bail: bailMetrics.sample,
+    sample_size_reversal: reversalMetrics.sample,
+    sample_size_settlement: settlementMetrics.sample,
+    sample_size_motion: motionMetrics.sample,
     
     total_cases_analyzed: totalCases,
     analysis_quality: totalCases > 150 ? 'excellent' : totalCases > 100 ? 'high' : totalCases > 50 ? 'medium' : 'low',
@@ -362,6 +436,12 @@ async function generateLegacyAnalytics(judge: any): Promise<CaseAnalytics> {
     criminal_sentencing_severity: 50,
     criminal_plea_acceptance: 75,
     
+    // New metrics - conservative estimates
+    bail_release_rate: 65 + baseAdjustment,
+    appeal_reversal_rate: 15,
+    settlement_encouragement_rate: 60,
+    motion_grant_rate: 45,
+    
     // Lower confidence for profile-based estimates
     confidence_civil: 65,
     confidence_custody: 65,
@@ -369,6 +449,10 @@ async function generateLegacyAnalytics(judge: any): Promise<CaseAnalytics> {
     confidence_contracts: 65,
     confidence_sentencing: 65,
     confidence_plea: 65,
+    confidence_bail: 60,
+    confidence_reversal: 60,
+    confidence_settlement: 60,
+    confidence_motion: 60,
     overall_confidence: 65,
     
     sample_size_civil: 0,
@@ -377,6 +461,10 @@ async function generateLegacyAnalytics(judge: any): Promise<CaseAnalytics> {
     sample_size_contracts: 0,
     sample_size_sentencing: 0,
     sample_size_plea: 0,
+    sample_size_bail: 0,
+    sample_size_reversal: 0,
+    sample_size_settlement: 0,
+    sample_size_motion: 0,
     
     total_cases_analyzed: 0,
     analysis_quality: 'profile_based',
@@ -405,6 +493,12 @@ function generateConservativeAnalytics(judge: any, caseCount: number): CaseAnaly
     criminal_sentencing_severity: 50,
     criminal_plea_acceptance: 70,
     
+    // New metrics - conservative defaults
+    bail_release_rate: 60,
+    appeal_reversal_rate: 15,
+    settlement_encouragement_rate: 55,
+    motion_grant_rate: 45,
+    
     // Conservative confidence scores
     confidence_civil: 60,
     confidence_custody: 60,
@@ -412,6 +506,10 @@ function generateConservativeAnalytics(judge: any, caseCount: number): CaseAnaly
     confidence_contracts: 60,
     confidence_sentencing: 60,
     confidence_plea: 60,
+    confidence_bail: 60,
+    confidence_reversal: 60,
+    confidence_settlement: 60,
+    confidence_motion: 60,
     overall_confidence: 60,
     
     sample_size_civil: 0,
@@ -420,6 +518,10 @@ function generateConservativeAnalytics(judge: any, caseCount: number): CaseAnaly
     sample_size_contracts: 0,
     sample_size_sentencing: 0,
     sample_size_plea: 0,
+    sample_size_bail: 0,
+    sample_size_reversal: 0,
+    sample_size_settlement: 0,
+    sample_size_motion: 0,
     
     total_cases_analyzed: caseCount,
     analysis_quality: 'conservative',

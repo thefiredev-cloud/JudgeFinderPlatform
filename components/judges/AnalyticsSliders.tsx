@@ -13,6 +13,12 @@ interface CaseAnalytics {
   criminal_sentencing_severity: number
   criminal_plea_acceptance: number
   
+  // New metrics
+  bail_release_rate: number
+  appeal_reversal_rate: number
+  settlement_encouragement_rate: number
+  motion_grant_rate: number
+  
   // Enhanced confidence metrics
   confidence_civil: number
   confidence_custody: number
@@ -20,6 +26,10 @@ interface CaseAnalytics {
   confidence_contracts: number
   confidence_sentencing: number
   confidence_plea: number
+  confidence_bail: number
+  confidence_reversal: number
+  confidence_settlement: number
+  confidence_motion: number
   overall_confidence: number
   
   // Sample sizes for transparency
@@ -29,6 +39,10 @@ interface CaseAnalytics {
   sample_size_contracts: number
   sample_size_sentencing: number
   sample_size_plea: number
+  sample_size_bail: number
+  sample_size_reversal: number
+  sample_size_settlement: number
+  sample_size_motion: number
   
   total_cases_analyzed: number
   analysis_quality: string
@@ -304,6 +318,46 @@ function LegalDisclaimer({ analytics }: { analytics: CaseAnalytics }) {
       description: 'How receptive is this judge to plea bargain agreements in criminal cases?',
       confidence: analytics.confidence_plea,
       sampleSize: analytics.sample_size_plea
+    },
+    {
+      label: 'Bail/Pretrial Release',
+      value: analytics.bail_release_rate || 50,
+      leftLabel: 'Denies Release',
+      rightLabel: 'Grants Release',
+      color: 'bg-purple-100 text-purple-800',
+      description: 'How often does this judge grant bail or pretrial release in criminal cases?',
+      confidence: analytics.confidence_bail || 60,
+      sampleSize: analytics.sample_size_bail || 0
+    },
+    {
+      label: 'Appeal Reversal Rate',
+      value: analytics.appeal_reversal_rate || 15,
+      leftLabel: 'Rarely Reversed',
+      rightLabel: 'Often Reversed',
+      color: 'bg-indigo-100 text-indigo-800',
+      description: 'What percentage of this judge\'s decisions are overturned on appeal?',
+      confidence: analytics.confidence_reversal || 60,
+      sampleSize: analytics.sample_size_reversal || 0
+    },
+    {
+      label: 'Settlement Encouragement',
+      value: analytics.settlement_encouragement_rate || 60,
+      leftLabel: 'Trial Focused',
+      rightLabel: 'Settlement Focused',
+      color: 'bg-teal-100 text-teal-800',
+      description: 'Does this judge encourage parties to settle or proceed to trial?',
+      confidence: analytics.confidence_settlement || 60,
+      sampleSize: analytics.sample_size_settlement || 0
+    },
+    {
+      label: 'Motion Grant Rate',
+      value: analytics.motion_grant_rate || 45,
+      leftLabel: 'Rarely Grants',
+      rightLabel: 'Often Grants',
+      color: 'bg-amber-100 text-amber-800',
+      description: 'How receptive is this judge to procedural motions and requests?',
+      confidence: analytics.confidence_motion || 60,
+      sampleSize: analytics.sample_size_motion || 0
     }
   ]
 
