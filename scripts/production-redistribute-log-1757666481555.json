@@ -1,0 +1,56 @@
+{
+  "id": "prod-redistribute-1757666481555",
+  "startTime": 1757666481555,
+  "stats": {
+    "totalCases": 441614,
+    "totalJudges": 1903,
+    "redistributed": 0,
+    "errors": 0,
+    "operations": [
+      {
+        "timestamp": "2025-09-12T08:41:22.124Z",
+        "operation": "CONNECTION_TEST",
+        "data": {
+          "success": true,
+          "judgeCount": null,
+          "timestamp": "2025-09-12T08:41:22.123Z"
+        }
+      },
+      {
+        "timestamp": "2025-09-12T08:41:22.880Z",
+        "operation": "PRODUCTION_ANALYSIS",
+        "data": {
+          "totalCases": 441614,
+          "totalJudges": 1903,
+          "judgesWithCases": 1000,
+          "judgesWithoutCases": 307,
+          "targetPerJudge": 232,
+          "timestamp": "2025-09-12T08:41:22.860Z"
+        }
+      },
+      {
+        "timestamp": "2025-09-12T08:41:23.555Z",
+        "operation": "JUDGES_LOADED",
+        "data": {
+          "count": 1903,
+          "sample": [
+            {
+              "id": "47b3a6bb-fefa-4476-baf2-f26715a86c14",
+              "name": "James M. Evans"
+            },
+            {
+              "id": "82f12eaf-03c7-462d-a2bb-38a63f0c8704",
+              "name": "Susan G. Van Keulen"
+            },
+            {
+              "id": "c37be13a-68c6-47e4-a505-523b4a9ebb53",
+              "name": "Edmund F. Brennan"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "changes": [],
+  "errors": []
+}
