@@ -9,7 +9,7 @@ export default async function AdminPage() {
   const { userId } = await auth()
   
   if (!userId) {
-    redirect('/auth/login')
+    redirect('/sign-in')
   }
 
   const userIsAdmin = await isAdmin()
