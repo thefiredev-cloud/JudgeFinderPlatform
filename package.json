@@ -16,6 +16,7 @@
     "sync:courts": "node scripts/sync-courts-manual.js",
     "sync:judges": "node scripts/sync-judges-manual.js",
     "sync:decisions": "node scripts/sync-decisions-manual.js",
+    "import:wcab": "node scripts/import-wcab-judges.js",
     "analytics:generate": "node scripts/batch-generate-analytics.js",
     "bias:analyze": "node scripts/run-bias-analysis.js",
     "cron:daily": "node scripts/run-daily-sync.js",
