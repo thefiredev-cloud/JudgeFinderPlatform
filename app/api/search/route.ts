@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const q = searchParams.get('q') || ''
     const type = searchParams.get('type') as 'judge' | 'court' | 'jurisdiction' | 'all' || 'all'
-    const limit = Math.min(parseInt(searchParams.get('limit') || '200'), 500)  // Increased default to 200, max to 500
+    const limit = Math.min(parseInt(searchParams.get('limit') || '200'), 2000)  // Increased max to 2000 to handle all judges
     const suggestions = searchParams.get('suggestions') === 'true'
     
     const sanitizedQuery = sanitizeSearchQuery(q).trim()
@@ -266,13 +266,25 @@ export async function GET(request: NextRequest) {
 async function searchJudges(supabase: any, query: string, limit: number): Promise<JudgeSearchResult[]> {
   try {
     // Use the increased limit for better results
-    const actualLimit = Math.min(limit, 500)  // Cap at 500 for database performance
+    const actualLimit = Math.min(limit, 2000)  // Increased cap to 2000 to handle all judges in database
     
-    // Match the working query structure from /api/judges/search
-    const { data, error, count } = await supabase
+    // Improved search to handle partial names and different search patterns
+    // Split query into words to search for first/last names separately
+    const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 0)
+    
+    let searchQuery = supabase
       .from('judges')
       .select('id, name, court_name, jurisdiction, total_cases, profile_image_url, slug', { count: 'exact' })
-      .ilike('name', `%${query}%`)
+    
+    // If single word, search anywhere in the name
+    if (queryWords.length === 1) {
+      searchQuery = searchQuery.ilike('name', `%${query}%`)
+    } else {
+      // For multiple words, search for the full phrase first
+      searchQuery = searchQuery.or(`name.ilike.%${query}%,name.ilike.%${queryWords.join('%')}%`)
+    }
+    
+    const { data, error, count } = await searchQuery
       .range(0, actualLimit - 1)
       .order('name')
 
@@ -334,7 +346,7 @@ async function searchJudges(supabase: any, query: string, limit: number): Promis
 async function searchCourts(supabase: any, query: string, limit: number): Promise<CourtSearchResult[]> {
   try {
     // Use the increased limit for better results
-    const actualLimit = Math.min(limit, 500)  // Cap at 500 for database performance
+    const actualLimit = Math.min(limit, 2000)  // Increased cap to 2000 for consistency
     
     const { data, error, count } = await supabase
       .from('courts')
