@@ -34,7 +34,7 @@ async function getJudge(slug: string): Promise<Judge | null> {
     // Use the new API endpoint for consistent lookup logic
     const baseUrl = process.env.NODE_ENV === 'production' 
       ? 'https://judgefinder.io'
-      : 'http://localhost:3005'
+      : 'http://localhost:3000'
       
     const response = await fetch(`${baseUrl}/api/judges/by-slug?slug=${encodeURIComponent(slug)}`, {
       next: { revalidate: 3600 }, // Cache for 1 hour (judge data is stable)
