@@ -41,7 +41,7 @@ export default function JudgesContent() {
   const [totalCount, setTotalCount] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
-  const [onlyWithDecisions, setOnlyWithDecisions] = useState(true)
+  const [onlyWithDecisions, setOnlyWithDecisions] = useState(false)
   
   // State for judge-specific stats
   const [judgeStats, setJudgeStats] = useState({

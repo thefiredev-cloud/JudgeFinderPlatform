@@ -110,12 +110,51 @@ export async function GET(request: NextRequest) {
     
     const sanitizedQuery = sanitizeSearchQuery(q).trim()
     
+    // If no query, return popular judges and jurisdictions
     if (!sanitizedQuery) {
+      const supabase = await createServerClient()
+      
+      // Get popular judges (those with most cases)
+      const { data: popularJudges } = await supabase
+        .from('judges')
+        .select('id, name, court_name, jurisdiction, total_cases, profile_image_url, slug')
+        .order('total_cases', { ascending: false, nullsFirst: false })
+        .limit(limit)
+      
+      const judgeResults: JudgeSearchResult[] = (popularJudges || []).map((judge: any) => {
+        const slug = judge.slug || judge.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')
+        return {
+          id: judge.id,
+          type: 'judge',
+          title: judge.name,
+          subtitle: judge.court_name || 'Court information pending',
+          description: `${judge.jurisdiction || 'CA'} jurisdiction • ${judge.total_cases || 0} cases`,
+          url: `/judges/${slug}`,
+          court_name: judge.court_name,
+          jurisdiction: judge.jurisdiction || 'CA',
+          total_cases: judge.total_cases || 0,
+          profile_image_url: judge.profile_image_url
+        }
+      })
+      
+      // Add top jurisdictions
+      const topJurisdictions = PREDEFINED_JURISDICTIONS.slice(0, 3)
+      
+      const allResults = [...judgeResults, ...topJurisdictions]
+      
       return NextResponse.json({
-        results: [],
-        total_count: 0,
-        results_by_type: { judges: [], courts: [], jurisdictions: [] },
-        counts_by_type: { judges: 0, courts: 0, jurisdictions: 0 },
+        results: allResults,
+        total_count: allResults.length,
+        results_by_type: { 
+          judges: judgeResults, 
+          courts: [], 
+          jurisdictions: topJurisdictions 
+        },
+        counts_by_type: { 
+          judges: judgeResults.length, 
+          courts: 0, 
+          jurisdictions: topJurisdictions.length 
+        },
         query: q,
         took_ms: Date.now() - startTime
       } as SearchResponse)

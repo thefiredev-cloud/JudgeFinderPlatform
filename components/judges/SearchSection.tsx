@@ -39,14 +39,27 @@ export function SearchSection() {
   // Fetch search suggestions
   const fetchSearchResults = useCallback(async (query: string) => {
     if (!query.trim()) {
-      setSearchResults([])
-      setShowSuggestions(false)
+      // Show popular/recent judges when no query
+      setIsLoading(true)
+      try {
+        const response = await fetch(`/api/judges/search?q=&limit=20`)
+        if (response.ok) {
+          const data = await response.json()
+          setSearchResults(data.results || [])
+          setShowSuggestions(data.results && data.results.length > 0)
+        }
+      } catch (error) {
+        console.error('Search error:', error)
+        setSearchResults([])
+      } finally {
+        setIsLoading(false)
+      }
       return
     }
 
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=8`)
+      const response = await fetch(`/api/judges/search?q=${encodeURIComponent(query)}&limit=50`)
       if (response.ok) {
         const data = await response.json()
         setSearchResults(data.results || [])
