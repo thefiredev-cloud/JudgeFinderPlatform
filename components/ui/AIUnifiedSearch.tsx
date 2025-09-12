@@ -73,7 +73,8 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
     recognition.onend = () => {
       setIsListening(false)
       if (voiceTranscript) {
-        performSearch(voiceTranscript)
+        // Navigate to search page with voice transcript
+        router.push(`/search?q=${encodeURIComponent(voiceTranscript)}`)
       }
     }
 
@@ -91,11 +92,11 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
     return () => {
       recognition.stop()
     }
-  }, [isListening, showVoiceSearch])
+  }, [isListening, showVoiceSearch, voiceTranscript, router])
 
   const handleSearch = () => {
     if (!query.trim()) return
-    performSearch(query)
+    // Navigate to search page - the search page will handle the API call
     router.push(`/search?q=${encodeURIComponent(query)}`)
   }
 
@@ -119,14 +120,15 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
 
   const selectSuggestion = (suggestion: string) => {
     setQuery(suggestion)
-    performSearch(suggestion)
+    // Navigate to search page - the search page will handle the API call
     router.push(`/search?q=${encodeURIComponent(suggestion)}`)
   }
 
   const selectHistoryItem = (historyQuery: string) => {
     setQuery(historyQuery)
     setShowHistoryDropdown(false)
-    performSearch(historyQuery)
+    // Navigate to search page - the search page will handle the API call
+    router.push(`/search?q=${encodeURIComponent(historyQuery)}`)
   }
 
   return (

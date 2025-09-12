@@ -40,50 +40,37 @@ function SearchResults() {
 
     setLoading(true)
     try {
-      // Use specialized endpoints for better results
-      if (activeFilter === 'judge') {
-        // Use dedicated judges search endpoint for judge searches
-        const response = await fetch(`/api/judges/search?q=${encodeURIComponent(query)}&limit=200`)
-        if (response.ok) {
-          const judges = await response.json()
-          // Transform judges data to match SearchResponse format
-          const searchResults = judges.map((judge: any) => ({
-            id: judge.id,
-            type: 'judge',
-            title: judge.name,
-            subtitle: judge.title || judge.position,
-            description: `${judge.court_name || ''} • ${judge.jurisdiction || ''}`,
-            url: `/judges/${judge.slug || judge.id}`,
-            score: 1.0
-          }))
-          
-          setSearchData({
-            results: searchResults,
-            total_count: searchResults.length,
-            results_by_type: { 
-              judges: searchResults, 
-              courts: [], 
-              jurisdictions: [] 
-            },
-            counts_by_type: { 
-              judges: searchResults.length, 
-              courts: 0, 
-              jurisdictions: 0 
-            },
-            query: query,
-            took_ms: 100
-          })
-        }
+      // Use the unified /api/search endpoint for all searches
+      const url = `/api/search?q=${encodeURIComponent(query)}&type=${activeFilter}&limit=200`
+      console.log('Fetching search results from:', url)
+      const response = await fetch(url)
+      if (response.ok) {
+        const data: SearchResponse = await response.json()
+        console.log('Search response:', data)
+        setSearchData(data)
       } else {
-        // Use general search for other types
-        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=${activeFilter}&limit=200`)
-        if (response.ok) {
-          const data: SearchResponse = await response.json()
-          setSearchData(data)
-        }
+        console.error('Search request failed:', response.status, response.statusText)
+        // Set empty results on error
+        setSearchData({
+          results: [],
+          total_count: 0,
+          results_by_type: { judges: [], courts: [], jurisdictions: [] },
+          counts_by_type: { judges: 0, courts: 0, jurisdictions: 0 },
+          query: query,
+          took_ms: 0
+        })
       }
     } catch (error) {
       console.error('Search error:', error)
+      // Set empty results on error
+      setSearchData({
+        results: [],
+        total_count: 0,
+        results_by_type: { judges: [], courts: [], jurisdictions: [] },
+        counts_by_type: { judges: 0, courts: 0, jurisdictions: 0 },
+        query: query,
+        took_ms: 0
+      })
     } finally {
       setLoading(false)
     }
@@ -113,18 +100,28 @@ function SearchResults() {
   }
 
   const getFilteredResults = (): SearchResult[] => {
-    if (!searchData) return []
+    if (!searchData) {
+      console.log('No search data available')
+      return []
+    }
     
+    let results: SearchResult[] = []
     switch (activeFilter) {
       case 'judge':
-        return searchData.results_by_type.judges
+        results = searchData.results_by_type.judges
+        break
       case 'court':
-        return searchData.results_by_type.courts
+        results = searchData.results_by_type.courts
+        break
       case 'jurisdiction':
-        return searchData.results_by_type.jurisdictions
+        results = searchData.results_by_type.jurisdictions
+        break
       default:
-        return searchData.results
+        results = searchData.results
     }
+    
+    console.log(`Filtered results for '${activeFilter}':`, results.length, 'items')
+    return results
   }
 
   const getResultIcon = (type: string) => {
