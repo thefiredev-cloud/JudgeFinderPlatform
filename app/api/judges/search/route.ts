@@ -17,9 +17,9 @@ export async function GET(request: NextRequest) {
     const jurisdiction = searchParams.get('jurisdiction')
     const courtType = searchParams.get('court_type')
 
-    if (limit > 100) {
+    if (limit > 500) {
       return NextResponse.json(
-        { error: 'Limit cannot exceed 100' },
+        { error: 'Limit cannot exceed 500' },
         { status: 400 }
       )
     }

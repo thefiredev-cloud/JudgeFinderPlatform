@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const q = searchParams.get('q') || ''
     const type = searchParams.get('type') as 'judge' | 'court' | 'jurisdiction' | 'all' || 'all'
-    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50)
+    const limit = Math.min(parseInt(searchParams.get('limit') || '200'), 500)  // Increased default to 200, max to 500
     const suggestions = searchParams.get('suggestions') === 'true'
     
     const sanitizedQuery = sanitizeSearchQuery(q).trim()
@@ -222,9 +222,9 @@ export async function GET(request: NextRequest) {
       results: sortedResults.slice(0, limit),
       total_count: sortedResults.length,
       results_by_type: {
-        judges: judges.slice(0, Math.floor(limit / 3)),
-        courts: courts.slice(0, Math.floor(limit / 3)),
-        jurisdictions: jurisdictions.slice(0, Math.floor(limit / 3))
+        judges: judges.slice(0, limit),  // Give full limit to each type
+        courts: courts.slice(0, limit),  // Give full limit to each type
+        jurisdictions: jurisdictions.slice(0, limit)  // Give full limit to each type
       },
       counts_by_type: {
         judges: judges.length,
@@ -265,32 +265,43 @@ export async function GET(request: NextRequest) {
 
 async function searchJudges(supabase: any, query: string, limit: number): Promise<JudgeSearchResult[]> {
   try {
+    // Use the increased limit for better results
+    const actualLimit = Math.min(limit, 500)  // Cap at 500 for database performance
+    
     // Match the working query structure from /api/judges/search
     const { data, error, count } = await supabase
       .from('judges')
       .select('id, name, court_name, jurisdiction, total_cases, profile_image_url, slug', { count: 'exact' })
       .ilike('name', `%${query}%`)
-      .range(0, limit - 1)
+      .range(0, actualLimit - 1)
       .order('name')
 
     if (error) {
-      logger.error('Error searching judges', { 
-        query, 
+      logger.error('Database error searching judges', { 
+        query,
+        limit: actualLimit,
         error: error.message,
         details: error.details,
         hint: error.hint,
         code: error.code
       })
+      // Return empty array but don't throw - let other searches continue
       return []
     }
 
-    logger.info(`Judge search results`, { 
+    if (!data || data.length === 0) {
+      logger.info('No judges found for query', { query })
+      return []
+    }
+
+    logger.info(`Judge search successful`, { 
       query, 
-      resultsFound: data?.length || 0,
-      totalCount: count || 0 
+      resultsFound: data.length,
+      totalCount: count || 0,
+      limit: actualLimit
     })
 
-    return (data || []).map((judge: any): JudgeSearchResult => {
+    return data.map((judge: any): JudgeSearchResult => {
       // Use slug from database if available, otherwise generate it
       const slug = judge.slug || judge.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')
       
@@ -309,38 +320,55 @@ async function searchJudges(supabase: any, query: string, limit: number): Promis
       }
     })
   } catch (error) {
-    logger.error('Unexpected error in searchJudges', { query, error })
+    logger.error('Unexpected error in searchJudges', { 
+      query, 
+      limit,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
+    // Return empty array to allow other searches to continue
     return []
   }
 }
 
 async function searchCourts(supabase: any, query: string, limit: number): Promise<CourtSearchResult[]> {
   try {
+    // Use the increased limit for better results
+    const actualLimit = Math.min(limit, 500)  // Cap at 500 for database performance
+    
     const { data, error, count } = await supabase
       .from('courts')
       .select('id, name, type, jurisdiction, address, phone, website, judge_count', { count: 'exact' })
       .ilike('name', `%${query}%`)
-      .range(0, limit - 1)
+      .range(0, actualLimit - 1)
       .order('name')
 
     if (error) {
-      logger.error('Error searching courts', { 
-        query, 
+      logger.error('Database error searching courts', { 
+        query,
+        limit: actualLimit,
         error: error.message,
         details: error.details,
         hint: error.hint,
         code: error.code
       })
+      // Return empty array but don't throw - let other searches continue
       return []
     }
 
-    logger.info(`Court search results`, { 
+    if (!data || data.length === 0) {
+      logger.info('No courts found for query', { query })
+      return []
+    }
+
+    logger.info(`Court search successful`, { 
       query, 
-      resultsFound: data?.length || 0,
-      totalCount: count || 0 
+      resultsFound: data.length,
+      totalCount: count || 0,
+      limit: actualLimit
     })
 
-    return (data || []).map((court: any): CourtSearchResult => {
+    return data.map((court: any): CourtSearchResult => {
       const slug = court.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')
       
       return {
@@ -360,7 +388,13 @@ async function searchCourts(supabase: any, query: string, limit: number): Promis
       }
     })
   } catch (error) {
-    logger.error('Unexpected error in searchCourts', { query, error })
+    logger.error('Unexpected error in searchCourts', { 
+      query, 
+      limit,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
+    // Return empty array to allow other searches to continue
     return []
   }
 }

@@ -40,10 +40,47 @@ function SearchResults() {
 
     setLoading(true)
     try {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=${activeFilter}&limit=50`)
-      if (response.ok) {
-        const data: SearchResponse = await response.json()
-        setSearchData(data)
+      // Use specialized endpoints for better results
+      if (activeFilter === 'judge') {
+        // Use dedicated judges search endpoint for judge searches
+        const response = await fetch(`/api/judges/search?q=${encodeURIComponent(query)}&limit=200`)
+        if (response.ok) {
+          const judges = await response.json()
+          // Transform judges data to match SearchResponse format
+          const searchResults = judges.map((judge: any) => ({
+            id: judge.id,
+            type: 'judge',
+            title: judge.name,
+            subtitle: judge.title || judge.position,
+            description: `${judge.court_name || ''} • ${judge.jurisdiction || ''}`,
+            url: `/judges/${judge.slug || judge.id}`,
+            score: 1.0
+          }))
+          
+          setSearchData({
+            results: searchResults,
+            total_count: searchResults.length,
+            results_by_type: { 
+              judges: searchResults, 
+              courts: [], 
+              jurisdictions: [] 
+            },
+            counts_by_type: { 
+              judges: searchResults.length, 
+              courts: 0, 
+              jurisdictions: 0 
+            },
+            query: query,
+            took_ms: 100
+          })
+        }
+      } else {
+        // Use general search for other types
+        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=${activeFilter}&limit=200`)
+        if (response.ok) {
+          const data: SearchResponse = await response.json()
+          setSearchData(data)
+        }
       }
     } catch (error) {
       console.error('Search error:', error)
