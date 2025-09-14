@@ -71,8 +71,18 @@ export async function GET(request: NextRequest) {
     const totalCount = count || 0
     const hasMore = offset + limit < totalCount
 
-    const result: SearchResult = {
-      judges: judges as Judge[],
+    // Transform judges to search results format
+    const results = (judges || []).map((judge: any) => ({
+      id: judge.id,
+      type: 'judge' as const,
+      title: judge.name,
+      subtitle: judge.court_name || '',
+      description: `${judge.jurisdiction || 'California'} • ${judge.total_cases || 0} cases`,
+      url: `/judges/${judge.slug || judge.id}`
+    }))
+
+    const result = {
+      results,
       total_count: totalCount,
       page,
       per_page: limit,
@@ -104,42 +114,36 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createServerClient()
     
-    // If no query, return popular judges
-    if (!query?.trim()) {
-      const { data: judges, error } = await supabase
-        .from('judges')
-        .select('*')
+    // Build query for search
+    let queryBuilder = supabase
+      .from('judges')
+      .select('id, name, court_id, court_name, jurisdiction, profile_image_url, total_cases, appointed_date, slug, created_at', { count: 'exact' })
+
+    if (query?.trim()) {
+      // Search by name if query provided
+      queryBuilder = queryBuilder.ilike('name', `%${query}%`)
+        .order('name')
+    } else {
+      // Show judges with most cases if no query
+      queryBuilder = queryBuilder
         .order('total_cases', { ascending: false, nullsFirst: false })
-        .limit(filters.limit || 20)
-        .range(
-          ((filters.page || 1) - 1) * (filters.limit || 20),
-          (filters.page || 1) * (filters.limit || 20) - 1
-        )
-      
-      if (error) {
-        console.error('Database error:', error)
-        return NextResponse.json(
-          { error: 'Failed to fetch judges' },
-          { status: 500 }
-        )
-      }
-      
-      return NextResponse.json({
-        judges: judges || [],
-        total_count: judges?.length || 0,
-        page: filters.page || 1,
-        per_page: filters.limit || 20,
-        has_more: (judges?.length || 0) === (filters.limit || 20)
-      })
     }
-    
-    // Use the PostgreSQL full-text search function for queries
-    const { data: judges, error } = await supabase
-      .rpc('search_judges', {
-        search_query: query,
-        limit_count: filters.limit || 20,
-        offset_count: ((filters.page || 1) - 1) * (filters.limit || 20)
-      })
+
+    // Apply filters
+    if (filters.jurisdiction) {
+      queryBuilder = queryBuilder.eq('jurisdiction', filters.jurisdiction)
+    }
+    if (filters.court_type) {
+      queryBuilder = queryBuilder.eq('court_type', filters.court_type)
+    }
+
+    // Apply pagination
+    const limit = filters.limit || 20
+    const page = filters.page || 1
+    const offset = (page - 1) * limit
+    queryBuilder = queryBuilder.range(offset, offset + limit - 1)
+
+    const { data: judges, error, count } = await queryBuilder
 
     if (error) {
       console.error('Search function error:', {
@@ -154,12 +158,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Transform judges to search results format
+    const results = (judges || []).map((judge: any) => ({
+      id: judge.id,
+      type: 'judge' as const,
+      title: judge.name,
+      subtitle: judge.court_name || '',
+      description: `${judge.jurisdiction || 'California'} • ${judge.total_cases || 0} cases`,
+      url: `/judges/${judge.slug || judge.id}`
+    }))
+
+    const totalCount = count || 0
+    const hasMore = offset + limit < totalCount
+
     const response = NextResponse.json({
-      judges: judges || [],
-      total_count: judges?.length || 0,
-      page: filters.page || 1,
-      per_page: filters.limit || 20,
-      has_more: (judges?.length || 0) === (filters.limit || 20)
+      results,
+      total_count: totalCount,
+      page,
+      per_page: limit,
+      has_more: hasMore
     })
 
     return response

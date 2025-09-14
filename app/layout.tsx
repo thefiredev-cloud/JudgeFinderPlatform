@@ -8,6 +8,8 @@ import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
+  // Ensure absolute URLs for Open Graph/Twitter images
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://judgefinder.io'),
   title: 'JudgeFinder.io - Find Information About Your Judge',
   description: 'Find information about your assigned judge. Understand what to expect in your court appearance with simple, clear insights.',
   keywords: 'find judge, court appearance, judge information, California judges, court preparation',

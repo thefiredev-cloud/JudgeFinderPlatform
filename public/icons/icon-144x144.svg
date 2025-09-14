@@ -1,0 +1,29 @@
+
+<svg width="144" height="144" viewBox="0 0 144 144" xmlns="http://www.w3.org/2000/svg">
+  <rect width="144" height="144" fill="#2563eb"/>
+  <g transform="translate(72, 72)">
+    <!-- Scales of Justice -->
+    <g transform="scale(0.5625)">
+      <!-- Base -->
+      <rect x="-60" y="90" width="120" height="10" fill="white"/>
+      <rect x="-10" y="80" width="20" height="10" fill="white"/>
+      
+      <!-- Vertical pole -->
+      <rect x="-3" y="-80" width="6" height="160" fill="white"/>
+      
+      <!-- Horizontal beam -->
+      <rect x="-80" y="-80" width="160" height="6" fill="white"/>
+      
+      <!-- Left scale -->
+      <rect x="-78" y="-80" width="3" height="40" fill="white"/>
+      <path d="M -90 -40 L -66 -40 L -70 -20 L -86 -20 Z" fill="white"/>
+      
+      <!-- Right scale -->
+      <rect x="75" y="-80" width="3" height="40" fill="white"/>
+      <path d="M 66 -40 L 90 -40 L 86 -20 L 70 -20 Z" fill="white"/>
+      
+      <!-- JF text -->
+      <text x="0" y="10" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle">JF</text>
+    </g>
+  </g>
+</svg>
