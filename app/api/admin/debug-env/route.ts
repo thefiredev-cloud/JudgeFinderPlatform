@@ -32,6 +32,14 @@ interface DebugInfo {
 }
 
 export async function GET(request: NextRequest) {
+  // Disable debug endpoint in production for security
+  if (process.env.NODE_ENV === 'production' || process.env.NETLIFY === 'true') {
+    return NextResponse.json(
+      { error: 'Debug endpoint is disabled in production' },
+      { status: 403 }
+    )
+  }
+  
   console.log('Debug endpoint called')
   
   // List of expected environment variables
@@ -77,9 +85,17 @@ export async function GET(request: NextRequest) {
     const value = process.env[varName]
     if (value) {
       debugInfo.environment_variables.found.push(varName)
-      // Mask sensitive values
-      if (varName.includes('KEY') || varName.includes('SECRET')) {
-        debugInfo.environment_variables.values[varName] = value.substring(0, 10) + '...' + value.substring(value.length - 5)
+      // Completely redact sensitive values for security
+      if (varName.includes('KEY') || varName.includes('SECRET') || varName.includes('TOKEN')) {
+        debugInfo.environment_variables.values[varName] = '***REDACTED***'
+      } else if (varName.includes('URL')) {
+        // For URLs, show the domain but not the full value
+        try {
+          const url = new URL(value)
+          debugInfo.environment_variables.values[varName] = `${url.protocol}//${url.hostname}/***`
+        } catch {
+          debugInfo.environment_variables.values[varName] = '***INVALID_URL***'
+        }
       } else {
         debugInfo.environment_variables.values[varName] = value
       }
@@ -106,9 +122,8 @@ export async function GET(request: NextRequest) {
   // Try to connect to Supabase if credentials are present
   if (supabaseUrl && supabaseServiceKey) {
     try {
-      console.log('Attempting Supabase connection...')
-      console.log('URL:', supabaseUrl)
-      console.log('Service key present:', !!supabaseServiceKey)
+      // Remove console logs that might expose sensitive information
+      // console.log('Attempting Supabase connection...')
       
       const supabase = createClient(supabaseUrl, supabaseServiceKey, {
         auth: {
@@ -124,11 +139,11 @@ export async function GET(request: NextRequest) {
         .limit(1)
       
       if (tablesError) {
-        console.error('Supabase connection error:', tablesError)
+        // console.error('Supabase connection error:', tablesError)
         debugInfo.supabase_connection.connection_test.success = false
         debugInfo.supabase_connection.connection_test.error = tablesError.message
       } else {
-        console.log('Supabase connection successful')
+        // console.log('Supabase connection successful')
         debugInfo.supabase_connection.connection_test.success = true
         
         // Get counts if connection successful
@@ -149,14 +164,14 @@ export async function GET(request: NextRequest) {
           debugInfo.database_counts.courts = courtCount || 0
           debugInfo.database_counts.cases = caseCount || 0
           
-          console.log('Database counts:', debugInfo.database_counts)
+          // console.log('Database counts:', debugInfo.database_counts)
         } catch (countError: any) {
-          console.error('Error getting counts:', countError)
+          // console.error('Error getting counts:', countError)
           debugInfo.database_counts.error = countError.message
         }
       }
     } catch (error: any) {
-      console.error('Supabase connection failed:', error)
+      // console.error('Supabase connection failed:', error)
       debugInfo.supabase_connection.connection_test.success = false
       debugInfo.supabase_connection.connection_test.error = error.message || 'Unknown error'
     }

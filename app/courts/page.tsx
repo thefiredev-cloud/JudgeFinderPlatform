@@ -35,11 +35,13 @@ async function getInitialCourts(): Promise<Court[]> {
       .limit(20)
 
     if (error) {
+      console.error('Error fetching courts:', error)
       return []
     }
 
-    return data as Court[]
+    return data || []
   } catch (error) {
+    console.error('Error in getInitialCourts:', error)
     return []
   }
 }

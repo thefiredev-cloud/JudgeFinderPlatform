@@ -186,7 +186,9 @@
       "Bash(git ls-tree:*)",
       "Bash(del \"C:\\Users\\Tanner\\JudgeFinderPlatform\\judge-finder-platform\\data\\PROJECT_INDEX.json\")",
       "Bash(git restore:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Read(//Users/tannerosterkamp/**)",
+      "Bash(lsof:*)"
     ],
     "deny": [],
     "ask": [],

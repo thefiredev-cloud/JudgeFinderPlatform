@@ -130,7 +130,8 @@ export function useAISearch() {
         subtitle: result.subtitle,
         description: result.description,
         url: result.url,
-        relevanceScore: result.relevanceScore
+        relevanceScore: result.relevanceScore,
+        aiInsight: result.aiInsight
       }))
 
       setResults(mappedResults)
@@ -176,7 +177,8 @@ export function useAISearch() {
       const response = await fetch(`/api/search?q=${encodeURIComponent(partialQuery)}&suggestions=true&limit=5`)
       if (response.ok) {
         const data = await response.json()
-        setSuggestions(data.suggestions || [])
+        // Handle suggestions response format
+        setSuggestions(data.suggestions?.map((s: any) => s.text || s) || [])
       }
     } catch (err) {
       console.error('Failed to get suggestions:', err)

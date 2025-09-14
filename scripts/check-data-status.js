@@ -5,7 +5,7 @@
  * Checks the current status of production data
  */
 
-require('dotenv').config({ path: '.env.production' })
+require('dotenv').config({ path: '.env.local' })
 const { createClient } = require('@supabase/supabase-js')
 
 // Initialize Supabase client

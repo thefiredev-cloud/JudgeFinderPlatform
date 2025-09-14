@@ -105,17 +105,56 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const q = searchParams.get('q') || ''
     const type = searchParams.get('type') as 'judge' | 'court' | 'jurisdiction' | 'all' || 'all'
-    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50)
+    const limit = Math.min(parseInt(searchParams.get('limit') || '200'), 2000)  // Increased max to 2000 to handle all judges
     const suggestions = searchParams.get('suggestions') === 'true'
     
     const sanitizedQuery = sanitizeSearchQuery(q).trim()
     
+    // If no query, return popular judges and jurisdictions
     if (!sanitizedQuery) {
+      const supabase = await createServerClient()
+      
+      // Get popular judges (those with most cases)
+      const { data: popularJudges } = await supabase
+        .from('judges')
+        .select('id, name, court_name, jurisdiction, total_cases, profile_image_url, slug')
+        .order('total_cases', { ascending: false, nullsFirst: false })
+        .limit(limit)
+      
+      const judgeResults: JudgeSearchResult[] = (popularJudges || []).map((judge: any) => {
+        const slug = judge.slug || judge.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')
+        return {
+          id: judge.id,
+          type: 'judge',
+          title: judge.name,
+          subtitle: judge.court_name || 'Court information pending',
+          description: `${judge.jurisdiction || 'CA'} jurisdiction • ${judge.total_cases || 0} cases`,
+          url: `/judges/${slug}`,
+          court_name: judge.court_name,
+          jurisdiction: judge.jurisdiction || 'CA',
+          total_cases: judge.total_cases || 0,
+          profile_image_url: judge.profile_image_url
+        }
+      })
+      
+      // Add top jurisdictions
+      const topJurisdictions = PREDEFINED_JURISDICTIONS.slice(0, 3)
+      
+      const allResults = [...judgeResults, ...topJurisdictions]
+      
       return NextResponse.json({
-        results: [],
-        total_count: 0,
-        results_by_type: { judges: [], courts: [], jurisdictions: [] },
-        counts_by_type: { judges: 0, courts: 0, jurisdictions: 0 },
+        results: allResults,
+        total_count: allResults.length,
+        results_by_type: { 
+          judges: judgeResults, 
+          courts: [], 
+          jurisdictions: topJurisdictions 
+        },
+        counts_by_type: { 
+          judges: judgeResults.length, 
+          courts: 0, 
+          jurisdictions: topJurisdictions.length 
+        },
         query: q,
         took_ms: Date.now() - startTime
       } as SearchResponse)
@@ -183,9 +222,9 @@ export async function GET(request: NextRequest) {
       results: sortedResults.slice(0, limit),
       total_count: sortedResults.length,
       results_by_type: {
-        judges: judges.slice(0, Math.floor(limit / 3)),
-        courts: courts.slice(0, Math.floor(limit / 3)),
-        jurisdictions: jurisdictions.slice(0, Math.floor(limit / 3))
+        judges: judges.slice(0, limit),  // Give full limit to each type
+        courts: courts.slice(0, limit),  // Give full limit to each type
+        jurisdictions: jurisdictions.slice(0, limit)  // Give full limit to each type
       },
       counts_by_type: {
         judges: judges.length,
@@ -226,32 +265,55 @@ export async function GET(request: NextRequest) {
 
 async function searchJudges(supabase: any, query: string, limit: number): Promise<JudgeSearchResult[]> {
   try {
-    // Match the working query structure from /api/judges/search
-    const { data, error, count } = await supabase
+    // Use the increased limit for better results
+    const actualLimit = Math.min(limit, 2000)  // Increased cap to 2000 to handle all judges in database
+    
+    // Improved search to handle partial names and different search patterns
+    // Split query into words to search for first/last names separately
+    const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 0)
+    
+    let searchQuery = supabase
       .from('judges')
       .select('id, name, court_name, jurisdiction, total_cases, profile_image_url, slug', { count: 'exact' })
-      .ilike('name', `%${query}%`)
-      .range(0, limit - 1)
+    
+    // If single word, search anywhere in the name
+    if (queryWords.length === 1) {
+      searchQuery = searchQuery.ilike('name', `%${query}%`)
+    } else {
+      // For multiple words, search for the full phrase first
+      searchQuery = searchQuery.or(`name.ilike.%${query}%,name.ilike.%${queryWords.join('%')}%`)
+    }
+    
+    const { data, error, count } = await searchQuery
+      .range(0, actualLimit - 1)
       .order('name')
 
     if (error) {
-      logger.error('Error searching judges', { 
-        query, 
+      logger.error('Database error searching judges', { 
+        query,
+        limit: actualLimit,
         error: error.message,
         details: error.details,
         hint: error.hint,
         code: error.code
       })
+      // Return empty array but don't throw - let other searches continue
       return []
     }
 
-    logger.info(`Judge search results`, { 
+    if (!data || data.length === 0) {
+      logger.info('No judges found for query', { query })
+      return []
+    }
+
+    logger.info(`Judge search successful`, { 
       query, 
-      resultsFound: data?.length || 0,
-      totalCount: count || 0 
+      resultsFound: data.length,
+      totalCount: count || 0,
+      limit: actualLimit
     })
 
-    return (data || []).map((judge: any): JudgeSearchResult => {
+    return data.map((judge: any): JudgeSearchResult => {
       // Use slug from database if available, otherwise generate it
       const slug = judge.slug || judge.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')
       
@@ -270,38 +332,55 @@ async function searchJudges(supabase: any, query: string, limit: number): Promis
       }
     })
   } catch (error) {
-    logger.error('Unexpected error in searchJudges', { query, error })
+    logger.error('Unexpected error in searchJudges', { 
+      query, 
+      limit,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
+    // Return empty array to allow other searches to continue
     return []
   }
 }
 
 async function searchCourts(supabase: any, query: string, limit: number): Promise<CourtSearchResult[]> {
   try {
+    // Use the increased limit for better results
+    const actualLimit = Math.min(limit, 2000)  // Increased cap to 2000 for consistency
+    
     const { data, error, count } = await supabase
       .from('courts')
       .select('id, name, type, jurisdiction, address, phone, website, judge_count', { count: 'exact' })
       .ilike('name', `%${query}%`)
-      .range(0, limit - 1)
+      .range(0, actualLimit - 1)
       .order('name')
 
     if (error) {
-      logger.error('Error searching courts', { 
-        query, 
+      logger.error('Database error searching courts', { 
+        query,
+        limit: actualLimit,
         error: error.message,
         details: error.details,
         hint: error.hint,
         code: error.code
       })
+      // Return empty array but don't throw - let other searches continue
       return []
     }
 
-    logger.info(`Court search results`, { 
+    if (!data || data.length === 0) {
+      logger.info('No courts found for query', { query })
+      return []
+    }
+
+    logger.info(`Court search successful`, { 
       query, 
-      resultsFound: data?.length || 0,
-      totalCount: count || 0 
+      resultsFound: data.length,
+      totalCount: count || 0,
+      limit: actualLimit
     })
 
-    return (data || []).map((court: any): CourtSearchResult => {
+    return data.map((court: any): CourtSearchResult => {
       const slug = court.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')
       
       return {
@@ -321,7 +400,13 @@ async function searchCourts(supabase: any, query: string, limit: number): Promis
       }
     })
   } catch (error) {
-    logger.error('Unexpected error in searchCourts', { query, error })
+    logger.error('Unexpected error in searchCourts', { 
+      query, 
+      limit,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
+    // Return empty array to allow other searches to continue
     return []
   }
 }
