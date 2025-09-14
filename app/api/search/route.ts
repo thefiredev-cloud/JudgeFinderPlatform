@@ -429,30 +429,61 @@ async function searchJurisdictions(query: string, limit: number): Promise<Jurisd
 
 async function generateSearchSuggestions(query: string, limit: number): Promise<SearchSuggestionsResponse> {
   const suggestions: SearchSuggestion[] = []
-  
-  // Add jurisdiction suggestions
-  const jurisdictionMatches = PREDEFINED_JURISDICTIONS
-    .filter(j => j.title.toLowerCase().includes(query.toLowerCase()))
-    .slice(0, 3)
-    .map((j): SearchSuggestion => ({
-      text: j.title,
-      type: 'jurisdiction',
-      count: 1,
-      url: j.url
-    }))
-  
-  suggestions.push(...jurisdictionMatches)
-  
-  // Add some common search terms
-  const commonSearches = [
-    { text: 'California Superior Court', type: 'court' as const, count: 150, url: '/search?q=California Superior Court&type=court' },
-    { text: 'Federal Court', type: 'court' as const, count: 89, url: '/search?q=Federal Court&type=court' },
-    { text: 'Criminal Defense', type: 'judge' as const, count: 234, url: '/search?q=Criminal Defense&type=judge' },
-    { text: 'Civil Litigation', type: 'judge' as const, count: 189, url: '/search?q=Civil Litigation&type=judge' }
-  ].filter(s => s.text.toLowerCase().includes(query.toLowerCase()))
-  
-  suggestions.push(...commonSearches)
-  
+
+  try {
+    // Search for actual judges in the database
+    const supabase = await createServerClient()
+
+    const { data: judges, error } = await supabase
+      .from('judges')
+      .select('id, name, court_name, jurisdiction, total_cases, slug')
+      .ilike('name', `%${query}%`)
+      .limit(Math.min(limit, 10))  // Limit judge suggestions to 10
+      .order('name')
+
+    if (!error && judges && judges.length > 0) {
+      const judgeSuggestions = judges.map((judge: any): SearchSuggestion => {
+        const slug = judge.slug || judge.name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')
+        return {
+          text: judge.name,
+          type: 'judge',
+          count: judge.total_cases || 0,
+          url: `/judges/${slug}`
+        }
+      })
+      suggestions.push(...judgeSuggestions)
+    }
+
+    // Add jurisdiction suggestions
+    const jurisdictionMatches = PREDEFINED_JURISDICTIONS
+      .filter(j => j.title.toLowerCase().includes(query.toLowerCase()))
+      .slice(0, 3)
+      .map((j): SearchSuggestion => ({
+        text: j.title,
+        type: 'jurisdiction',
+        count: 1,
+        url: j.url
+      }))
+
+    suggestions.push(...jurisdictionMatches)
+
+    // Add some common search terms if they match
+    const commonSearches = [
+      { text: 'California Superior Court', type: 'court' as const, count: 150, url: '/search?q=California Superior Court&type=court' },
+      { text: 'Federal Court', type: 'court' as const, count: 89, url: '/search?q=Federal Court&type=court' },
+      { text: 'Criminal Defense', type: 'judge' as const, count: 234, url: '/search?q=Criminal Defense&type=judge' },
+      { text: 'Civil Litigation', type: 'judge' as const, count: 189, url: '/search?q=Civil Litigation&type=judge' }
+    ].filter(s => s.text.toLowerCase().includes(query.toLowerCase()))
+
+    suggestions.push(...commonSearches)
+
+  } catch (error) {
+    logger.error('Error generating search suggestions', {
+      query,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    })
+  }
+
   return {
     suggestions: suggestions.slice(0, limit),
     query

@@ -188,7 +188,9 @@
       "Bash(git restore:*)",
       "Bash(git pull:*)",
       "Read(//Users/tannerosterkamp/**)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_network_requests"
     ],
     "deny": [],
     "ask": [],
