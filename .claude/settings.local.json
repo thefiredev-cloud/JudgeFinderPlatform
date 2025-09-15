@@ -194,7 +194,12 @@
       "Bash(del \"C:\\Users\\Tanner\\package-lock.json\")",
       "Bash(npx @next/codemod@canary next-lint-to-eslint-cli:*)",
       "Bash(python:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(claude mcp:*)",
+      "mcp__memory__read_graph",
+      "mcp__memory__search_nodes",
+      "mcp__memory__create_entities",
+      "mcp__memory__create_relations"
     ],
     "deny": [],
     "ask": [],

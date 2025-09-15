@@ -1,4 +1,5 @@
 import { Book, Code, Database, Shield } from 'lucide-react'
+import Link from 'next/link'
 
 export default function DocsPage() {
   return (
@@ -16,28 +17,31 @@ export default function DocsPage() {
             <Book className="h-8 w-8 text-blue-600 mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Getting Started</h2>
             <p className="text-gray-600 mb-4">Learn the basics of searching and analyzing judicial data</p>
-            <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">Read more →</a>
+            <Link href="/help" className="text-blue-600 hover:text-blue-700 font-medium">Read more →</Link>
           </div>
           
           <div className="bg-white rounded-lg shadow p-6">
             <Code className="h-8 w-8 text-blue-600 mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">API Reference</h2>
             <p className="text-gray-600 mb-4">Integrate JudgeFinder data into your applications</p>
-            <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">View API docs →</a>
+            <Link href="/docs/API" className="text-blue-600 hover:text-blue-700 font-medium">Open API docs →</Link>
           </div>
           
           <div className="bg-white rounded-lg shadow p-6">
             <Database className="h-8 w-8 text-blue-600 mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Data Sources</h2>
-            <p className="text-gray-600 mb-4">Understand where our data comes from and how it's processed</p>
-            <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">Learn more →</a>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Architecture</h2>
+            <p className="text-gray-600 mb-4">Understand the system design and data flows</p>
+            <Link href="/docs/ARCHITECTURE" className="text-blue-600 hover:text-blue-700 font-medium">Read architecture →</Link>
           </div>
           
           <div className="bg-white rounded-lg shadow p-6">
             <Shield className="h-8 w-8 text-blue-600 mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Best Practices</h2>
-            <p className="text-gray-600 mb-4">Tips for getting the most out of judicial analytics</p>
-            <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">Read guide →</a>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Operations</h2>
+            <p className="text-gray-600 mb-4">Deployments, runbooks, and environment setup</p>
+            <div className="flex gap-4">
+              <Link href="/docs/RUNBOOKS" className="text-blue-600 hover:text-blue-700 font-medium">Runbooks →</Link>
+              <Link href="/docs/NETLIFY_ENV_SETUP" className="text-blue-600 hover:text-blue-700 font-medium">Netlify Setup →</Link>
+            </div>
           </div>
         </div>
       </div>

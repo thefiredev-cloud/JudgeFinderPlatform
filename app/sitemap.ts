@@ -44,6 +44,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   })
 
+  // Jurisdiction county pages (static list to ensure coverage)
+  const jurisdictions = [
+    'los-angeles-county',
+    'orange-county',
+    'san-diego-county',
+    'san-francisco-county',
+    'santa-clara-county',
+    'alameda-county',
+    'riverside-county',
+    'san-bernardino-county',
+    'sacramento-county',
+    'fresno-county',
+  ]
+  const jurisdictionEntries = jurisdictions.map((slug) => ({
+    url: `${siteUrl}/jurisdictions/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.55,
+  }))
+
   return [
     {
       url: `${siteUrl}/`,
@@ -70,18 +90,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     },
     {
-      url: `${siteUrl}/legal-specialties`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    },
-    {
-      url: `${siteUrl}/pricing`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
       url: `${siteUrl}/analytics`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
@@ -95,6 +103,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...judgeEntries,
     ...courtEntries,
+    ...jurisdictionEntries,
   ]
 }
 

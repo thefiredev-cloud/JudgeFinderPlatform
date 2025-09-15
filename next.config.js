@@ -68,7 +68,7 @@ const nextConfig = {
             value: 'Content-Type,Authorization,X-Requested-With',
           },
           {
-            key: 'X-RobotsTag',
+            key: 'X-Robots-Tag',
             value: 'noindex, nofollow',
           },
         ],
