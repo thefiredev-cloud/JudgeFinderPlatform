@@ -193,7 +193,8 @@
       "mcp__playwright__browser_network_requests",
       "Bash(del \"C:\\Users\\Tanner\\package-lock.json\")",
       "Bash(npx @next/codemod@canary next-lint-to-eslint-cli:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": [],

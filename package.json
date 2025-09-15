@@ -21,7 +21,10 @@
     "bias:analyze": "node scripts/run-bias-analysis.js",
     "cron:daily": "node scripts/run-daily-sync.js",
     "cron:weekly": "node scripts/run-weekly-sync.js",
-    "data:status": "node scripts/check-data-status.js"
+    "data:status": "node scripts/check-data-status.js",
+    "launch:analytics": "npm run analytics:generate",
+    "launch:data": "npm run sync:courts && npm run sync:judges",
+    "launch:validate": "npm run validate:relationships && npm run integrity:full"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.31.3",
