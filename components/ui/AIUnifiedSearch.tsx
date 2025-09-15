@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Search, X, Mic, MicOff, Sparkles, Brain, ChevronRight, Loader2, History, Scale, Building, MapPin } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -65,12 +65,12 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
   }, [])
 
   // Save query to recent queries
-  const saveToHistory = (searchQuery: string) => {
+  const saveToHistory = useCallback((searchQuery: string) => {
     if (!searchQuery.trim()) return
     const updatedQueries = [searchQuery, ...recentQueries.filter(q => q !== searchQuery)].slice(0, 5)
     setRecentQueries(updatedQueries)
     localStorage.setItem('recentSearchQueries', JSON.stringify(updatedQueries))
-  }
+  }, [recentQueries])
 
   // Clear search history
   const clearHistory = () => {
@@ -79,7 +79,58 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
     setShowHistoryDropdown(false)
   }
 
-  // Voice search setup
+  // Fetch real search results from API
+  
+  // Fetch real search results from API
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      if (!debouncedQuery.trim() || debouncedQuery.trim().length < 2) {
+        setSearchResults([])
+        return
+      }
+
+      setIsLoading(true)
+      try {
+        const response = await fetch(`/api/judges/search?q=${encodeURIComponent(debouncedQuery)}&limit=8`)
+        if (response.ok) {
+          const data = await response.json()
+          setSearchResults(data.results || [])
+        }
+      } catch (error) {
+        console.error('Search error:', error)
+        setSearchResults([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchSearchResults()
+  }, [debouncedQuery])
+
+  const handleSearch = () => {
+    if (!query.trim()) return
+    saveToHistory(query)
+    // Navigate to search page for full results
+    router.push(`/search?q=${encodeURIComponent(query)}`)
+  }
+
+  const handleSelectResult = useCallback((searchQuery: string | SearchResult) => {
+    if (typeof searchQuery === 'string') {
+      // If it's a string (from voice or history), navigate to search page
+      saveToHistory(searchQuery)
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
+    } else {
+      // If it's a SearchResult object, navigate directly to the profile
+      saveToHistory(searchQuery.title)
+      router.push(searchQuery.url)
+    }
+    setQuery('')
+    setSearchResults([])
+    setShowHistoryDropdown(false)
+    setIsFocused(false)
+  }, [router, saveToHistory])
+
+  // Voice search setup (after handleSelectResult so it's in scope)
   useEffect(() => {
     if (!showVoiceSearch || typeof window === 'undefined') return
 
@@ -127,56 +178,7 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
     return () => {
       recognition.stop()
     }
-  }, [isListening, showVoiceSearch, voiceTranscript])
-
-  // Fetch real search results from API
-  useEffect(() => {
-    const fetchSearchResults = async () => {
-      if (!debouncedQuery.trim() || debouncedQuery.trim().length < 2) {
-        setSearchResults([])
-        return
-      }
-
-      setIsLoading(true)
-      try {
-        const response = await fetch(`/api/judges/search?q=${encodeURIComponent(debouncedQuery)}&limit=8`)
-        if (response.ok) {
-          const data = await response.json()
-          setSearchResults(data.results || [])
-        }
-      } catch (error) {
-        console.error('Search error:', error)
-        setSearchResults([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchSearchResults()
-  }, [debouncedQuery])
-
-  const handleSearch = () => {
-    if (!query.trim()) return
-    saveToHistory(query)
-    // Navigate to search page for full results
-    router.push(`/search?q=${encodeURIComponent(query)}`)
-  }
-
-  const handleSelectResult = (searchQuery: string | SearchResult) => {
-    if (typeof searchQuery === 'string') {
-      // If it's a string (from voice or history), navigate to search page
-      saveToHistory(searchQuery)
-      router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
-    } else {
-      // If it's a SearchResult object, navigate directly to the profile
-      saveToHistory(searchQuery.title)
-      router.push(searchQuery.url)
-    }
-    setQuery('')
-    setSearchResults([])
-    setShowHistoryDropdown(false)
-    setIsFocused(false)
-  }
+  }, [isListening, showVoiceSearch, voiceTranscript, handleSelectResult])
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {

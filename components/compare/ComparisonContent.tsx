@@ -52,7 +52,7 @@ export function ComparisonContent({ initialJudges = [] }: ComparisonContentProps
         fetchJudgeAnalytics(judge.id)
       }
     })
-  }, [selectedJudges])
+  }, [selectedJudges, analytics, loadingAnalytics])
 
   const fetchJudgeAnalytics = async (judgeId: string) => {
     setLoadingAnalytics(prev => ({ ...prev, [judgeId]: true }))
