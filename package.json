@@ -8,7 +8,7 @@
     "build:production": "next build",
     "build:netlify": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "integrity:full": "node scripts/database-integrity-check.js",
     "assignments:update": "node scripts/automated-assignment-updater.js run",
@@ -63,6 +63,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
     "@netlify/plugin-nextjs": "^5.13.1",
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.10",
