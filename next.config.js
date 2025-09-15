@@ -21,9 +21,6 @@ const nextConfig = {
     parallelServerCompiles: false,
     parallelServerBuildTraces: false,
   },
-  
-  // Disable SWC minification on Windows to prevent worker issues
-  swcMinify: false,
 
   // Image optimization for judge profiles and court images
   images: {

@@ -132,7 +132,7 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
   // Fetch real search results from API
   useEffect(() => {
     const fetchSearchResults = async () => {
-      if (!debouncedQuery.trim()) {
+      if (!debouncedQuery.trim() || debouncedQuery.trim().length < 2) {
         setSearchResults([])
         return
       }

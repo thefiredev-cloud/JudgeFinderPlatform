@@ -167,6 +167,23 @@ export function sanitizeSearchQuery(query: string): string {
     .substring(0, 100) // Limit length
 }
 
+/**
+ * Normalize judge-focused user queries by removing common noise words
+ * like "judge/judges" and collapsing whitespace. Keeps it conservative
+ * to avoid over-sanitizing domain-specific searches.
+ */
+export function normalizeJudgeSearchQuery(query: string): string {
+  const sanitized = sanitizeSearchQuery(query)
+  // Remove common noise tokens that users often include
+  const cleaned = sanitized
+    .replace(/\b(judge|judges)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  // If cleaning strips everything, fall back to sanitized input
+  return cleaned.length > 0 ? cleaned : sanitized
+}
+
 // Rate limiting validation
 export const rateLimitSchema = z.object({
   requests: z.number().int().min(1).max(1000),

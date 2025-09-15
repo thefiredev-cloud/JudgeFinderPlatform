@@ -75,7 +75,7 @@ export function SearchSection() {
 
   // Effect for debounced search
   useEffect(() => {
-    if (debouncedSearchQuery.trim()) {
+    if (debouncedSearchQuery.trim() && debouncedSearchQuery.trim().length >= 2) {
       fetchSearchResults(debouncedSearchQuery)
     } else {
       setSearchResults([])

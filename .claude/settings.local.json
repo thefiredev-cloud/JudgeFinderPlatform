@@ -190,7 +190,9 @@
       "Read(//Users/tannerosterkamp/**)",
       "Bash(lsof:*)",
       "mcp__playwright__browser_press_key",
-      "mcp__playwright__browser_network_requests"
+      "mcp__playwright__browser_network_requests",
+      "Bash(del \"C:\\Users\\Tanner\\package-lock.json\")",
+      "Bash(npx @next/codemod@canary next-lint-to-eslint-cli:*)"
     ],
     "deny": [],
     "ask": [],

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
-import { sanitizeSearchQuery } from '@/lib/utils/validation'
+import { sanitizeSearchQuery, normalizeJudgeSearchQuery } from '@/lib/utils/validation'
 import type { 
   SearchResponse, 
   SearchResult, 
@@ -270,21 +270,22 @@ async function searchJudges(supabase: any, query: string, limit: number): Promis
     
     // Improved search to handle partial names and different search patterns
     // Split query into words to search for first/last names separately
-    const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 0)
+    const cleaned = normalizeJudgeSearchQuery(query)
+    const queryWords = cleaned.toLowerCase().split(/\s+/).filter(word => word.length > 0)
     
     let searchQuery = supabase
       .from('judges')
-      .select('id, name, court_name, jurisdiction, total_cases, profile_image_url, slug', { count: 'exact' })
+      .select('id, name, court_name, jurisdiction, total_cases, profile_image_url, slug')
     
     // If single word, search anywhere in the name
     if (queryWords.length === 1) {
-      searchQuery = searchQuery.ilike('name', `%${query}%`)
+      searchQuery = searchQuery.ilike('name', `%${cleaned}%`)
     } else {
       // For multiple words, search for the full phrase first
-      searchQuery = searchQuery.or(`name.ilike.%${query}%,name.ilike.%${queryWords.join('%')}%`)
+      searchQuery = searchQuery.or(`name.ilike.%${cleaned}%,name.ilike.%${queryWords.join('%')}%`)
     }
     
-    const { data, error, count } = await searchQuery
+    const { data, error } = await searchQuery
       .range(0, actualLimit - 1)
       .order('name')
 
@@ -306,12 +307,7 @@ async function searchJudges(supabase: any, query: string, limit: number): Promis
       return []
     }
 
-    logger.info(`Judge search successful`, { 
-      query, 
-      resultsFound: data.length,
-      totalCount: count || 0,
-      limit: actualLimit
-    })
+    logger.info(`Judge search successful`, { query: cleaned, resultsFound: data.length, limit: actualLimit })
 
     return data.map((judge: any): JudgeSearchResult => {
       // Use slug from database if available, otherwise generate it

@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { auth } from '@clerk/nextjs/server'
 import type { Judge, SearchResult } from '@/types'
+import { sanitizeSearchQuery, normalizeJudgeSearchQuery } from '@/lib/utils/validation'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
-    // Get auth info
-    const { userId } = await auth()
-
     const { searchParams } = new URL(request.url)
-    const query = searchParams.get('q') || ''
+    const rawQuery = searchParams.get('q') || ''
+    const sanitized = sanitizeSearchQuery(rawQuery)
+    const normalizedQuery = normalizeJudgeSearchQuery(sanitized)
     const limit = parseInt(searchParams.get('limit') || '20')
     const page = parseInt(searchParams.get('page') || '1')
     const jurisdiction = searchParams.get('jurisdiction')
@@ -30,11 +29,11 @@ export async function GET(request: NextRequest) {
     // Build the query - if no query, show popular judges
     let queryBuilder = supabase
       .from('judges')
-      .select('id, name, court_id, court_name, jurisdiction, profile_image_url, total_cases, appointed_date, slug, created_at', { count: 'exact' })
+      .select('id, name, court_id, court_name, jurisdiction, profile_image_url, total_cases, appointed_date, slug, created_at')
     
-    if (query.trim()) {
+    if (normalizedQuery.trim().length >= 2) {
       // Search by name if query provided
-      queryBuilder = queryBuilder.ilike('name', `%${query}%`)
+      queryBuilder = queryBuilder.ilike('name', `%${normalizedQuery}%`)
         .order('name')
     } else {
       // Show judges with most cases if no query
@@ -53,7 +52,7 @@ export async function GET(request: NextRequest) {
       queryBuilder = queryBuilder.eq('court_type', courtType)
     }
 
-    const { data: judges, error, count } = await queryBuilder
+    const { data: judges, error } = await queryBuilder
 
     if (error) {
       console.error('Supabase error:', {
@@ -68,8 +67,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const totalCount = count || 0
-    const hasMore = offset + limit < totalCount
+    const hasMore = (judges?.length || 0) === limit
+    const totalCount = judges?.length || 0
 
     // Transform judges to search results format
     const results = (judges || []).map((judge: any) => ({
@@ -106,9 +105,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Get auth info for advanced search
-    const { userId } = await auth()
-
     const body = await request.json()
     const { query, filters = {} } = body
 
@@ -117,7 +113,7 @@ export async function POST(request: NextRequest) {
     // Build query for search
     let queryBuilder = supabase
       .from('judges')
-      .select('id, name, court_id, court_name, jurisdiction, profile_image_url, total_cases, appointed_date, slug, created_at', { count: 'exact' })
+      .select('id, name, court_id, court_name, jurisdiction, profile_image_url, total_cases, appointed_date, slug, created_at')
 
     if (query?.trim()) {
       // Search by name if query provided
@@ -143,7 +139,7 @@ export async function POST(request: NextRequest) {
     const offset = (page - 1) * limit
     queryBuilder = queryBuilder.range(offset, offset + limit - 1)
 
-    const { data: judges, error, count } = await queryBuilder
+    const { data: judges, error } = await queryBuilder
 
     if (error) {
       console.error('Search function error:', {
@@ -168,8 +164,8 @@ export async function POST(request: NextRequest) {
       url: `/judges/${judge.slug || judge.id}`
     }))
 
-    const totalCount = count || 0
-    const hasMore = offset + limit < totalCount
+    const totalCount = judges?.length || 0
+    const hasMore = (judges?.length || 0) === limit
 
     const response = NextResponse.json({
       results,
