@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Search, X, Mic, MicOff, Sparkles, Brain, ChevronRight, Loader2, History, TrendingUp } from 'lucide-react'
+import { Search, X, Mic, MicOff, Sparkles, Brain, ChevronRight, Loader2, History, Scale, Building, MapPin } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useAISearch } from '@/hooks/useAISearch'
+import type { SearchResult } from '@/types/search'
 
 interface AIUnifiedSearchProps {
   placeholder?: string
@@ -14,8 +14,25 @@ interface AIUnifiedSearchProps {
   showHistory?: boolean
 }
 
-const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({ 
-  placeholder = "Ask me anything about judges...", 
+// Debounce hook
+function useDebounce(value: string, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
+
+const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
+  placeholder = "Ask me anything about judges...",
   className = "",
   autoFocus = false,
   showVoiceSearch = true,
@@ -23,30 +40,49 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
 }) => {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
+  const [query, setQuery] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [showHistoryDropdown, setShowHistoryDropdown] = useState(false)
   const [voiceTranscript, setVoiceTranscript] = useState('')
-  
-  const {
-    query,
-    results,
-    suggestions,
-    loading,
-    intent,
-    conversationalResponse,
-    searchMemory,
-    setQuery,
-    performSearch,
-    trackSelection,
-    clearMemory,
-    recentQueries
-  } = useAISearch()
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [recentQueries, setRecentQueries] = useState<string[]>([])
+
+  // Debounce search query
+  const debouncedQuery = useDebounce(query, 300)
+
+  // Load recent queries from localStorage
+  useEffect(() => {
+    const savedQueries = localStorage.getItem('recentSearchQueries')
+    if (savedQueries) {
+      try {
+        setRecentQueries(JSON.parse(savedQueries))
+      } catch (e) {
+        console.error('Failed to load search history:', e)
+      }
+    }
+  }, [])
+
+  // Save query to recent queries
+  const saveToHistory = (searchQuery: string) => {
+    if (!searchQuery.trim()) return
+    const updatedQueries = [searchQuery, ...recentQueries.filter(q => q !== searchQuery)].slice(0, 5)
+    setRecentQueries(updatedQueries)
+    localStorage.setItem('recentSearchQueries', JSON.stringify(updatedQueries))
+  }
+
+  // Clear search history
+  const clearHistory = () => {
+    setRecentQueries([])
+    localStorage.removeItem('recentSearchQueries')
+    setShowHistoryDropdown(false)
+  }
 
   // Voice search setup
   useEffect(() => {
     if (!showVoiceSearch || typeof window === 'undefined') return
-    
+
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (!SpeechRecognition) return
 
@@ -65,7 +101,7 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
         .map((result: any) => result[0])
         .map((result: any) => result.transcript)
         .join('')
-      
+
       setVoiceTranscript(transcript)
       setQuery(transcript)
     }
@@ -73,8 +109,7 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
     recognition.onend = () => {
       setIsListening(false)
       if (voiceTranscript) {
-        // Navigate to search page with voice transcript
-        router.push(`/search?q=${encodeURIComponent(voiceTranscript)}`)
+        handleSelectResult(voiceTranscript)
       }
     }
 
@@ -92,12 +127,55 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
     return () => {
       recognition.stop()
     }
-  }, [isListening, showVoiceSearch, voiceTranscript, router])
+  }, [isListening, showVoiceSearch, voiceTranscript])
+
+  // Fetch real search results from API
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      if (!debouncedQuery.trim()) {
+        setSearchResults([])
+        return
+      }
+
+      setIsLoading(true)
+      try {
+        const response = await fetch(`/api/judges/search?q=${encodeURIComponent(debouncedQuery)}&limit=8`)
+        if (response.ok) {
+          const data = await response.json()
+          setSearchResults(data.results || [])
+        }
+      } catch (error) {
+        console.error('Search error:', error)
+        setSearchResults([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchSearchResults()
+  }, [debouncedQuery])
 
   const handleSearch = () => {
     if (!query.trim()) return
-    // Navigate to search page - the search page will handle the API call
+    saveToHistory(query)
+    // Navigate to search page for full results
     router.push(`/search?q=${encodeURIComponent(query)}`)
+  }
+
+  const handleSelectResult = (searchQuery: string | SearchResult) => {
+    if (typeof searchQuery === 'string') {
+      // If it's a string (from voice or history), navigate to search page
+      saveToHistory(searchQuery)
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
+    } else {
+      // If it's a SearchResult object, navigate directly to the profile
+      saveToHistory(searchQuery.title)
+      router.push(searchQuery.url)
+    }
+    setQuery('')
+    setSearchResults([])
+    setShowHistoryDropdown(false)
+    setIsFocused(false)
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -118,31 +196,31 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
     setIsListening(!isListening)
   }
 
-  const selectSuggestion = (suggestion: string) => {
-    setQuery(suggestion)
-    // Navigate to search page - the search page will handle the API call
-    router.push(`/search?q=${encodeURIComponent(suggestion)}`)
-  }
-
-  const selectHistoryItem = (historyQuery: string) => {
-    setQuery(historyQuery)
-    setShowHistoryDropdown(false)
-    // Navigate to search page - the search page will handle the API call
-    router.push(`/search?q=${encodeURIComponent(historyQuery)}`)
+  const getResultIcon = (type: string) => {
+    switch (type) {
+      case 'judge':
+        return <Scale className="w-4 h-4 text-blue-500" />
+      case 'court':
+        return <Building className="w-4 h-4 text-green-500" />
+      case 'jurisdiction':
+        return <MapPin className="w-4 h-4 text-purple-500" />
+      default:
+        return <Search className="w-4 h-4 text-gray-400" />
+    }
   }
 
   return (
     <div className={`relative w-full ${className}`}>
       {/* Main Search Bar with Glassmorphism */}
-      <motion.div 
+      <motion.div
         className={`
           relative flex items-center w-full
           bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl
           rounded-2xl shadow-2xl
           border-2 transition-all duration-300
           min-h-[60px] lg:min-h-[64px]
-          ${isFocused 
-            ? 'border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.3)] scale-[1.02]' 
+          ${isFocused
+            ? 'border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.3)] scale-[1.02]'
             : 'border-gray-200/50 dark:border-gray-700/50 hover:border-blue-400/50'
           }
         `}
@@ -153,10 +231,10 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
         {/* AI Icon with Pulse Animation */}
         <motion.div
           className="pl-4 pr-3 py-3 lg:pl-5 lg:pr-3"
-          animate={loading ? { scale: [1, 1.2, 1] } : {}}
+          animate={isLoading ? { scale: [1, 1.2, 1] } : {}}
           transition={{ repeat: Infinity, duration: 1.5 }}
         >
-          {loading ? (
+          {isLoading ? (
             <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
           ) : (
             <div className="relative">
@@ -183,7 +261,7 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
           onKeyDown={handleKeyPress}
           onFocus={() => {
             setIsFocused(true)
-            if (showHistory && recentQueries.length > 0) {
+            if (showHistory && recentQueries.length > 0 && !query) {
               setShowHistoryDropdown(true)
             }
           }}
@@ -247,8 +325,8 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               className={`p-2 rounded-lg transition-all ${
-                isListening 
-                  ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400' 
+                isListening
+                  ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400'
                   : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400'
               }`}
             >
@@ -283,48 +361,9 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
         </div>
       </motion.div>
 
-      {/* AI Intent Display */}
+      {/* Real Search Results & History Dropdown */}
       <AnimatePresence>
-        {intent && intent.confidence > 0.7 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute top-full mt-2 left-0 right-0 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl"
-          >
-            <div className="flex items-center gap-2">
-              <Brain className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                AI understands: Looking for <strong>{intent.type}</strong> 
-                {intent.searchType !== 'general' && ` by ${intent.searchType}`}
-                <span className="ml-2 text-xs opacity-70">
-                  ({Math.round(intent.confidence * 100)}% confident)
-                </span>
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Conversational Response */}
-      <AnimatePresence>
-        {conversationalResponse && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute top-full mt-2 left-0 right-0 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl"
-          >
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              {conversationalResponse}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Suggestions & History Dropdown */}
-      <AnimatePresence>
-        {isFocused && (suggestions.length > 0 || (showHistoryDropdown && recentQueries.length > 0)) && (
+        {isFocused && ((searchResults.length > 0 || isLoading) || (showHistoryDropdown && recentQueries.length > 0 && !query)) && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -338,24 +377,32 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
               max-h-96 overflow-y-auto
             "
           >
-            {/* AI Suggestions */}
-            {suggestions.length > 0 && (
+            {/* Loading State */}
+            {isLoading && (
+              <div className="flex items-center justify-center p-4">
+                <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+                <span className="ml-2 text-gray-500">Searching...</span>
+              </div>
+            )}
+
+            {/* Search Results */}
+            {!isLoading && searchResults.length > 0 && (
               <div className="border-b border-gray-200 dark:border-gray-700">
                 <div className="px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10">
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
-                      AI Suggestions
+                      Search Results
                     </span>
                   </div>
                 </div>
-                {suggestions.map((suggestion, index) => (
+                {searchResults.map((result, index) => (
                   <motion.button
-                    key={index}
+                    key={`${result.type}-${result.id}-${index}`}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    onClick={() => selectSuggestion(suggestion)}
+                    onClick={() => handleSelectResult(result)}
                     className="
                       w-full px-5 py-3 text-left
                       hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50
@@ -363,20 +410,48 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
                       transition-all duration-200
                       flex items-center gap-3
                       group
+                      border-b border-gray-100 dark:border-gray-800 last:border-b-0
                     "
                   >
-                    <TrendingUp className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                      {suggestion}
-                    </span>
-                    <ChevronRight className="w-4 h-4 text-gray-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="flex-shrink-0">
+                      {getResultIcon(result.type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                        {result.title}
+                      </div>
+                      {result.subtitle && (
+                        <div className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                          {result.subtitle}
+                        </div>
+                      )}
+                      {result.description && (
+                        <div className="text-xs text-gray-500 dark:text-gray-500 truncate">
+                          {result.description}
+                        </div>
+                      )}
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                   </motion.button>
                 ))}
+                <button
+                  onClick={handleSearch}
+                  className="
+                    w-full px-5 py-3 text-center
+                    bg-gray-50 dark:bg-gray-800/50
+                    hover:bg-gray-100 dark:hover:bg-gray-700
+                    transition-colors
+                    text-sm text-blue-600 dark:text-blue-400
+                    font-medium
+                  "
+                >
+                  View all results for "{query}" →
+                </button>
               </div>
             )}
 
             {/* Search History */}
-            {showHistoryDropdown && recentQueries.length > 0 && (
+            {!isLoading && showHistoryDropdown && recentQueries.length > 0 && !query && (
               <div>
                 <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -388,8 +463,7 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      clearMemory()
-                      setShowHistoryDropdown(false)
+                      clearHistory()
                     }}
                     className="text-xs text-gray-500 hover:text-red-500 transition-colors"
                   >
@@ -402,7 +476,10 @@ const AIUnifiedSearch: React.FC<AIUnifiedSearchProps> = ({
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    onClick={() => selectHistoryItem(historyQuery)}
+                    onClick={() => {
+                      setQuery(historyQuery)
+                      handleSelectResult(historyQuery)
+                    }}
                     className="
                       w-full px-5 py-3 text-left
                       hover:bg-gray-50 dark:hover:bg-gray-800/50

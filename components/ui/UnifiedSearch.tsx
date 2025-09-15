@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Search, X } from 'lucide-react'
+import { Search, X, Scale, Building, MapPin } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import type { SearchResult } from '@/types/search'
 
 interface UnifiedSearchProps {
   placeholder?: string
@@ -11,23 +12,52 @@ interface UnifiedSearchProps {
   autoFocus?: boolean
 }
 
-const UnifiedSearch: React.FC<UnifiedSearchProps> = ({ 
-  placeholder = "Enter your judge's name...", 
+// Debounce hook
+function useDebounce(value: string, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
+
+const UnifiedSearch: React.FC<UnifiedSearchProps> = ({
+  placeholder = "Enter your judge's name...",
   className = "",
-  autoFocus = false 
+  autoFocus = false
 }) => {
   const [query, setQuery] = useState('')
   const [isFocused, setIsFocused] = useState(false)
-  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [isLoading, setIsLoading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+
+  // Debounce search query
+  const debouncedQuery = useDebounce(query, 300)
 
   const handleSearch = () => {
     if (!query.trim()) return
 
-    // Route to search results page
+    // Route to search results page for full search
     const searchQuery = query.trim()
     router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
+  }
+
+  const handleSelectResult = (result: SearchResult) => {
+    // Navigate directly to the result's URL
+    router.push(result.url)
+    setQuery('')
+    setSearchResults([])
+    setIsFocused(false)
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -41,36 +71,56 @@ const UnifiedSearch: React.FC<UnifiedSearchProps> = ({
     inputRef.current?.focus()
   }
 
-  // Simple suggestions for common judge names
-  useEffect(() => {
-    if (query.length > 2) {
-      const exampleJudges = [
-        'Judge Smith',
-        'Judge Martinez',
-        'Judge Johnson',
-        'Judge Williams',
-        'Judge Brown'
-      ]
-      const filtered = exampleJudges
-        .filter(name => name.toLowerCase().includes(query.toLowerCase()))
-        .slice(0, 3)
-      setSuggestions(filtered)
-    } else {
-      setSuggestions([])
+  const getResultIcon = (type: string) => {
+    switch (type) {
+      case 'judge':
+        return <Scale className="w-4 h-4 text-blue-500" />
+      case 'court':
+        return <Building className="w-4 h-4 text-green-500" />
+      case 'jurisdiction':
+        return <MapPin className="w-4 h-4 text-purple-500" />
+      default:
+        return <Search className="w-4 h-4 text-gray-400" />
     }
-  }, [query])
+  }
+
+  // Fetch real search results from API
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      if (!debouncedQuery.trim()) {
+        setSearchResults([])
+        return
+      }
+
+      setIsLoading(true)
+      try {
+        const response = await fetch(`/api/judges/search?q=${encodeURIComponent(debouncedQuery)}&limit=5`)
+        if (response.ok) {
+          const data = await response.json()
+          setSearchResults(data.results || [])
+        }
+      } catch (error) {
+        console.error('Search error:', error)
+        setSearchResults([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchSearchResults()
+  }, [debouncedQuery])
 
   return (
     <div className={`relative w-full ${className}`}>
-      <div 
+      <div
         className={`
           relative flex items-center w-full
-          bg-white dark:bg-gray-800 
+          bg-white dark:bg-gray-800
           rounded-xl lg:rounded-2xl shadow-lg
           border-2 transition-all duration-200
           min-h-[52px] lg:min-h-[56px]
-          ${isFocused 
-            ? 'border-blue-500 shadow-xl lg:scale-[1.02]' 
+          ${isFocused
+            ? 'border-blue-500 shadow-xl lg:scale-[1.02]'
             : 'border-gray-200 dark:border-gray-700'
           }
         `}
@@ -81,7 +131,7 @@ const UnifiedSearch: React.FC<UnifiedSearchProps> = ({
           className="pl-4 pr-3 py-3 lg:pl-5 lg:pr-3 touch-target"
           aria-label="Search"
         >
-          <Search 
+          <Search
             className={`w-5 h-5 lg:w-5 lg:h-5 transition-colors ${
               isFocused ? 'text-blue-500' : 'text-gray-400'
             }`}
@@ -148,9 +198,9 @@ const UnifiedSearch: React.FC<UnifiedSearchProps> = ({
         </button>
       </div>
 
-      {/* Simple Suggestions Dropdown */}
+      {/* Real Search Results Dropdown */}
       <AnimatePresence>
-        {isFocused && suggestions.length > 0 && (
+        {isFocused && (searchResults.length > 0 || isLoading) && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -161,29 +211,67 @@ const UnifiedSearch: React.FC<UnifiedSearchProps> = ({
               rounded-xl shadow-xl
               border border-gray-200 dark:border-gray-700
               overflow-hidden
+              max-h-96 overflow-y-auto
             "
           >
-            {suggestions.map((suggestion, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setQuery(suggestion)
-                  handleSearch()
-                }}
-                className="
-                  w-full px-5 py-3 text-left
-                  hover:bg-gray-50 dark:hover:bg-gray-700
-                  transition-colors
-                  flex items-center gap-3
-                  min-h-[48px]
-                "
-              >
-                <Search className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-700 dark:text-gray-300">
-                  {suggestion}
-                </span>
-              </button>
-            ))}
+            {isLoading ? (
+              <div className="flex items-center justify-center p-4">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+                <span className="ml-2 text-gray-500">Searching...</span>
+              </div>
+            ) : (
+              <>
+                {searchResults.map((result, index) => (
+                  <button
+                    key={`${result.type}-${result.id}-${index}`}
+                    onClick={() => handleSelectResult(result)}
+                    className="
+                      w-full px-5 py-3 text-left
+                      hover:bg-gray-50 dark:hover:bg-gray-700
+                      transition-colors
+                      flex items-start gap-3
+                      min-h-[48px]
+                      border-b border-gray-100 dark:border-gray-700 last:border-b-0
+                    "
+                  >
+                    <div className="mt-1">
+                      {getResultIcon(result.type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                        {result.title}
+                      </div>
+                      {result.subtitle && (
+                        <div className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                          {result.subtitle}
+                        </div>
+                      )}
+                      {result.description && (
+                        <div className="text-xs text-gray-500 dark:text-gray-500 truncate">
+                          {result.description}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+
+                {searchResults.length > 0 && (
+                  <button
+                    onClick={handleSearch}
+                    className="
+                      w-full px-5 py-3 text-center
+                      bg-gray-50 dark:bg-gray-700/50
+                      hover:bg-gray-100 dark:hover:bg-gray-700
+                      transition-colors
+                      text-sm text-blue-600 dark:text-blue-400
+                      font-medium
+                    "
+                  >
+                    View all results for "{query}" →
+                  </button>
+                )}
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

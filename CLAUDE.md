@@ -347,9 +347,12 @@ Complete $78.5K/month revenue pipeline built but platform operates as free publi
 #### Essential Commands
 ```bash
 # Development
-npx next dev -p 3005                    # Start development server
+npx next dev -p 3005                    # Start development server (keep running for Claude Code)
 npm run type-check                      # TypeScript validation
 npm run lint                           # Code quality checks
+
+# Important: Keep dev server running
+# Claude Code should maintain the dev server at port 3005 for testing
 
 # AI & Analytics
 npm run analytics:generate              # Generate AI analytics
