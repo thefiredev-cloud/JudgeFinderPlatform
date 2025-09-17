@@ -63,6 +63,26 @@ export async function GET(request: NextRequest) {
       scheduledFor: judgeScheduleTime.toISOString()
     })
 
+    // 2b. Federal (US) judge maintenance (schedule 45 minutes later)
+    const federalJudgeScheduleTime = new Date(Date.now() + 45 * 60 * 1000)
+    const federalJudgeJobId = await queueManager.addJob(
+      'judge',
+      {
+        batchSize: 20,
+        jurisdiction: 'US',
+        forceRefresh: false,
+        discoverLimit: 1000 // incremental discovery each weekly run
+      },
+      140, // High priority but slightly below CA full refresh
+      federalJudgeScheduleTime
+    )
+    jobs.push({
+      id: federalJudgeJobId,
+      type: 'judge',
+      description: 'Weekly federal judge maintenance (US)',
+      scheduledFor: federalJudgeScheduleTime.toISOString()
+    })
+
     // 3. Decision backfill (schedule 1 hour later)
     const decisionScheduleTime = new Date(Date.now() + 60 * 60 * 1000)
     const decisionJobId = await queueManager.addJob(

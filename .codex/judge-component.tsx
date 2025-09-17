@@ -8,8 +8,8 @@ type Props = {
   showAnalytics?: boolean
 }
 
-// Replace %%COMPONENT_NAME%% when copying this template
-export function %%COMPONENT_NAME%%({ judge, showAnalytics = true }: Props) {
+// Template component used by the Codex CLI when scaffolding judge views
+export function JudgeComponentTemplate({ judge, showAnalytics = true }: Props) {
   return (
     <div className="rounded-lg bg-gray-900 p-6">
       <div className="mb-4 text-white">
@@ -24,5 +24,4 @@ export function %%COMPONENT_NAME%%({ judge, showAnalytics = true }: Props) {
   )
 }
 
-export default %%COMPONENT_NAME%%
-
+export default JudgeComponentTemplate

@@ -3,15 +3,21 @@
  * Handles automated syncing of judge data from CourtListener API
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { CourtListenerClient } from '@/lib/courtlistener/client'
 import { logger } from '@/lib/utils/logger'
+import { sleep } from '@/lib/utils/helpers'
 
 interface JudgeSyncOptions {
   batchSize?: number
   jurisdiction?: string
   forceRefresh?: boolean
   judgeIds?: string[] // Specific judges to sync
+  /**
+   * Maximum number of new CourtListener judge IDs to discover per run.
+   * Keep modest (e.g., 200–1000) for serverless time limits; a driving script can loop.
+   */
+  discoverLimit?: number
 }
 
 interface JudgeSyncResult {
@@ -36,16 +42,30 @@ interface CourtListenerJudge {
   cl_id?: string
 }
 
+interface BatchSyncStats {
+  processed: number
+  updated: number
+  created: number
+  enhanced: number
+  errors: string[]
+}
+
 export class JudgeSyncManager {
-  private supabase: any
+  private supabase: SupabaseClient
   private courtListener: CourtListenerClient
   private syncId: string
 
   constructor() {
-    this.supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error('Supabase credentials missing: set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY')
+    }
+
+    this.supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false }
+    })
     this.courtListener = new CourtListenerClient()
     this.syncId = `judge-sync-${Date.now()}`
   }
@@ -72,11 +92,11 @@ export class JudgeSyncManager {
 
       // Determine sync strategy
       if (options.judgeIds && options.judgeIds.length > 0) {
-        // Sync specific judges
-        await this.syncSpecificJudges(options.judgeIds, options, result)
+        const stats = await this.syncSpecificJudges(options.judgeIds, options)
+        this.mergeStats(result, stats)
       } else {
-        // Sync all judges or by jurisdiction
-        await this.syncAllJudges(options, result)
+        const stats = await this.syncAllJudges(options)
+        this.mergeStats(result, stats)
       }
 
       result.duration = Date.now() - startTime
@@ -111,9 +131,16 @@ export class JudgeSyncManager {
    */
   private async syncSpecificJudges(
     judgeIds: string[], 
-    options: JudgeSyncOptions, 
-    result: JudgeSyncResult
-  ) {
+    options: JudgeSyncOptions
+  ): Promise<BatchSyncStats> {
+    const stats: BatchSyncStats = {
+      processed: 0,
+      updated: 0,
+      created: 0,
+      enhanced: 0,
+      errors: []
+    }
+
     const batchSize = options.batchSize || 10
 
     for (let i = 0; i < judgeIds.length; i += batchSize) {
@@ -122,49 +149,79 @@ export class JudgeSyncManager {
       try {
         for (const judgeId of batch) {
           const processed = await this.syncSingleJudge(judgeId, options)
-          if (processed.updated) result.judgesUpdated++
-          if (processed.created) result.judgesCreated++
-          if (processed.enhanced) result.profilesEnhanced++
-          result.judgesProcessed++
+          if (processed.updated) stats.updated++
+          if (processed.created) stats.created++
+          if (processed.enhanced) stats.enhanced++
+          stats.processed++
         }
       } catch (error) {
-        result.errors.push(`Batch processing failed: ${error}`)
+        const details = error instanceof Error ? error.message : String(error)
+        stats.errors.push(`Batch processing failed: ${details}`)
       }
 
       // Rate limiting
       if (i + batchSize < judgeIds.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await sleep(1000)
       }
     }
+
+    return stats
   }
 
   /**
    * Sync all judges (with jurisdiction filter)
    */
-  private async syncAllJudges(options: JudgeSyncOptions, result: JudgeSyncResult) {
+  private async syncAllJudges(options: JudgeSyncOptions): Promise<BatchSyncStats> {
+    const stats: BatchSyncStats = {
+      processed: 0,
+      updated: 0,
+      created: 0,
+      enhanced: 0,
+      errors: []
+    }
+
     // Get judges from our database that need updating
     const judgesToSync = await this.getJudgesNeedingUpdate(options)
-    result.judgesProcessed = judgesToSync.length
 
-    const batchSize = options.batchSize || 10
+    if (judgesToSync.length > 0) {
+      const batchSize = options.batchSize || 10
 
-    for (let i = 0; i < judgesToSync.length; i += batchSize) {
-      const batch = judgesToSync.slice(i, i + batchSize)
-      
-      try {
-        const batchResult = await this.processBatch(batch, options)
-        result.judgesUpdated += batchResult.updated
-        result.judgesCreated += batchResult.created
-        result.profilesEnhanced += batchResult.enhanced
-      } catch (error) {
-        result.errors.push(`Batch ${Math.floor(i / batchSize) + 1} failed: ${error}`)
-      }
+      for (let i = 0; i < judgesToSync.length; i += batchSize) {
+        const batch = judgesToSync.slice(i, i + batchSize)
+        
+        try {
+          const batchResult = await this.processBatch(batch, options)
+          stats.processed += batchResult.processed
+          stats.updated += batchResult.updated
+          stats.created += batchResult.created
+          stats.enhanced += batchResult.enhanced
+          stats.errors.push(...batchResult.errors)
+        } catch (error) {
+          const details = error instanceof Error ? error.message : String(error)
+          stats.errors.push(`Batch ${Math.floor(i / batchSize) + 1} failed: ${details}`)
+        }
 
-      // Rate limiting
-      if (i + batchSize < judgesToSync.length) {
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        // Rate limiting
+        if (i + batchSize < judgesToSync.length) {
+          await sleep(2000)
+        }
       }
     }
+
+    // Discover and import new judges that are not yet in our database
+    const newJudgeIds = await this.discoverNewJudgeIds(options)
+
+    if (newJudgeIds.length > 0) {
+      logger.info('Discovered new judges to import', { count: newJudgeIds.length })
+      const newJudgeStats = await this.syncSpecificJudges(newJudgeIds, options)
+      stats.processed += newJudgeStats.processed
+      stats.updated += newJudgeStats.updated
+      stats.created += newJudgeStats.created
+      stats.enhanced += newJudgeStats.enhanced
+      stats.errors.push(...newJudgeStats.errors)
+    }
+
+    return stats
   }
 
   /**
@@ -199,24 +256,140 @@ export class JudgeSyncManager {
   /**
    * Process a batch of judges
    */
-  private async processBatch(judges: any[], options: JudgeSyncOptions) {
-    let updated = 0
-    let created = 0
-    let enhanced = 0
+  private async processBatch(judges: any[], options: JudgeSyncOptions): Promise<BatchSyncStats> {
+    const stats: BatchSyncStats = {
+      processed: 0,
+      updated: 0,
+      created: 0,
+      enhanced: 0,
+      errors: []
+    }
 
     for (const judge of judges) {
       try {
         const result = await this.syncSingleJudge(judge.courtlistener_id, options)
-        if (result.updated) updated++
-        if (result.created) created++
-        if (result.enhanced) enhanced++
+        if (result.updated) stats.updated++
+        if (result.created) stats.created++
+        if (result.enhanced) stats.enhanced++
+        stats.processed++
       } catch (error) {
+        const details = error instanceof Error ? error.message : String(error)
+        stats.errors.push(`Failed to sync judge ${judge.name}: ${details}`)
         logger.error('Failed to sync judge', { judge: judge.name, error })
-        // Continue with other judges
       }
     }
 
-    return { updated, created, enhanced }
+    return stats
+  }
+
+  /**
+   * Discover new judges from CourtListener that we haven't imported yet
+   */
+  private async discoverNewJudgeIds(options: JudgeSyncOptions): Promise<string[]> {
+    try {
+      const existingIds = await this.getExistingCourtListenerIds(options)
+      const summaries = await this.fetchJudgeSummariesFromCourtListener(options)
+
+      const newJudgeIds: string[] = []
+
+      for (const summary of summaries) {
+        const judgeId = summary.id.toString()
+        if (!existingIds.has(judgeId)) {
+          newJudgeIds.push(judgeId)
+        }
+      }
+
+      // Limit per run to avoid API exhaustion/timeouts. A driver script can loop until empty.
+      const perRunLimit = Math.max(1, options.discoverLimit || (options.batchSize ? options.batchSize * 10 : 200))
+      return newJudgeIds.slice(0, perRunLimit)
+
+    } catch (error) {
+      logger.error('Failed to discover new judges', { error })
+      return []
+    }
+  }
+
+  private async fetchJudgeSummariesFromCourtListener(options: JudgeSyncOptions) {
+    const apiToken = process.env.COURTLISTENER_API_KEY || process.env.COURTLISTENER_API_TOKEN
+
+    if (!apiToken) {
+      throw new Error('COURTLISTENER_API_KEY is required to fetch judge data')
+    }
+
+    const baseUrl = 'https://www.courtlistener.com/api/rest/v4/people/'
+    const results: Array<{ id: number | string }> = []
+    let nextUrl: string | null = `${baseUrl}?format=json&page_size=100&ordering=-date_modified`
+
+    // Filter by court jurisdiction (e.g., 'US' for federal, 'CA' for California)
+    const jurisdiction = (options.jurisdiction || 'CA').toUpperCase()
+    nextUrl += `&positions__court__jurisdiction=${jurisdiction}`
+
+    // Allow larger discovery when requested; otherwise default to a safe cap
+    const discoverCap = Math.max(50, options.discoverLimit || 500)
+
+    while (nextUrl && results.length < discoverCap) {
+      const response = await fetch(nextUrl, {
+        headers: {
+          'Authorization': `Token ${apiToken}`,
+          'Accept': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`CourtListener judge list error ${response.status}: ${errorText}`)
+      }
+
+      const data = await response.json() as { results: Array<{ id: number | string }>; next: string | null }
+      results.push(...data.results)
+
+      nextUrl = data.next
+        ? data.next.startsWith('http')
+          ? data.next
+          : `https://www.courtlistener.com${data.next}`
+        : null
+
+      if (nextUrl) {
+        await sleep(800)
+      }
+    }
+
+    return results
+  }
+
+  private async getExistingCourtListenerIds(options: JudgeSyncOptions): Promise<Set<string>> {
+    const ids = new Set<string>()
+    const pageSize = 1000
+    let from = 0
+
+    while (true) {
+      let query = this.supabase
+        .from('judges')
+        .select('courtlistener_id')
+        .not('courtlistener_id', 'is', null)
+        .range(from, from + pageSize - 1)
+
+      if (options.jurisdiction) {
+        query = query.eq('jurisdiction', options.jurisdiction)
+      }
+
+      const { data, error } = await query
+      if (error) {
+        throw new Error(`Failed to load existing CourtListener judge IDs: ${error.message}`)
+      }
+
+      const rows = data || []
+      for (const row of rows) {
+        if (row.courtlistener_id) {
+          ids.add(row.courtlistener_id.toString())
+        }
+      }
+
+      if (rows.length < pageSize) break
+      from += pageSize
+    }
+
+    return ids
   }
 
   /**
@@ -479,6 +652,17 @@ export class JudgeSyncManager {
         .eq('sync_id', this.syncId)
     } catch (logError) {
       logger.error('Failed to log sync error', { logError })
+    }
+  }
+
+  private mergeStats(target: JudgeSyncResult, delta: BatchSyncStats) {
+    target.judgesProcessed += delta.processed
+    target.judgesUpdated += delta.updated
+    target.judgesCreated += delta.created
+    target.profilesEnhanced += delta.enhanced
+
+    if (delta.errors.length > 0) {
+      target.errors.push(...delta.errors)
     }
   }
 }

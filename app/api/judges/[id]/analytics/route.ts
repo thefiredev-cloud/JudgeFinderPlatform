@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { chunkArray } from '@/lib/utils/helpers'
 
 // Import AI analytics pipeline
 const { generateJudicialAnalytics, generateAnalyticsWithOpenAI } = require('@/lib/ai/judicial-analytics')
 
 export const dynamic = 'force-dynamic'
+
+const LOOKBACK_YEARS = Math.max(1, parseInt(process.env.JUDGE_ANALYTICS_LOOKBACK_YEARS ?? '5', 10))
+const CASE_FETCH_LIMIT = Math.max(200, parseInt(process.env.JUDGE_ANALYTICS_CASE_LIMIT ?? '1000', 10))
 
 interface CaseAnalytics {
   civil_plaintiff_favor: number
@@ -57,6 +61,12 @@ interface CaseAnalytics {
   last_updated: string
 }
 
+interface AnalysisWindow {
+  lookbackYears: number
+  startYear: number
+  endYear: number
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -95,33 +105,41 @@ export async function GET(
     
     console.log(`🔄 Regenerating analytics for judge ${resolvedParams.id} (${cachedData ? 'old format' : 'no cache'})`)
 
-    // Get cases for this judge from the last 3 years (2022-2025)
-    const threeYearsAgo = new Date()
-    threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3)
-    const threeYearsAgoDate = threeYearsAgo.toISOString().split('T')[0]
+    // Get cases for this judge from the configured lookback window
+    const now = new Date()
+    const startDate = new Date()
+    startDate.setFullYear(startDate.getFullYear() - LOOKBACK_YEARS)
+    const lookbackStartDate = startDate.toISOString().split('T')[0]
+    const analysisWindow = {
+      lookbackYears: LOOKBACK_YEARS,
+      startYear: startDate.getFullYear(),
+      endYear: now.getFullYear()
+    }
     
     const { data: cases, error: casesError } = await supabase
       .from('cases')
       .select('*')
       .eq('judge_id', resolvedParams.id)
-      .gte('filing_date', threeYearsAgoDate) // Only cases filed in last 3 years
+      .gte('filing_date', lookbackStartDate) // Only cases filed within lookback window
       .order('filing_date', { ascending: false })
-      .limit(500) // Increased limit for 3-year data
+      .limit(CASE_FETCH_LIMIT)
 
     if (casesError) {
       console.error('Error fetching cases:', casesError)
       // Don't fail completely, continue with empty cases array
     }
 
+    const enrichedCases = await enrichCasesWithOpinions(supabase, cases || [])
+
     // Generate analytics based on available data
     let analytics: CaseAnalytics
 
-    if (!cases || cases.length === 0) {
+    if (enrichedCases.length === 0) {
       // No cases available - use traditional method with lower confidence
-      analytics = await generateLegacyAnalytics(judge)
+      analytics = await generateLegacyAnalytics(judge, analysisWindow)
     } else {
       // Generate analytics from real case data
-      analytics = await generateAnalyticsFromCases(judge, cases)
+      analytics = await generateAnalyticsFromCases(judge, enrichedCases, analysisWindow)
     }
 
     // Cache the results
@@ -130,8 +148,8 @@ export async function GET(
     return NextResponse.json({ 
       analytics,
       cached: false,
-      data_source: (cases?.length ?? 0) > 0 ? 'case_analysis' : 'profile_estimation',
-      document_count: cases?.length ?? 0
+      data_source: enrichedCases.length > 0 ? 'case_analysis' : 'profile_estimation',
+      document_count: enrichedCases.length
     })
 
   } catch (error) {
@@ -149,17 +167,17 @@ export async function GET(
 /**
  * Generate analytics from actual case data
  */
-async function generateAnalyticsFromCases(judge: any, cases: any[]): Promise<CaseAnalytics> {
+async function generateAnalyticsFromCases(judge: any, cases: any[], window: AnalysisWindow): Promise<CaseAnalytics> {
   try {
     console.log(`📊 Generating analytics for ${judge.name} using ${cases.length} cases`)
     
     // Analyze case patterns from the cases data
-    const analytics = analyzeJudicialPatterns(judge, cases)
+    const analytics = analyzeJudicialPatterns(judge, cases, window)
     
     // If we have AI available, enhance the analysis
     if (process.env.GOOGLE_AI_API_KEY || process.env.OPENAI_API_KEY) {
       try {
-        return await enhanceAnalyticsWithAI(judge, cases, analytics)
+        return await enhanceAnalyticsWithAI(judge, cases, analytics, window)
       } catch (aiError) {
         console.log(`⚠️ AI enhancement failed for ${judge.name}, using statistical analysis:`, 
           aiError instanceof Error ? aiError.message : 'Unknown AI error')
@@ -171,14 +189,14 @@ async function generateAnalyticsFromCases(judge: any, cases: any[]): Promise<Cas
     
   } catch (error) {
     console.error(`❌ Analytics generation failed for ${judge.name}:`, error)
-    return generateConservativeAnalytics(judge, cases.length)
-  }
+    return generateConservativeAnalytics(judge, cases.length, window)
+}
 }
 
 /**
  * Analyze judicial patterns from case data using statistical methods
  */
-function analyzeJudicialPatterns(judge: any, cases: any[]): CaseAnalytics {
+function analyzeJudicialPatterns(judge: any, cases: any[], window: AnalysisWindow): CaseAnalytics {
   console.log(`🔍 Analyzing ${cases.length} cases for statistical patterns`)
   
   // Initialize counters for different case types and outcomes
@@ -244,15 +262,26 @@ function analyzeJudicialPatterns(judge: any, cases: any[]): CaseAnalytics {
     }
     
     // Plea deals
-    if (caseType.includes('criminal') || summary.includes('plea')) {
+    const mentionsPlea = summary.includes('plea') || outcome.includes('plea')
+    if (mentionsPlea) {
       stats.plea.total++
       if (outcome.includes('plea accepted') || summary.includes('plea approved') || outcome.includes('guilty plea')) {
         stats.plea.accepted++
       }
     }
-    
+
     // Bail/Pretrial Release decisions
-    if (caseType.includes('criminal') || summary.includes('bail') || summary.includes('pretrial') || summary.includes('release')) {
+    const mentionsBail =
+      summary.includes('bail') ||
+      summary.includes('pretrial release') ||
+      summary.includes('pre-trial release') ||
+      summary.includes('released on own recognizance') ||
+      outcome.includes('bail') ||
+      outcome.includes('release') ||
+      outcome.includes('detained') ||
+      outcome.includes('remand')
+
+    if (mentionsBail) {
       stats.bail.total++
       if (outcome.includes('bail granted') || outcome.includes('released') || summary.includes('release granted') || 
           summary.includes('bail set') || !outcome.includes('remanded') && !outcome.includes('detained')) {
@@ -291,10 +320,13 @@ function analyzeJudicialPatterns(judge: any, cases: any[]): CaseAnalytics {
   })
   
   // Calculate percentages with confidence based on sample sizes (improved for 3-year data)
-  const calculateMetrics = (stat: any, label: string) => {
+  const calculateMetrics = (stat: Record<string, number>, successKey: string, label: string) => {
     if (stat.total === 0) return { percentage: 50, confidence: 60, sample: 0 }
-    
-    const percentage = Math.round((stat.total > 0 ? (Object.values(stat)[1] as number) / stat.total : 0.5) * 100)
+
+    const successCount = Number(stat[successKey] ?? 0)
+    const safeTotal = stat.total || 0
+    const ratio = safeTotal > 0 ? successCount / safeTotal : 0.5
+    const percentage = Math.round(Math.min(1, Math.max(0, ratio)) * 100)
     
     // Improved confidence calculation for larger sample sizes
     let confidence = 60 // Base confidence
@@ -308,21 +340,21 @@ function analyzeJudicialPatterns(judge: any, cases: any[]): CaseAnalytics {
     // Cap at 95% max confidence
     confidence = Math.min(95, confidence)
     
-    console.log(`${label}: ${Object.values(stat)[1]}/${stat.total} = ${percentage}% (confidence: ${confidence}%)`)
+    console.log(`${label}: ${successCount}/${safeTotal} = ${percentage}% (confidence: ${confidence}%)`)
     
     return { percentage, confidence, sample: stat.total }
   }
   
-  const civilMetrics = calculateMetrics(stats.civil, 'Civil')
-  const custodyMetrics = calculateMetrics(stats.custody, 'Custody')
-  const alimonyMetrics = calculateMetrics(stats.alimony, 'Alimony')
-  const contractMetrics = calculateMetrics(stats.contracts, 'Contracts')
-  const criminalMetrics = calculateMetrics(stats.criminal, 'Criminal')
-  const pleaMetrics = calculateMetrics(stats.plea, 'Plea')
-  const bailMetrics = calculateMetrics(stats.bail, 'Bail')
-  const reversalMetrics = calculateMetrics(stats.reversal, 'Reversal')
-  const settlementMetrics = calculateMetrics(stats.settlement, 'Settlement')
-  const motionMetrics = calculateMetrics(stats.motion, 'Motion')
+  const civilMetrics = calculateMetrics(stats.civil, 'plaintiff_wins', 'Civil')
+  const custodyMetrics = calculateMetrics(stats.custody, 'mother_awards', 'Custody')
+  const alimonyMetrics = calculateMetrics(stats.alimony, 'awarded', 'Alimony')
+  const contractMetrics = calculateMetrics(stats.contracts, 'enforced', 'Contracts')
+  const criminalMetrics = calculateMetrics(stats.criminal, 'strict_sentences', 'Criminal')
+  const pleaMetrics = calculateMetrics(stats.plea, 'accepted', 'Plea')
+  const bailMetrics = calculateMetrics(stats.bail, 'granted', 'Bail')
+  const reversalMetrics = calculateMetrics(stats.reversal, 'reversed', 'Reversal')
+  const settlementMetrics = calculateMetrics(stats.settlement, 'encouraged', 'Settlement')
+  const motionMetrics = calculateMetrics(stats.motion, 'granted', 'Motion')
   
   // Calculate overall confidence based on 3-year data
   const totalCases = cases.length
@@ -339,18 +371,21 @@ function analyzeJudicialPatterns(judge: any, cases: any[]): CaseAnalytics {
   const limitations = []
   
   // Enhanced pattern detection for 3-year data
-  if (totalCases > 200) patterns.push(`Comprehensive 3-year analysis: ${totalCases} cases analyzed`)
-  else if (totalCases > 100) patterns.push(`Substantial 3-year dataset: ${totalCases} cases analyzed`)
-  else if (totalCases > 50) patterns.push(`Moderate 3-year dataset: ${totalCases} cases analyzed`)
-  else if (totalCases < 50) limitations.push(`Limited 3-year data: only ${totalCases} cases available`)
+  if (totalCases > 200) patterns.push(`Comprehensive ${window.lookbackYears}-year analysis: ${totalCases} cases analyzed`)
+  else if (totalCases > 100) patterns.push(`Substantial ${window.lookbackYears}-year dataset: ${totalCases} cases analyzed`)
+  else if (totalCases > 50) patterns.push(`Moderate ${window.lookbackYears}-year dataset: ${totalCases} cases analyzed`)
+  else if (totalCases < 50) limitations.push(`Limited ${window.lookbackYears}-year data: only ${totalCases} cases available`)
   
   // Case type distribution analysis
-  if (stats.civil.total > 20) patterns.push(`Civil cases: ${Math.round(stats.civil.total/totalCases*100)}% of 3-year caseload`)
-  if (stats.criminal.total > 20) patterns.push(`Criminal cases: ${Math.round(stats.criminal.total/totalCases*100)}% of 3-year caseload`)
+  if (stats.civil.total > 20) patterns.push(`Civil cases: ${Math.round(stats.civil.total/totalCases*100)}% of ${window.lookbackYears}-year caseload`)
+  if (stats.criminal.total > 20) patterns.push(`Criminal cases: ${Math.round(stats.criminal.total/totalCases*100)}% of ${window.lookbackYears}-year caseload`)
   if (stats.custody.total > 10) patterns.push(`Family custody cases: ${Math.round(stats.custody.total/totalCases*100)}% of caseload`)
   
   // Add 3-year timeframe context
-  patterns.push('Analysis covers cases filed from 2022-2025')
+  const timeframeLabel = window.startYear === window.endYear
+    ? `${window.startYear}`
+    : `${window.startYear}-${window.endYear}`
+  patterns.push(`Analysis covers cases filed from ${timeframeLabel}`)
   
   return {
     civil_plaintiff_favor: civilMetrics.percentage,
@@ -405,17 +440,218 @@ function analyzeJudicialPatterns(judge: any, cases: any[]): CaseAnalytics {
 /**
  * Enhance statistical analytics with AI analysis (when available)
  */
-async function enhanceAnalyticsWithAI(judge: any, cases: any[], baseAnalytics: CaseAnalytics): Promise<CaseAnalytics> {
-  // For now, return the base analytics
-  // This can be enhanced later when AI integration is fully configured
-  console.log(`🤖 AI enhancement not yet implemented, using statistical analysis`)
-  return baseAnalytics
+async function enhanceAnalyticsWithAI(
+  judge: any,
+  cases: any[],
+  baseAnalytics: CaseAnalytics,
+  window: AnalysisWindow
+): Promise<CaseAnalytics> {
+  const analyzableDocuments = cases
+    .filter(doc => doc.plain_text)
+    .map(doc => ({
+      case_name: doc.case_name || 'Unknown Case',
+      case_category: doc.case_type || doc.case_category || 'Unknown',
+      case_subcategory: doc.case_subcategory || doc.case_type_subcategory || null,
+      case_outcome: doc.outcome || doc.status || 'Unknown',
+      decision_date: doc.decision_date || doc.filing_date || null,
+      plain_text: doc.plain_text,
+      analyzable: doc.analyzable !== false
+    }))
+    .filter(doc => doc.analyzable && doc.plain_text)
+    .slice(0, 60)
+
+  if (analyzableDocuments.length === 0) {
+    console.log('🤖 No analyzable case documents available for AI enhancement')
+    return baseAnalytics
+  }
+
+  let aiAnalytics: any = null
+
+  try {
+    aiAnalytics = await generateJudicialAnalytics(judge, analyzableDocuments)
+
+    if (aiAnalytics?.ai_model === 'fallback' && process.env.OPENAI_API_KEY) {
+      console.log('🤖 Gemini fallback detected, attempting OpenAI backup')
+      aiAnalytics = await generateAnalyticsWithOpenAI(judge, analyzableDocuments)
+    }
+  } catch (error) {
+    console.error('AI analytics generation failed, attempting fallback if available', error)
+    if (process.env.OPENAI_API_KEY) {
+      try {
+        aiAnalytics = await generateAnalyticsWithOpenAI(judge, analyzableDocuments)
+      } catch (fallbackError) {
+        console.error('OpenAI fallback also failed:', fallbackError)
+      }
+    }
+  }
+
+  if (!aiAnalytics || aiAnalytics.ai_model === 'fallback') {
+    return baseAnalytics
+  }
+
+  const blendNumericMetric = (
+    metric: string,
+    sampleKey: string,
+    defaultValue: number
+  ) => {
+    const baseValue = Number((baseAnalytics as any)[metric] ?? defaultValue)
+    const aiValue = Number(aiAnalytics[metric] ?? defaultValue)
+    const baseSample = Number((baseAnalytics as any)[sampleKey] ?? baseAnalytics.total_cases_analyzed)
+    const aiSample = Number(aiAnalytics[sampleKey] ?? aiAnalytics.total_cases_analyzed)
+
+    const totalWeight = Math.max(0, (isFinite(baseSample) ? baseSample : 0)) + Math.max(0, (isFinite(aiSample) ? aiSample : 0))
+
+    if (!totalWeight) {
+      return Math.round((baseValue + aiValue) / 2)
+    }
+
+    return Math.round(
+      ((isFinite(baseSample) ? baseSample : 0) * baseValue + (isFinite(aiSample) ? aiSample : 0) * aiValue) /
+        totalWeight
+    )
+  }
+
+  const blendConfidence = (key: string) => {
+    const baseValue = Number((baseAnalytics as any)[key] ?? 60)
+    const aiValue = Number(aiAnalytics[key] ?? 60)
+    const baseSample = Math.max(0, baseAnalytics.total_cases_analyzed)
+    const aiSample = Math.max(0, aiAnalytics.total_cases_analyzed ?? analyzableDocuments.length)
+    const totalWeight = baseSample + aiSample
+
+    if (!totalWeight) {
+      return Math.round((baseValue + aiValue) / 2)
+    }
+
+    return Math.round((baseValue * baseSample + aiValue * aiSample) / totalWeight)
+  }
+
+  const blendedCivil = blendNumericMetric('civil_plaintiff_favor', 'sample_size_civil', baseAnalytics.civil_plaintiff_favor)
+  const blendedCustody = blendNumericMetric('family_custody_mother', 'sample_size_custody', baseAnalytics.family_custody_mother)
+  const blendedAlimony = blendNumericMetric('family_alimony_favorable', 'sample_size_alimony', baseAnalytics.family_alimony_favorable)
+  const blendedContracts = blendNumericMetric('contract_enforcement_rate', 'sample_size_contracts', baseAnalytics.contract_enforcement_rate)
+  const blendedCriminal = blendNumericMetric('criminal_sentencing_severity', 'sample_size_sentencing', baseAnalytics.criminal_sentencing_severity)
+  const blendedPlea = blendNumericMetric('criminal_plea_acceptance', 'sample_size_plea', baseAnalytics.criminal_plea_acceptance)
+
+  const merged: CaseAnalytics = {
+    ...baseAnalytics,
+    civil_plaintiff_favor: blendedCivil,
+    civil_defendant_favor: 100 - blendedCivil,
+    family_custody_mother: blendedCustody,
+    family_custody_father: 100 - blendedCustody,
+    family_alimony_favorable: blendedAlimony,
+    contract_enforcement_rate: blendedContracts,
+    contract_dismissal_rate: 100 - blendedContracts,
+    criminal_sentencing_severity: blendedCriminal,
+    criminal_plea_acceptance: blendedPlea,
+    confidence_civil: blendConfidence('confidence_civil'),
+    confidence_custody: blendConfidence('confidence_custody'),
+    confidence_alimony: blendConfidence('confidence_alimony'),
+    confidence_contracts: blendConfidence('confidence_contracts'),
+    confidence_sentencing: blendConfidence('confidence_sentencing'),
+    confidence_plea: blendConfidence('confidence_plea'),
+    overall_confidence: blendConfidence('overall_confidence'),
+    notable_patterns: Array.from(
+      new Set([...(baseAnalytics.notable_patterns || []), ...(aiAnalytics.notable_patterns || [])].filter(Boolean))
+    ),
+    data_limitations: Array.from(
+      new Set([...(baseAnalytics.data_limitations || []), ...(aiAnalytics.data_limitations || [])].filter(Boolean))
+    ),
+    analysis_quality: 'augmented_ai',
+    ai_model: aiAnalytics.ai_model,
+    generated_at: new Date().toISOString(),
+    last_updated: new Date().toISOString(),
+    total_cases_analyzed: baseAnalytics.total_cases_analyzed
+  }
+
+  // Append context about AI blending
+  const aiPattern = `AI-enhanced review of ${analyzableDocuments.length} case documents within ${window.lookbackYears}-year window`
+  if (!merged.notable_patterns.includes(aiPattern)) {
+    merged.notable_patterns.push(aiPattern)
+  }
+
+  const aiLimitation = `AI analysis limited to ${analyzableDocuments.length} documents (${window.startYear}-${window.endYear})`
+  if (!merged.data_limitations.includes(aiLimitation)) {
+    merged.data_limitations.push(aiLimitation)
+  }
+
+  return merged
+}
+
+/**
+ * Attach opinion text to case records so analytics and AI have analyzable content
+ */
+async function enrichCasesWithOpinions(supabase: any, cases: any[]): Promise<any[]> {
+  if (!cases || cases.length === 0) {
+    return []
+  }
+
+  const caseMap = new Map<string, any>()
+  const caseIds: string[] = []
+
+  for (const caseItem of cases) {
+    if (!caseItem?.id) continue
+    caseMap.set(caseItem.id, { ...caseItem })
+    caseIds.push(caseItem.id)
+  }
+
+  if (caseIds.length === 0) {
+    return Array.from(caseMap.values())
+  }
+
+  const batches = chunkArray(caseIds, 100)
+
+  for (const batch of batches) {
+    const { data: opinions, error } = await supabase
+      .from('opinions')
+      .select('case_id, opinion_type, plain_text, opinion_text, html_text')
+      .in('case_id', batch)
+
+    if (error) {
+      console.error('Failed to fetch opinions for cases', { error, batchSize: batch.length })
+      continue
+    }
+
+    for (const opinion of opinions || []) {
+      if (!opinion?.case_id) continue
+      const targetCase = caseMap.get(opinion.case_id)
+      if (!targetCase) continue
+
+      const opinionText = extractOpinionText(opinion)
+      if (!opinionText) continue
+
+      const isLeadOpinion = opinion.opinion_type === 'lead'
+      if (!targetCase.plain_text || isLeadOpinion) {
+        targetCase.plain_text = opinionText
+        targetCase.analyzable = true
+      }
+    }
+  }
+
+  return Array.from(caseMap.values())
+}
+
+function extractOpinionText(opinion: any): string | null {
+  if (!opinion) return null
+
+  if (opinion.plain_text && typeof opinion.plain_text === 'string') {
+    return opinion.plain_text
+  }
+
+  if (opinion.opinion_text && typeof opinion.opinion_text === 'string') {
+    return opinion.opinion_text
+  }
+
+  if (opinion.html_text && typeof opinion.html_text === 'string') {
+    return opinion.html_text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() || null
+  }
+
+  return null
 }
 
 /**
  * Generate legacy analytics for judges without cases
  */
-async function generateLegacyAnalytics(judge: any): Promise<CaseAnalytics> {
+async function generateLegacyAnalytics(judge: any, window: AnalysisWindow): Promise<CaseAnalytics> {
   console.log(`📊 Generating legacy analytics for ${judge.name} (no cases available)`)
   
   // Conservative estimates based on jurisdiction and court type
@@ -468,7 +704,10 @@ async function generateLegacyAnalytics(judge: any): Promise<CaseAnalytics> {
     
     total_cases_analyzed: 0,
     analysis_quality: 'profile_based',
-    notable_patterns: ['Analysis based on judicial profile and jurisdiction patterns'],
+    notable_patterns: [
+      'Analysis based on judicial profile and jurisdiction patterns',
+      `No case data available within ${window.lookbackYears}-year window (${window.startYear}-${window.endYear})`
+    ],
     data_limitations: ['No case data available', 'Estimates based on regional and court type patterns'],
     ai_model: 'statistical_estimation',
     generated_at: new Date().toISOString(),
@@ -479,7 +718,7 @@ async function generateLegacyAnalytics(judge: any): Promise<CaseAnalytics> {
 /**
  * Generate conservative analytics when AI fails
  */
-function generateConservativeAnalytics(judge: any, caseCount: number): CaseAnalytics {
+function generateConservativeAnalytics(judge: any, caseCount: number, window: AnalysisWindow): CaseAnalytics {
   console.log(`🛡️  Generating conservative analytics for ${judge.name} (${caseCount} cases, analysis failed)`)
   
   return {
@@ -526,7 +765,11 @@ function generateConservativeAnalytics(judge: any, caseCount: number): CaseAnaly
     total_cases_analyzed: caseCount,
     analysis_quality: 'conservative',
     notable_patterns: ['Conservative estimates due to AI processing limitations'],
-    data_limitations: ['AI analysis unavailable', 'Using statistical defaults'],
+    data_limitations: [
+      'AI analysis unavailable',
+      'Using statistical defaults',
+      `Window analyzed: ${window.startYear}-${window.endYear}`
+    ],
     ai_model: 'conservative_fallback',
     generated_at: new Date().toISOString(),
     last_updated: new Date().toISOString()

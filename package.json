@@ -22,6 +22,7 @@
     "cron:daily": "node scripts/run-daily-sync.js",
     "cron:weekly": "node scripts/run-weekly-sync.js",
     "data:status": "node scripts/check-data-status.js",
+    "import:federal": "node scripts/import-us-federal-judges.js",
     "launch:analytics": "npm run analytics:generate",
     "launch:data": "npm run sync:courts && npm run sync:judges",
     "launch:validate": "npm run validate:relationships && npm run integrity:full",

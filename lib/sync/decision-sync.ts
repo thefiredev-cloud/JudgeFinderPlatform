@@ -3,9 +3,10 @@
  * Handles automated syncing of judicial decisions from CourtListener API
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { CourtListenerClient } from '@/lib/courtlistener/client'
 import { logger } from '@/lib/utils/logger'
+import { sleep } from '@/lib/utils/helpers'
 
 interface DecisionSyncOptions {
   batchSize?: number
@@ -13,6 +14,7 @@ interface DecisionSyncOptions {
   daysSinceLast?: number
   judgeIds?: string[]
   maxDecisionsPerJudge?: number
+  yearsBack?: number
 }
 
 interface DecisionSyncResult {
@@ -35,18 +37,25 @@ interface CourtListenerDecision {
   author_id?: string
   author_str?: string
   date_created: string
+  opinion_id?: number
 }
 
 export class DecisionSyncManager {
-  private supabase: any
+  private supabase: SupabaseClient
   private courtListener: CourtListenerClient
   private syncId: string
 
   constructor() {
-    this.supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error('Supabase credentials missing: set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY')
+    }
+
+    this.supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false }
+    })
     this.courtListener = new CourtListenerClient()
     this.syncId = `decision-sync-${Date.now()}`
   }
@@ -103,7 +112,7 @@ export class DecisionSyncManager {
 
         // Rate limiting - longer pause between batches for decisions
         if (i + batchSize < judgesToSync.length) {
-          await new Promise(resolve => setTimeout(resolve, 3000))
+          await sleep(3000)
         }
       }
 
@@ -178,7 +187,7 @@ export class DecisionSyncManager {
         duplicatesSkipped += result.duplicatesSkipped
 
         // Small delay between judges
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await sleep(1000)
 
       } catch (error) {
         logger.error('Failed to sync decisions for judge', { 
@@ -224,25 +233,45 @@ export class DecisionSyncManager {
       }
 
       // Check for existing decisions to avoid duplicates
-      const existingDecisions = await this.getExistingDecisions(
-        judge.id, 
-        decisions.map(d => d.id.toString())
-      )
+      const decisionKeys = decisions
+        .map(decision => this.getDecisionKey(decision))
+        .filter(Boolean) as string[]
+      const existingDecisions = await this.getExistingDecisions(judge.id, decisionKeys)
 
       // Process new decisions
       for (const decision of decisions) {
-        const courtlistenerId = decision.id.toString()
-        
-        if (existingDecisions.has(courtlistenerId)) {
-          result.duplicatesSkipped++
-          continue
-        }
+        const decisionKey = this.getDecisionKey(decision)
 
         try {
-          await this.createDecision(judge.id, decision)
-          result.created++
+          if (decisionKey && existingDecisions.has(decisionKey)) {
+            const existingCaseId = existingDecisions.get(decisionKey)
+            if (existingCaseId) {
+              await this.ensureOpinionForCase(existingCaseId, decision)
+              result.updated++
+            } else {
+              result.duplicatesSkipped++
+            }
+            continue
+          }
+
+          const caseResult = await this.createOrUpdateDecision(judge.id, decision)
+          if (caseResult.caseId) {
+            await this.ensureOpinionForCase(caseResult.caseId, decision)
+            if (decisionKey) {
+              existingDecisions.set(decisionKey, caseResult.caseId)
+            }
+          }
+
+          if (caseResult.created) {
+            result.created++
+          } else if (caseResult.caseId) {
+            result.updated++
+          } else {
+            result.duplicatesSkipped++
+          }
+
         } catch (error) {
-          logger.error('Failed to create decision', { 
+          logger.error('Failed to process decision', { 
             judge: judge.name, 
             decision: decision.case_name, 
             error 
@@ -287,7 +316,13 @@ export class DecisionSyncManager {
       .single()
 
     if (error || !data) {
-      // No previous decisions, go back 90 days
+      if (options.yearsBack && options.yearsBack > 0) {
+        const yearsAgo = new Date()
+        yearsAgo.setFullYear(yearsAgo.getFullYear() - options.yearsBack)
+        return yearsAgo.toISOString().split('T')[0]
+      }
+
+      // No previous decisions, go back 90 days by default
       const ninetyDaysAgo = new Date()
       ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
       return ninetyDaysAgo.toISOString().split('T')[0]
@@ -307,12 +342,13 @@ export class DecisionSyncManager {
     sinceDate: string, 
     options: DecisionSyncOptions
   ): Promise<CourtListenerDecision[]> {
-    const maxDecisions = options.maxDecisionsPerJudge || 50
+    const maxDecisions = options.maxDecisionsPerJudge || 150
+    const yearsBack = options.yearsBack && options.yearsBack > 0 ? options.yearsBack : 5
     
     try {
       const decisions = await this.courtListener.getRecentOpinionsByJudge(
         courtlistenerJudgeId, 
-        1 // 1 year back maximum for incremental updates
+        yearsBack
       )
 
       // Filter by date and limit
@@ -334,56 +370,130 @@ export class DecisionSyncManager {
   /**
    * Get existing decisions to avoid duplicates
    */
-  private async getExistingDecisions(judgeId: string, courtlistenerIds: string[]): Promise<Set<string>> {
-    if (courtlistenerIds.length === 0) return new Set()
+  private async getExistingDecisions(judgeId: string, courtlistenerIds: string[]): Promise<Map<string, string>> {
+    const map = new Map<string, string>()
+    if (courtlistenerIds.length === 0) return map
 
     const { data, error } = await this.supabase
       .from('cases')
-      .select('courtlistener_id')
+      .select('id, courtlistener_id')
       .eq('judge_id', judgeId)
       .in('courtlistener_id', courtlistenerIds)
 
     if (error) {
       logger.error('Failed to get existing decisions', { error })
-      return new Set()
+      return map
     }
 
-    return new Set(data?.map((d: any) => d.courtlistener_id) || [])
+    for (const row of data || []) {
+      if (row.courtlistener_id && row.id) {
+        map.set(row.courtlistener_id, row.id)
+      }
+    }
+
+    return map
   }
 
   /**
    * Create a new decision record
    */
-  private async createDecision(judgeId: string, decision: CourtListenerDecision) {
+  private async createOrUpdateDecision(judgeId: string, decision: CourtListenerDecision): Promise<{ caseId: string | null; created: boolean }> {
+    const decisionKey = this.getDecisionKey(decision)
     const caseRecord = {
       judge_id: judgeId,
-      case_name: decision.case_name.substring(0, 500), // Truncate if too long
+      case_name: (decision.case_name || 'Unknown Case').substring(0, 500),
       case_number: `CL-${decision.cluster_id}`,
       decision_date: decision.date_filed,
       filing_date: decision.date_filed,
       case_type: 'Opinion',
       status: 'decided' as const,
       outcome: decision.precedential_status || null,
-      summary: `CourtListener opinion ${decision.id}`,
-      courtlistener_id: decision.id.toString(),
+      summary: decision.case_name ? `CourtListener opinion for ${decision.case_name}` : `CourtListener opinion ${decisionKey}`,
+      courtlistener_id: decisionKey,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
 
-    const { error } = await this.supabase
+    const { data, error } = await this.supabase
       .from('cases')
       .insert(caseRecord)
+      .select('id')
+      .single()
 
-    if (error) {
-      // Check if it's a duplicate key error
-      if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
-        logger.warn('Decision already exists', { 
-          judgeId, 
-          caseNumber: caseRecord.case_number 
-        })
+    if (!error) {
+      return { caseId: data?.id || null, created: true }
+    }
+
+    if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+      logger.warn('Decision already exists', { judgeId, caseNumber: caseRecord.case_number })
+      const { data: existingCase } = await this.supabase
+        .from('cases')
+        .select('id')
+        .eq('judge_id', judgeId)
+        .eq('courtlistener_id', decisionKey)
+        .maybeSingle()
+
+      return { caseId: existingCase?.id || null, created: false }
+    }
+
+    throw new Error(`Failed to create decision: ${error.message}`)
+  }
+
+  /**
+   * Ensure we have opinion text stored for a given case
+   */
+  private async ensureOpinionForCase(caseId: string, decision: CourtListenerDecision) {
+    const opinionId = decision.opinion_id ?? decision.id
+    if (!opinionId) return
+
+    try {
+      const { data: existingOpinion } = await this.supabase
+        .from('opinions')
+        .select('id')
+        .eq('case_id', caseId)
+        .eq('courtlistener_id', opinionId.toString())
+        .maybeSingle()
+
+      if (existingOpinion) {
         return
       }
-      throw new Error(`Failed to create decision: ${error.message}`)
+
+      const opinionDetail = await this.courtListener.getOpinionDetail(opinionId)
+      const plainText = opinionDetail?.plain_text
+        || (opinionDetail?.html ? this.stripHtml(opinionDetail.html) : null)
+        || (opinionDetail?.html_with_citations ? this.stripHtml(opinionDetail.html_with_citations) : null)
+
+      if (!plainText) {
+        logger.warn('Opinion detail missing text', { opinionId })
+        return
+      }
+
+      const opinionRecord = {
+        case_id: caseId,
+        cluster_id: opinionDetail?.cluster?.toString() || decision.cluster_id?.toString() || null,
+        opinion_type: opinionDetail?.type || 'lead',
+        author_judge_id: null,
+        author_name: opinionDetail?.author_str || decision.author_str || null,
+        per_curiam: opinionDetail?.per_curiam ?? false,
+        opinion_text: plainText,
+        html_text: opinionDetail?.html || null,
+        plain_text: plainText,
+        courtlistener_id: opinionId.toString(),
+        date_created: opinionDetail?.date_created || decision.date_filed || new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+
+      const { error } = await this.supabase
+        .from('opinions')
+        .upsert(opinionRecord, { onConflict: 'courtlistener_id' })
+
+      if (error) {
+        logger.error('Failed to upsert opinion', { error, opinionId })
+      }
+
+    } catch (error) {
+      logger.error('Failed to fetch opinion detail', { opinionId, error })
     }
   }
 
@@ -392,9 +502,9 @@ export class DecisionSyncManager {
    */
   private async updateJudgeCaseCount(judgeId: string) {
     try {
-      const { data, error } = await this.supabase
+      const { count, error } = await this.supabase
         .from('cases')
-        .select('id', { count: 'exact' })
+        .select('id', { count: 'exact', head: true })
         .eq('judge_id', judgeId)
         .eq('status', 'decided')
 
@@ -403,12 +513,10 @@ export class DecisionSyncManager {
         return
       }
 
-      const caseCount = data?.length || 0
-
       await this.supabase
         .from('judges')
         .update({ 
-          total_cases: caseCount,
+          total_cases: count ?? 0,
           updated_at: new Date().toISOString()
         })
         .eq('id', judgeId)
@@ -472,5 +580,16 @@ export class DecisionSyncManager {
     } catch (logError) {
       logger.error('Failed to log sync error', { logError })
     }
+  }
+
+  private getDecisionKey(decision: CourtListenerDecision): string {
+    if (decision.opinion_id) return decision.opinion_id.toString()
+    if (decision.id) return decision.id.toString()
+    if (decision.cluster_id) return `cluster-${decision.cluster_id}`
+    return `decision-${Date.now()}`
+  }
+
+  private stripHtml(html: string): string {
+    return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
   }
 }

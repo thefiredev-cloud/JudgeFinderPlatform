@@ -3,9 +3,10 @@
  * Handles automated syncing of court data from CourtListener API
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { CourtListenerClient } from '@/lib/courtlistener/client'
 import { logger } from '@/lib/utils/logger'
+import { sleep } from '@/lib/utils/helpers'
 
 interface CourtSyncOptions {
   batchSize?: number
@@ -34,15 +35,21 @@ interface CourtListenerCourt {
 }
 
 export class CourtSyncManager {
-  private supabase: any
+  private supabase: SupabaseClient
   private courtListener: CourtListenerClient
   private syncId: string
 
   constructor() {
-    this.supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error('Supabase credentials missing: set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY')
+    }
+
+    this.supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false }
+    })
     this.courtListener = new CourtListenerClient()
     this.syncId = `court-sync-${Date.now()}`
   }
@@ -76,19 +83,16 @@ export class CourtSyncManager {
       for (let i = 0; i < courtListenerCourts.length; i += batchSize) {
         const batch = courtListenerCourts.slice(i, i + batchSize)
         
-        try {
-          const batchResult = await this.processCourtsLatch(batch, options)
-          result.courtsUpdated += batchResult.updated
-          result.courtsCreated += batchResult.created
-        } catch (error) {
-          const errorMsg = `Batch ${Math.floor(i / batchSize) + 1} failed: ${error}`
-          result.errors.push(errorMsg)
-          logger.error('Court batch processing failed', { batch: i / batchSize + 1, error })
+        const batchResult = await this.processCourtsBatch(batch, options)
+        result.courtsUpdated += batchResult.updated
+        result.courtsCreated += batchResult.created
+        if (batchResult.errors.length > 0) {
+          result.errors.push(...batchResult.errors)
         }
 
         // Rate limiting - pause between batches
         if (i + batchSize < courtListenerCourts.length) {
-          await new Promise(resolve => setTimeout(resolve, 1000))
+          await sleep(1000)
         }
       }
 
@@ -162,12 +166,13 @@ export class CourtSyncManager {
   /**
    * Process a batch of courts
    */
-  private async processCourtsLatch(
+  private async processCourtsBatch(
     courts: CourtListenerCourt[], 
     options: CourtSyncOptions
-  ): Promise<{ updated: number; created: number }> {
+  ): Promise<{ updated: number; created: number; errors: string[] }> {
     let updated = 0
     let created = 0
+    const errors: string[] = []
 
     for (const courtData of courts) {
       try {
@@ -187,29 +192,52 @@ export class CourtSyncManager {
           created++
         }
       } catch (error) {
+        const details = error instanceof Error ? error.message : String(error)
+        errors.push(`Failed to process court ${courtData.name}: ${details}`)
         logger.error('Failed to process court', { court: courtData.name, error })
-        throw error
       }
     }
 
-    return { updated, created }
+    return { updated, created, errors }
   }
 
   /**
    * Find existing court in database
    */
   private async findExistingCourt(courtData: CourtListenerCourt) {
-    const { data, error } = await this.supabase
-      .from('courts')
-      .select('id, name, courtlistener_id, updated_at')
-      .or(`courtlistener_id.eq.${courtData.id},name.eq."${courtData.name}"`)
-      .single()
+    try {
+      const { data: byId, error: byIdError } = await this.supabase
+        .from('courts')
+        .select('id, name, courtlistener_id, updated_at')
+        .eq('courtlistener_id', courtData.id)
+        .maybeSingle()
 
-    if (error && error.code !== 'PGRST116') {
-      throw new Error(`Database query failed: ${error.message}`)
+      if (byIdError) {
+        throw new Error(`Database query failed: ${byIdError.message}`)
+      }
+
+      if (byId) {
+        return byId
+      }
+
+      if (!courtData.name) {
+        return null
+      }
+
+      const { data: byName, error: byNameError } = await this.supabase
+        .from('courts')
+        .select('id, name, courtlistener_id, updated_at')
+        .ilike('name', courtData.name)
+        .maybeSingle()
+
+      if (byNameError && byNameError.code !== 'PGRST116') {
+        throw new Error(`Database query failed: ${byNameError.message}`)
+      }
+
+      return byName
+    } catch (error) {
+      throw error
     }
-
-    return data
   }
 
   /**

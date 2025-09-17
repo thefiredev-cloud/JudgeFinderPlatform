@@ -70,10 +70,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://www.courtlistener.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -94,12 +90,17 @@ export default function RootLayout({
         )}
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
         <GlobalErrorBoundary>
           <Providers>
             <ServiceWorkerRegistration />
             <div className="relative flex min-h-screen flex-col">
               <Header />
-              <main className="flex-1 pb-16 md:pb-0">{children}</main>
+              <main id="main-content" className="flex-1 pb-16 md:pb-0">
+                {children}
+              </main>
               <div className="mb-16 md:mb-0">
                 <Footer />
               </div>

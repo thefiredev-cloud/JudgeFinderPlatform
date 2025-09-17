@@ -1,269 +1,155 @@
 # JudgeFinder Platform
 
-AI-powered judicial transparency platform providing comprehensive analytics and bias detection for California's court system.
+AI-powered judicial transparency platform providing real-time analytics and bias detection across California's courts.
+
+### Launch status: 5 Days to Production
+See `LAUNCH_PLAN.md` for the full deployment strategy.
+
+## Quick Launch Commands
+```bash
+# Generate AI analytics for all judges (Day 1-2)
+npm run launch:analytics
+
+# Run complete data sync (Day 1)
+npm run launch:data
+
+# Validate all systems (Day 5)
+npm run launch:validate
+```
 
 ## Overview
 
-JudgeFinder delivers unprecedented insights into judicial patterns and decision-making through advanced AI analysis and real-time court data integration. The platform serves citizens, attorneys, and litigants with objective, data-driven judicial analytics.
+JudgeFinder delivers data-driven insights into judicial patterns using AI analysis and automated data ingestion from official sources.
 
-### Key Features
-
-- **AI-Powered Bias Detection**: Sophisticated analysis of judicial patterns using Google Gemini 1.5 Flash and GPT-4o
-- **Comprehensive Coverage**: 1,810 California judges across 909 courts with 300,000+ cases analyzed
-- **Judge Comparison Tool**: Side-by-side comparison of up to 3 judges with key metrics
-- **Advanced Search**: Multi-filter search with jurisdiction, court type, and specialization options
-- **Real-Time Updates**: Automated daily and weekly data synchronization from official sources
-- **Analytics Dashboard**: Detailed judicial analytics including decision times, reversal rates, and case distributions
+- **AI Analytics**: Gemini 1.5 Flash primary, GPT-4o-mini fallback
+- **Real-time Sync**: Daily and weekly automated jobs with retries and queueing
+- **Coverage**: California courts and judges with decision documents
 
 ## Architecture & Tech Stack
 
-### Frontend
-- **Framework:** Next.js 14 with TypeScript
-- **Styling:** Tailwind CSS
-- **Components:** Custom UI components with responsive design
-- **Performance:** Core Web Vitals monitoring implemented
+- **Framework**: Next.js 15 + TypeScript
+- **Database**: Supabase Postgres
+- **Auth**: Clerk
+- **Cache/Rate limit**: Upstash Redis
+- **Hosting**: Netlify (`@netlify/plugin-nextjs`)
+- **Error Monitoring**: Sentry
 
-### Backend
-- **Database:** Supabase PostgreSQL with real-time subscriptions
-- **Authentication:** Clerk authentication with role-based access
-- **Cache:** Upstash Redis for rate limiting and caching
-- **APIs:** RESTful APIs with comprehensive error handling
-
-### AI & Data Integration
-- **Primary AI:** Google Gemini 1.5 Flash for judicial analytics
-- **Fallback AI:** GPT-4o-mini for backup processing
-- **Data Source:** CourtListener API v4 for official court data
-- **Error Monitoring:** Sentry for production error tracking
-
-### Infrastructure
-- **Hosting:** Vercel with edge runtime optimization
-- **CDN:** Global edge distribution
-- **Security:** Comprehensive CSP, HSTS, XSS protection
-- **Performance:** Multi-layer caching and lazy loading
-
-## Installation & Setup
-
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-- Supabase account
-- Clerk account (authentication)
-- API keys for data sources
-
-### Environment Variables
+## Environment Variables
 ```bash
-# Database
+# AI Services
+GOOGLE_AI_API_KEY=your_gemini_api_key
+OPENAI_API_KEY=your_openai_fallback_key
+
+# External APIs
+COURTLISTENER_API_KEY=your_courtlistener_key
+
+# Automation
+CRON_SECRET=secure_cron_token
+SYNC_API_KEY=manual_sync_trigger_key
+
+# Database (Supabase)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-# Authentication
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-CLERK_SECRET_KEY=your_clerk_secret_key
+# Rate Limiting / Cache
+UPSTASH_REDIS_REST_URL=your_redis_url
+UPSTASH_REDIS_REST_TOKEN=your_redis_token
 
-# AI Services
-GOOGLE_GEMINI_API_KEY=your_gemini_api_key
-OPENAI_API_KEY=your_openai_api_key
-
-# Data Source
-COURTLISTENER_API_TOKEN=your_courtlistener_token
-
-# Cache & Rate Limiting
-UPSTASH_REDIS_REST_URL=your_upstash_url
-UPSTASH_REDIS_REST_TOKEN=your_upstash_token
-
-# Monitoring
+# Optional
 SENTRY_DSN=your_sentry_dsn
+NEXT_PUBLIC_SITE_URL=https://your-site.netlify.app
 ```
 
-### Quick Start
+Tip: If deploying on Netlify, prefer syncing local env with:
 ```bash
-# Clone repository
-git clone [repository-url]
-cd judge-finder-platform
+netlify link             # one-time, select the site
+netlify env:pull --json > .env.local
+# Or: netlify env:list --json
+```
 
+## Getting Started (Local)
+```bash
 # Install dependencies
 npm install
 
-# Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your API keys
+# Create .env.local and fill with the variables above
 
-# Run development server
+# Start dev server
 npm run dev
 ```
+App runs at `http://localhost:3005`.
 
-The application will be available at `http://localhost:3005`
+## Data Sync & Analytics
 
-### Database Setup
+Scripts are designed for incremental, resumable syncs with retries and logging to `sync_logs`.
+
 ```bash
-# Initialize database schema
-npm run db:push
-
-# Sync initial data
+# Manual syncs
 npm run sync:courts
 npm run sync:judges
 npm run sync:decisions
 
-# Generate AI analytics
+# Batch generate analytics
 npm run analytics:generate
+
+# Check data status (requires Supabase env in .env.local)
+npm run data:status
 ```
+
+Admin endpoints (protected via `SYNC_API_KEY` header in production):
+- `GET /api/admin/sync-status` – queue health, recent logs, freshness
+- `POST /api/admin/sync-status` – queue actions (`queue_job`, `cancel_jobs`, `cleanup`, `restart_queue`)
+- `POST /api/admin/sync` – admin-triggered sync (Clerk admin auth)
+
+Health:
+- `GET /api/health` – basic health check
+
+## Scheduled Jobs
+
+Weekly cron (`app/api/cron/weekly-sync/route.ts`):
+- Queues: courts (immediate), judges (T+30m), federal judges (T+45m), decisions (T+60m), cleanup (T+120m)
+- Starts processing via queue manager with backoff/retries
+
+Daily cron (`app/api/cron/daily-sync/route.ts`):
+- Twice daily judge/decision updates (see file for schedule)
 
 ## Project Structure
 
 ```
-judge-finder-platform/
-├── app/                     # Next.js 14 App Router
-│   ├── api/                # API endpoints
-│   │   ├── judges/         # Judge-related APIs
-│   │   ├── courts/         # Court-related APIs
-│   │   ├── admin/          # Administrative APIs
-│   │   ├── analytics/      # Analytics endpoints
-│   │   └── sync/           # Data synchronization
-│   ├── judges/             # Judge profile pages
-│   ├── courts/             # Court directory pages
-│   ├── compare/            # Judge comparison tool
-│   └── jurisdictions/      # County-specific pages
-├── components/             # React components
-│   ├── judges/            # Judge-specific components
-│   ├── ui/                # Reusable UI components
-│   └── security/          # Security components
-├── lib/                   # Core utilities
-│   ├── ai/                # AI integration
-│   ├── supabase/          # Database client
-│   ├── security/          # Security configurations
-│   └── sync/              # Data sync utilities
-├── scripts/               # Automation scripts
-│   ├── sync-*.js          # Data synchronization
-│   └── validate-*.js      # Data validation
-└── types/                 # TypeScript definitions
+app/                 # Next.js App Router (APIs, pages)
+components/          # UI and feature components
+lib/                 # ai/, supabase/, sync/, utils/
+scripts/             # Node automation scripts
+supabase/            # SQL migrations and config
 ```
 
-## API Documentation
+## Netlify Deployment (Recommended)
 
-### Core APIs
+1) Connect repository to Netlify (UI) and set env vars in Site Settings → Environment
 
-#### Judge Endpoints
-- `GET /api/judges/list` - List all judges with filtering
-- `GET /api/judges/search` - Search judges by name or court
-- `GET /api/judges/advanced-search` - Advanced multi-filter search
-- `GET /api/judges/[id]/analytics` - Get judge analytics
-- `GET /api/judges/[id]/bias-analysis` - AI bias analysis
-- `GET /api/judges/[id]/case-outcomes` - Case outcome statistics
-- `GET /api/judges/[id]/recent-cases` - Recent case activity
+2) Build config is in `netlify.toml` (Node 18, Next plugin). Deploys on push to `main`.
 
-#### Court Endpoints
-- `GET /api/courts` - List all courts
-- `GET /api/courts/[id]/judges` - Get judges for a court
-- `GET /api/courts/by-slug` - Get court by URL slug
-- `GET /api/courts/top-by-cases` - Most active courts
+3) Secure cron and admin endpoints by setting `CRON_SECRET` and `SYNC_API_KEY`.
 
-#### Administrative Endpoints
-- `GET /api/admin/stats` - Platform statistics
-- `POST /api/admin/sync` - Trigger data synchronization
-- `GET /api/admin/sync-status` - Check sync status
-- `GET /api/health` - System health check
-
-## Scripts & Commands
-
-### Development
+4) After deploy, validate:
 ```bash
-npm run dev              # Start development server (port 3005)
-npm run build           # Build for production
-npm run type-check      # TypeScript validation
-npm run lint            # ESLint code quality check
+# Health
+curl -s https://<site>/api/health | jq
+
+# Sync status (requires header)
+curl -s -H "x-api-key: $SYNC_API_KEY" https://<site>/api/admin/sync-status | jq
 ```
 
-### Data Management
-```bash
-npm run sync:courts     # Sync court data
-npm run sync:judges     # Sync judge profiles
-npm run sync:decisions  # Sync case decisions
-npm run analytics:generate  # Generate AI analytics
-npm run bias:analyze    # Run bias analysis
-npm run integrity:check # Check data integrity
-npm run integrity:full  # Full validation
-```
+## Troubleshooting
 
-### Database
-```bash
-npm run db:push         # Push schema to database
-npm run db:pull         # Pull schema from database
-npm run db:generate     # Generate Prisma client
-```
-
-## Deployment
-
-### Netlify Deployment (Recommended)
-
-1. **Fork this repository** to your GitHub account
-
-2. **Set up environment variables** in Netlify:
-   - See [NETLIFY_ENV_SETUP.md](./NETLIFY_ENV_SETUP.md) for detailed instructions
-   - Add all required environment variables in Netlify dashboard
-
-3. **Deploy from GitHub**:
-   - Connect your GitHub repository to Netlify
-   - Netlify will auto-deploy on push to main branch
-
-4. **Run database migrations**:
-   ```bash
-   npx supabase db push
-   ```
-
-### Vercel Deployment (Alternative)
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy to preview
-vercel
-
-# Deploy to production
-vercel --prod
-```
-
-### Environment Setup
-1. Create accounts for required services (Supabase, Clerk, etc.)
-2. Copy environment variables to Vercel dashboard
-3. Configure domain and SSL certificate
-4. Set up webhook endpoints for data synchronization
-
-## Performance Optimization
-
-- **Caching**: Multi-layer caching with Redis for API responses
-- **Database**: Optimized queries with proper indexing
-- **Images**: Lazy loading and responsive image optimization
-- **Code Splitting**: Automatic code splitting with Next.js
-- **Edge Runtime**: Vercel edge functions for global performance
-
-## Security Features
-
-- **Authentication**: Clerk-based secure authentication
-- **Authorization**: Role-based access control
-- **Headers**: Comprehensive security headers (CSP, HSTS, etc.)
-- **Rate Limiting**: API rate limiting with Redis
-- **Input Validation**: Strict input validation on all endpoints
-- **Error Handling**: Secure error messages without sensitive data
-
-## Contributing
-
-We welcome contributions! Please follow these guidelines:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- Missing data locally: ensure `.env.local` includes Supabase URL and keys
+- CourtListener failures: verify `COURTLISTENER_API_KEY` and API availability
+- Queue stuck: `POST /api/admin/sync-status { action: 'restart_queue' }` with `x-api-key`
+- Rate limits: scripts include delays; reduce `batchSize` in options
 
 ## License
 
-This project is proprietary software. All rights reserved.
+Proprietary. All rights reserved.
 
-## Support
-
-For support, please open an issue in the GitHub repository or contact the development team.
-
----
-
-**Built with ❤️ for judicial transparency and accountability**
+— Built for judicial transparency.

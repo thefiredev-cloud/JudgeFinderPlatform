@@ -137,6 +137,7 @@ export class CourtListenerClient {
               
               // Combine opinion and cluster data
               const caseData = {
+                id: opinion.id,
                 opinion_id: opinion.id,
                 cluster_id: opinion.cluster,
                 case_name: cluster.case_name || 'Unknown Case',
@@ -152,6 +153,7 @@ export class CourtListenerClient {
               console.error(`Error fetching cluster ${opinion.cluster}:`, clusterError)
               // Add opinion without cluster details
               allCases.push({
+                id: opinion.id,
                 opinion_id: opinion.id,
                 cluster_id: opinion.cluster,
                 case_name: 'Unknown Case',
@@ -184,6 +186,13 @@ export class CourtListenerClient {
    */
   async getClusterDetails(clusterId: string | number): Promise<any> {
     return this.makeRequest(`/clusters/${clusterId}/`)
+  }
+
+  /**
+   * Get full opinion detail including plain text
+   */
+  async getOpinionDetail(opinionId: string | number): Promise<any> {
+    return this.makeRequest(`/opinions/${opinionId}/`)
   }
 
   /**
