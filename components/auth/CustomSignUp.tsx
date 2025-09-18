@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react'
 import dynamicImport from 'next/dynamic'
 import Link from 'next/link'
-import { isAdminEmail } from '@/lib/auth/admin-client'
-import { CheckCircleIcon, BuildingIcon, UserIcon, ShieldIcon } from 'lucide-react'
+import { CheckCircleIcon, BuildingIcon, ShieldIcon } from 'lucide-react'
 
 // Check if Clerk is available
 const hasValidClerkKeys = () => {
@@ -68,9 +67,8 @@ export function CustomSignUp({
   }, [])
 
   const checkUserType = (emailAddress: string) => {
-    const isAdmin = isAdminEmail(emailAddress)
     setEmail(emailAddress)
-    setUserType(isAdmin ? 'admin' : 'user')
+    setUserType('user')
   }
 
   // Listen for Clerk form changes to detect email input

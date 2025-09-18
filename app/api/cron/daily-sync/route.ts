@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SyncQueueManager } from '@/lib/sync/queue-manager'
 import { logger } from '@/lib/utils/logger'
+import { requireApiKey } from '@/lib/security/api-auth'
+import { buildRateLimiter, getClientIp } from '@/lib/security/rate-limit'
+import { logCronMetric } from '@/lib/sync/cron-logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,16 +12,18 @@ export const maxDuration = 60 // 1 minute to queue jobs, actual processing happe
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
+  const rateLimiter = buildRateLimiter({ tokens: 5, window: '1 m', prefix: 'cron:daily:get' })
+  const ipAddress = getClientIp(request)
 
   try {
-    // Verify this is a legitimate cron request
-    const authHeader = request.headers.get('authorization')
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      logger.warn('Unauthorized cron request', { 
-        ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-        userAgent: request.headers.get('user-agent')
-      })
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const auth = requireApiKey(request, { allow: ['CRON_SECRET'] })
+    if ('ok' in auth === false) {
+      return auth
+    }
+
+    const rateLimitCheck = await rateLimiter.limit(ipAddress)
+    if (!rateLimitCheck.success) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
     }
 
     logger.info('Starting daily sync cron job')
@@ -56,21 +61,33 @@ export async function GET(request: NextRequest) {
       duration
     })
 
+    const jobs = [
+      {
+        id: decisionJobId,
+        type: 'decision',
+        description: 'Sync recent decisions from last 24 hours'
+      },
+      {
+        id: judgeJobId,
+        type: 'judge',
+        description: 'Update stale judge profiles'
+      }
+    ]
+
+    await logCronMetric({
+      route: '/api/cron/daily-sync',
+      metricName: 'cron_daily_sync',
+      status: 'success',
+      startTime,
+      durationMs: duration,
+      jobsQueued: jobs.length,
+      ipAddress
+    })
+
     return NextResponse.json({
       success: true,
       message: 'Daily sync jobs queued successfully',
-      jobs: [
-        {
-          id: decisionJobId,
-          type: 'decision',
-          description: 'Sync recent decisions from last 24 hours'
-        },
-        {
-          id: judgeJobId,
-          type: 'judge',
-          description: 'Update stale judge profiles'
-        }
-      ],
+      jobs,
       queuedAt: new Date().toISOString(),
       duration
     })
@@ -79,6 +96,16 @@ export async function GET(request: NextRequest) {
     const duration = Date.now() - startTime
     
     logger.error('Daily sync cron job failed', { error, duration })
+
+    await logCronMetric({
+      route: '/api/cron/daily-sync',
+      metricName: 'cron_daily_sync',
+      status: 'error',
+      startTime,
+      durationMs: duration,
+      jobsQueued: 0,
+      ipAddress
+    })
 
     return NextResponse.json({
       success: false,
@@ -92,11 +119,18 @@ export async function GET(request: NextRequest) {
 
 // Health check endpoint
 export async function POST(request: NextRequest) {
+  const startTime = Date.now()
+  const ipAddress = getClientIp(request)
+  const rateLimiter = buildRateLimiter({ tokens: 10, window: '1 m', prefix: 'cron:daily:post' })
+
   try {
-    // Manual trigger for daily sync (with admin auth)
-    const { requireApiKey } = await import('@/lib/security/api-auth')
     const auth = requireApiKey(request, { allow: ['SYNC_API_KEY', 'CRON_SECRET'] })
     if ('ok' in auth === false) return auth
+
+    const limitCheck = await rateLimiter.limit(ipAddress)
+    if (!limitCheck.success) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
 
     // Get manual sync options from request body
     const body = await request.json().catch(() => ({}))
@@ -136,6 +170,18 @@ export async function POST(request: NextRequest) {
       jobs.push({ id: judgeJobId, type: 'judge' })
     }
 
+    const duration = Date.now() - startTime
+
+    await logCronMetric({
+      route: '/api/cron/daily-sync',
+      metricName: 'cron_daily_sync_manual',
+      status: 'success',
+      startTime,
+      durationMs: duration,
+      jobsQueued: jobs.length,
+      ipAddress
+    })
+
     return NextResponse.json({
       success: true,
       message: 'Manual daily sync jobs queued',
@@ -145,6 +191,17 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logger.error('Manual daily sync failed', { error })
+    const duration = Date.now() - startTime
+
+    await logCronMetric({
+      route: '/api/cron/daily-sync',
+      metricName: 'cron_daily_sync_manual',
+      status: 'error',
+      startTime,
+      durationMs: duration,
+      jobsQueued: 0,
+      ipAddress
+    })
     
     return NextResponse.json({
       success: false,

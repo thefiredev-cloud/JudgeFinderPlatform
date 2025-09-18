@@ -1,9 +1,32 @@
 import { Suspense } from 'react'
+import type { Metadata } from 'next'
 import JudgesContent from './JudgesContent'
 import { JudgeCardSkeleton, SearchSkeleton } from '@/components/ui/Skeleton'
 import { ParticleBackground } from '@/components/ui/ParticleBackground'
 import { TypewriterText } from '@/components/ui/TypewriterText'
 import { ScrollIndicator } from '@/components/ui/ScrollIndicator'
+
+const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://judgefinder.io').replace(/\/$/, '')
+
+export const metadata: Metadata = {
+  title: 'California Judges Directory | JudgeFinder',
+  description: 'Search California judges with comprehensive profiles, judicial analytics, and comparison tools. Filter by court, jurisdiction, experience, and bias indicators.',
+  alternates: {
+    canonical: `${APP_URL}/judges`,
+  },
+  openGraph: {
+    title: 'California Judges Directory | JudgeFinder',
+    description: 'Explore detailed judge profiles, court assignments, and AI-powered analytics for California courts.',
+    url: `${APP_URL}/judges`,
+    type: 'website',
+    siteName: 'JudgeFinder',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'California Judges Directory | JudgeFinder',
+    description: 'Find judicial profiles, analytics, and comparison tools for California courts.',
+  },
+}
 
 // Loading fallback component for Suspense
 function JudgesLoading() {

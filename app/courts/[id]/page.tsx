@@ -486,6 +486,9 @@ export async function generateMetadata({ params }: { params: Params }) {
   // Create location-focused description
   const description = `Complete information about ${court.name} in ${court.jurisdiction}. Find judges, contact information, court procedures, and experienced attorneys practicing in this ${court.type} court. Essential resource for legal professionals.`
   
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://judgefinder.io').replace(/\/$/, '')
+  const canonicalUrl = `${baseUrl}/courts/${id}`
+
   return {
     title: `${court.name} - ${cityName} ${court.type.charAt(0).toUpperCase() + court.type.slice(1)} Court | JudgeFinder`,
     description: description,
@@ -502,13 +505,13 @@ export async function generateMetadata({ params }: { params: Params }) {
       'judicial directory'
     ].join(', '),
     alternates: {
-      canonical: `/courts/${id}`,
+      canonical: canonicalUrl,
     },
     openGraph: {
       title: `${court.name} - Court Directory`,
       description: `Official information for ${court.name} including judges, contact details, and attorney directory.`,
       type: 'website',
-      url: `https://judgefinder.io/courts/${id}`,
+      url: canonicalUrl,
       siteName: 'JudgeFinder',
       images: [
         {

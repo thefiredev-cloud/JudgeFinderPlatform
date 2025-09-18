@@ -1,5 +1,5 @@
 import { auth } from '@clerk/nextjs/server'
-import { isAdmin } from '@/lib/auth/admin'
+import { isAdmin } from '@/lib/auth/is-admin'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
@@ -10,7 +10,7 @@ export async function GET() {
     const { userId } = await auth()
     
     if (!userId || !(await isAdmin())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const supabase = await createServiceRoleClient()

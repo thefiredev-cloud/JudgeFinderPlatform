@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Clock, Database } from 'lucide-react'
 
 interface CaseAnalytics {
   civil_plaintiff_favor: number
@@ -192,7 +193,9 @@ function LegalDisclaimer({ analytics }: { analytics: CaseAnalytics }) {
   const [analytics, setAnalytics] = useState<CaseAnalytics | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [dataSource, setDataSource] = useState<string>('')
+  const [dataSource, setDataSource] = useState<string>('unknown')
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null)
+  const [isCachedResponse, setIsCachedResponse] = useState(false)
 
   useEffect(() => {
     async function fetchAnalytics() {
@@ -207,6 +210,13 @@ function LegalDisclaimer({ analytics }: { analytics: CaseAnalytics }) {
         const data = await response.json()
         setAnalytics(data.analytics)
         setDataSource(data.data_source || 'unknown')
+        setLastUpdated(
+          data.last_updated ||
+          data.analytics?.last_updated ||
+          data.analytics?.generated_at ||
+          null
+        )
+        setIsCachedResponse(Boolean(data.cached))
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error')
       } finally {
@@ -218,6 +228,62 @@ function LegalDisclaimer({ analytics }: { analytics: CaseAnalytics }) {
       fetchAnalytics()
     }
   }, [judgeId])
+
+  const formatDataSourceLabel = (source: string, cached: boolean) => {
+    switch (source) {
+      case 'redis_cache':
+        return cached ? 'Redis cache (fresh)' : 'Redis cache'
+      case 'cached':
+        return 'Supabase cache'
+      case 'case_analysis':
+        return 'Live case analysis'
+      case 'profile_estimation':
+        return 'Profile estimation'
+      default:
+        return cached ? 'Cached analytics' : 'Live analytics'
+    }
+  }
+
+  const formatDateTime = (value?: string | null) => {
+    if (!value) return 'Not available'
+    try {
+      return new Date(value).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    } catch {
+      return 'Not available'
+    }
+  }
+
+  const formatRelativeTime = (value?: string | null) => {
+    if (!value) return 'Unknown'
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return 'Unknown'
+
+    const diffMs = Date.now() - date.getTime()
+    if (diffMs < 0) return 'Just now'
+
+    const minutes = Math.floor(diffMs / 60000)
+    if (minutes < 1) return 'Just now'
+    if (minutes < 60) return `${minutes} min ago`
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return `${hours} hr${hours === 1 ? '' : 's'} ago`
+    const days = Math.floor(hours / 24)
+    if (days < 30) return `${days} day${days === 1 ? '' : 's'} ago`
+    const months = Math.floor(days / 30)
+    if (months < 12) return `${months} mo${months === 1 ? '' : 's'} ago`
+    const years = Math.floor(months / 12)
+    return `${years} yr${years === 1 ? '' : 's'} ago`
+  }
+
+  const resolvedLastUpdated = lastUpdated || analytics?.last_updated || null
+  const sourceLabel = formatDataSourceLabel(dataSource, isCachedResponse)
+  const lastUpdatedRelative = formatRelativeTime(resolvedLastUpdated)
+  const lastUpdatedAbsolute = formatDateTime(resolvedLastUpdated)
 
   if (loading) {
     return (
@@ -375,21 +441,24 @@ function LegalDisclaimer({ analytics }: { analytics: CaseAnalytics }) {
             <p className="text-gray-700">
               Analysis based on {analytics.total_cases_analyzed} cases from 2022-2025 using {analytics.ai_model.replace('_', ' ')}
             </p>
-            <div className="mt-2 flex items-center gap-4 text-sm">
-              <span className="text-gray-600">
-                Data Period: <span className="font-medium">Last 3 Years (2022-2025)</span>
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-600">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
+                <Database className="h-4 w-4 text-gray-500" />
+                {sourceLabel}
               </span>
-              <span className="text-gray-600">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 shadow-sm">
+                <Clock className="h-4 w-4 text-gray-500" />
+                Updated {lastUpdatedRelative}
+              </span>
+              <span>
+                Coverage: <span className="font-medium">36-Month Analysis</span>
+              </span>
+              <span>
                 Quality: <span className="font-medium capitalize">{analytics.analysis_quality}</span>
               </span>
             </div>
-            <div className="mt-1 flex items-center gap-4 text-sm">
-              <span className="text-gray-600">
-                Data Source: <span className="font-medium">{dataSource.replace('_', ' ')}</span>
-              </span>
-              <span className="text-gray-600">
-                Coverage: <span className="font-medium">36-Month Analysis</span>
-              </span>
+            <div className="mt-1 text-sm text-gray-500">
+              <span className="font-medium">Last refresh:</span> {lastUpdatedAbsolute}
             </div>
           </div>
           <div className="text-right">
@@ -415,18 +484,8 @@ function LegalDisclaimer({ analytics }: { analytics: CaseAnalytics }) {
 
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="flex items-center justify-between text-sm text-gray-600">
-          <span>
-            Last updated: {new Date(analytics.last_updated).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
-          </span>
-          <span>
-            Generated: {new Date(analytics.generated_at).toLocaleDateString()}
-          </span>
+          <span>Last updated: {lastUpdatedAbsolute}</span>
+          <span>Generated: {formatDateTime(analytics.generated_at)}</span>
         </div>
       </div>
 

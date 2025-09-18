@@ -44,22 +44,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   })
 
-  // Jurisdiction county pages (static list to ensure coverage)
-  const jurisdictions = [
+  const { data: jurisdictionRows } = await supabase
+    .from('courts')
+    .select('jurisdiction, updated_at')
+    .not('jurisdiction', 'is', null)
+    .limit(500)
+
+  const jurisdictionSet = new Map<string, Date>()
+
+  ;(jurisdictionRows || []).forEach((row) => {
+    if (!row.jurisdiction) return
+    const slug = createCanonicalSlug(String(row.jurisdiction))
+    if (!slug) return
+    const updatedAt = row.updated_at ? new Date(row.updated_at) : new Date()
+    const existing = jurisdictionSet.get(slug)
+    if (!existing || updatedAt > existing) {
+      jurisdictionSet.set(slug, updatedAt)
+    }
+  })
+
+  const fallbackJurisdictions = [
     'los-angeles-county',
     'orange-county',
     'san-diego-county',
     'san-francisco-county',
     'santa-clara-county',
-    'alameda-county',
-    'riverside-county',
-    'san-bernardino-county',
-    'sacramento-county',
-    'fresno-county',
+    'alameda-county'
   ]
-  const jurisdictionEntries = jurisdictions.map((slug) => ({
+
+  fallbackJurisdictions.forEach((slug) => {
+    if (!jurisdictionSet.has(slug)) {
+      jurisdictionSet.set(slug, new Date())
+    }
+  })
+
+  const jurisdictionEntries = Array.from(jurisdictionSet.entries()).map(([slug, updated]) => ({
     url: `${siteUrl}/jurisdictions/${slug}`,
-    lastModified: new Date(),
+    lastModified: updated,
     changeFrequency: 'monthly' as const,
     priority: 0.55,
   }))
@@ -106,5 +127,4 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...jurisdictionEntries,
   ]
 }
-
 

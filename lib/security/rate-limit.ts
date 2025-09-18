@@ -8,26 +8,43 @@ export type RateLimitConfig = {
   prefix?: string
 }
 
-let redis: Redis | null = null
+let sharedRedis: Redis | null = null
+let defaultLimiter: Ratelimit | null = null
+
 function getRedis(): Redis | null {
-  if (redis) return redis
+  if (sharedRedis) {
+    return sharedRedis
+  }
+
   const url = process.env.UPSTASH_REDIS_REST_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
-  if (!url || !token) return null
-  redis = new Redis({ url, token })
-  return redis
+
+  if (!url || !token) {
+    return null
+  }
+
+  sharedRedis = new Redis({ url, token })
+  return sharedRedis
 }
 
 export function buildRateLimiter(config: RateLimitConfig) {
   const client = getRedis()
+
   if (!client) {
     return {
       limit: async (_key: string) => ({ success: true, remaining: 9999, reset: Date.now() + 1000 })
     }
   }
-  const ratelimit = new Ratelimit({ redis: client, limiter: Ratelimit.slidingWindow(config.tokens, config.window), prefix: config.prefix || 'rl' })
+
+  const duration = config.window as Parameters<(typeof Ratelimit)['slidingWindow']>[1]
+  const limiter = new Ratelimit({
+    redis: client,
+    limiter: Ratelimit.slidingWindow(config.tokens, duration),
+    prefix: config.prefix || 'rl'
+  })
+
   return {
-    limit: (key: string) => ratelimit.limit(key)
+    limit: (key: string) => limiter.limit(key)
   }
 }
 
@@ -40,22 +57,32 @@ export function getClientIp(req: NextRequest): string {
   )
 }
 
-import { Ratelimit } from '@upstash/ratelimit'
-import { Redis } from '@upstash/redis'
+function getDefaultLimiter(): Ratelimit | null {
+  if (defaultLimiter) {
+    return defaultLimiter
+  }
 
-let ratelimit: Ratelimit | null = null
+  const client = getRedis()
+  if (!client) {
+    return null
+  }
 
-function getLimiter() {
-  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) return null
-  if (ratelimit) return ratelimit
-  const redis = new Redis({ url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN })
-  ratelimit = new Ratelimit({ redis, limiter: Ratelimit.fixedWindow(60, '1 m') }) // 60 req/min per key
-  return ratelimit
+  defaultLimiter = new Ratelimit({
+    redis: client,
+    limiter: Ratelimit.fixedWindow(60, '1 m'),
+    prefix: 'api:default'
+  })
+
+  return defaultLimiter
 }
 
 export async function enforceRateLimit(key: string) {
-  const limiter = getLimiter()
-  if (!limiter) return { allowed: true, remaining: undefined, reset: undefined }
+  const limiter = getDefaultLimiter()
+
+  if (!limiter) {
+    return { allowed: true, remaining: undefined, reset: undefined }
+  }
+
   const res = await limiter.limit(key)
   return { allowed: res.success, remaining: res.remaining, reset: res.reset }
 }
@@ -68,5 +95,3 @@ export function getClientKey(headers: Headers) {
     'anonymous'
   )
 }
-
-

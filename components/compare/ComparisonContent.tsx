@@ -17,6 +17,7 @@ export function ComparisonContent({ initialJudges = [] }: ComparisonContentProps
   const [showSearch, setShowSearch] = useState(false)
   const [analytics, setAnalytics] = useState<Record<string, any>>({})
   const [loadingAnalytics, setLoadingAnalytics] = useState<Record<string, boolean>>({})
+  const [searchError, setSearchError] = useState<string | null>(null)
 
   const { debouncedSearchQuery } = useSearchDebounce(searchQuery, 300)
 
@@ -24,19 +25,28 @@ export function ComparisonContent({ initialJudges = [] }: ComparisonContentProps
   useEffect(() => {
     if (!debouncedSearchQuery || debouncedSearchQuery.length < 2) {
       setSearchResults([])
+      setSearchError(null)
       return
     }
 
     const searchJudges = async () => {
       setIsSearching(true)
+      setSearchError(null)
       try {
         const response = await fetch(`/api/judges/list?q=${encodeURIComponent(debouncedSearchQuery)}&limit=10`)
         if (response.ok) {
           const data = await response.json()
           setSearchResults(data.judges || [])
+          if ((data.judges || []).length === 0) {
+            setSearchError('No judges found for your query.')
+          }
+        }
+        if (!response.ok) {
+          setSearchError('Unable to search judges right now. Please try again.')
         }
       } catch (error) {
         console.error('Search error:', error)
+        setSearchError('Unable to search judges right now. Please try again.')
       } finally {
         setIsSearching(false)
       }
@@ -74,6 +84,7 @@ export function ComparisonContent({ initialJudges = [] }: ComparisonContentProps
       setSelectedJudges([...selectedJudges, judge])
       setSearchQuery('')
       setSearchResults([])
+      setSearchError(null)
       setShowSearch(false)
     }
   }
@@ -141,6 +152,7 @@ export function ComparisonContent({ initialJudges = [] }: ComparisonContentProps
                     setShowSearch(false)
                     setSearchQuery('')
                     setSearchResults([])
+                    setSearchError(null)
                   }}
                   className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
@@ -163,6 +175,11 @@ export function ComparisonContent({ initialJudges = [] }: ComparisonContentProps
                     <div className="text-sm text-muted-foreground">{judge.court_name}</div>
                   </button>
                 ))}
+              </div>
+            )}
+            {searchError && !isSearching && (
+              <div className="mt-4 text-sm text-destructive/80 bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                {searchError}
               </div>
             )}
           </div>

@@ -1,11 +1,9 @@
 import { auth, currentUser, clerkClient } from '@clerk/nextjs/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { resolveAdminStatus } from './is-admin'
 
 // User role types
 export type UserRole = 'admin' | 'law_firm' | 'attorney' | 'advertiser' | 'user'
-
-// Admin email addresses from environment
-const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',').map(email => email.trim().toLowerCase()) || []
 
 /**
  * Get the current user's role
@@ -15,9 +13,8 @@ export async function getUserRole(): Promise<UserRole> {
     const user = await currentUser()
     if (!user) return 'user'
 
-    // Check if admin first
-    const userEmail = user.emailAddresses[0]?.emailAddress?.toLowerCase()
-    if (userEmail && ADMIN_EMAILS.includes(userEmail)) {
+    const { isAdmin } = await resolveAdminStatus()
+    if (isAdmin) {
       return 'admin'
     }
 

@@ -40,16 +40,16 @@ export default function DocsPage() {
                   curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/judges/search?q=smith" | jq
                 </div>
                 <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
-                  curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/judges/{$JUDGE_ID}" | jq
+                  {`curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/judges/\${JUDGE_ID}" | jq`}
                 </div>
                 <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
-                  curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/judges/export?per_page=1000" > judges.csv
+                  {`curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/judges/export?per_page=1000" > judges.csv`}
                 </div>
                 <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
-                  curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/judges/{$JUDGE_ID}/analytics/motions?since=2024-01-01&format=csv" > motions.csv
+                  {`curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/judges/\${JUDGE_ID}/analytics/motions?since=2024-01-01&format=csv" > motions.csv`}
                 </div>
                 <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
-                  curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/analytics/time_to_ruling?judge_id={$JUDGE_ID}&format=csv" > ttr.csv
+                  {`curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/analytics/time_to_ruling?judge_id=\${JUDGE_ID}&format=csv" > ttr.csv`}
                 </div>
               </div>
             </div>

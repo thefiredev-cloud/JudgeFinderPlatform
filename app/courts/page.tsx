@@ -5,6 +5,8 @@ import type { Metadata } from 'next'
 // Force dynamic rendering since we need to query the database with cookies
 export const dynamic = 'force-dynamic'
 
+const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://judgefinder.io').replace(/\/$/, '')
+
 interface Court {
   id: string
   name: string
@@ -21,6 +23,21 @@ export const metadata: Metadata = {
   title: 'Courts Directory | JudgeFinder',
   description: 'Browse courts and judges. Search by type, jurisdiction, and name. Find contact information and assigned judges for comprehensive legal research.',
   keywords: 'courts directory, federal courts, state courts, legal research, court information, California courts',
+  alternates: {
+    canonical: `${APP_URL}/courts`,
+  },
+  openGraph: {
+    title: 'Courts Directory | JudgeFinder',
+    description: 'Explore courts by jurisdiction, view assigned judges, and access legal research tools.',
+    url: `${APP_URL}/courts`,
+    type: 'website',
+    siteName: 'JudgeFinder',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Courts Directory | JudgeFinder',
+    description: 'Browse courts and judges with JudgeFinder’s comprehensive legal directory.',
+  },
 }
 
 async function getInitialCourts(jurisdiction?: string): Promise<Court[]> {

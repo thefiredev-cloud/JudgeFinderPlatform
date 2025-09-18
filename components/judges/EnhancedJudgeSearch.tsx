@@ -44,10 +44,12 @@ export function EnhancedJudgeSearch() {
   const [currentPage, setCurrentPage] = useState(1)
   const [filters, setFilters] = useState<AdvancedJudgeFilters | null>(null)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const performSearch = useCallback(async (query: string, searchFilters: any, page = 1) => {
     setLoading(true)
-    
+    setErrorMessage(null)
+
     try {
       const params = new URLSearchParams({
         page: page.toString(),
@@ -79,10 +81,12 @@ export function EnhancedJudgeSearch() {
       } else {
         console.error('Search failed:', response.statusText)
         setSearchResults(null)
+        setErrorMessage('Unable to load judge search results. Please try again.')
       }
     } catch (error) {
       console.error('Search error:', error)
       setSearchResults(null)
+      setErrorMessage('Unable to load judge search results. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -183,6 +187,12 @@ export function EnhancedJudgeSearch() {
           onToggle={() => setFiltersOpen(!filtersOpen)}
         />
 
+        {errorMessage && (
+          <div className="max-w-4xl mx-auto mb-6 rounded-lg border border-red-500/30 bg-red-500/10 text-red-100 px-4 py-3 text-sm">
+            {errorMessage}
+          </div>
+        )}
+
         {/* Search Results Summary */}
         {searchResults && (
           <div className="mb-6 flex justify-between items-center">
@@ -204,9 +214,20 @@ export function EnhancedJudgeSearch() {
 
         {/* Loading State */}
         {loading && !searchResults && (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-400">Searching judges...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <div key={idx} className="animate-pulse rounded-lg border border-gray-800 bg-gray-800/60 p-6">
+                <div className="h-4 w-1/2 bg-gray-700 rounded mb-3" />
+                <div className="h-3 w-2/3 bg-gray-700 rounded mb-2" />
+                <div className="h-3 w-1/3 bg-gray-700 rounded mb-6" />
+                <div className="space-y-2">
+                  <div className="h-3 w-full bg-gray-700 rounded" />
+                  <div className="h-3 w-3/4 bg-gray-700 rounded" />
+                  <div className="h-3 w-2/5 bg-gray-700 rounded" />
+                  <div className="h-3 w-1/2 bg-gray-700 rounded" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

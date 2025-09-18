@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SyncQueueManager } from '@/lib/sync/queue-manager'
 import { logger } from '@/lib/utils/logger'
+import { requireApiKey } from '@/lib/security/api-auth'
+import { buildRateLimiter, getClientIp } from '@/lib/security/rate-limit'
+import { logCronMetric } from '@/lib/sync/cron-logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,16 +12,18 @@ export const maxDuration = 60 // 1 minute to queue jobs
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
+  const ipAddress = getClientIp(request)
+  const rateLimiter = buildRateLimiter({ tokens: 5, window: '1 m', prefix: 'cron:weekly:get' })
 
   try {
-    // Verify this is a legitimate cron request
-    const authHeader = request.headers.get('authorization')
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      logger.warn('Unauthorized weekly cron request', { 
-        ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-        userAgent: request.headers.get('user-agent')
-      })
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const auth = requireApiKey(request, { allow: ['CRON_SECRET'] })
+    if ('ok' in auth === false) {
+      return auth
+    }
+
+    const limitCheck = await rateLimiter.limit(ipAddress)
+    if (!limitCheck.success) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
     }
 
     logger.info('Starting weekly sync cron job')
@@ -125,6 +130,16 @@ export async function GET(request: NextRequest) {
       duration
     })
 
+    await logCronMetric({
+      route: '/api/cron/weekly-sync',
+      metricName: 'cron_weekly_sync',
+      status: 'success',
+      startTime,
+      durationMs: duration,
+      jobsQueued: jobs.length,
+      ipAddress
+    })
+
     return NextResponse.json({
       success: true,
       message: 'Weekly sync jobs queued successfully',
@@ -144,6 +159,16 @@ export async function GET(request: NextRequest) {
     
     logger.error('Weekly sync cron job failed', { error, duration })
 
+    await logCronMetric({
+      route: '/api/cron/weekly-sync',
+      metricName: 'cron_weekly_sync',
+      status: 'error',
+      startTime,
+      durationMs: duration,
+      jobsQueued: 0,
+      ipAddress
+    })
+
     return NextResponse.json({
       success: false,
       error: 'Failed to queue weekly sync jobs',
@@ -156,11 +181,19 @@ export async function GET(request: NextRequest) {
 
 // Manual trigger endpoint
 export async function POST(request: NextRequest) {
+  const startTime = Date.now()
+  const ipAddress = getClientIp(request)
+  const rateLimiter = buildRateLimiter({ tokens: 10, window: '1 m', prefix: 'cron:weekly:post' })
+
   try {
-    // Admin auth for manual weekly sync
-    const apiKey = request.headers.get('x-api-key')
-    if (!apiKey || apiKey !== process.env.SYNC_API_KEY) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const auth = requireApiKey(request, { allow: ['SYNC_API_KEY', 'CRON_SECRET'] })
+    if ('ok' in auth === false) {
+      return auth
+    }
+
+    const limitCheck = await rateLimiter.limit(ipAddress)
+    if (!limitCheck.success) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
     }
 
     const body = await request.json().catch(() => ({}))
@@ -216,6 +249,18 @@ export async function POST(request: NextRequest) {
       jobs.push({ id: decisionJobId, type: 'decision' })
     }
 
+    const duration = Date.now() - startTime
+
+    await logCronMetric({
+      route: '/api/cron/weekly-sync',
+      metricName: 'cron_weekly_sync_manual',
+      status: 'success',
+      startTime,
+      durationMs: duration,
+      jobsQueued: jobs.length,
+      ipAddress
+    })
+
     return NextResponse.json({
       success: true,
       message: 'Manual weekly sync jobs queued',
@@ -227,6 +272,17 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logger.error('Manual weekly sync failed', { error })
+    const duration = Date.now() - startTime
+
+    await logCronMetric({
+      route: '/api/cron/weekly-sync',
+      metricName: 'cron_weekly_sync_manual',
+      status: 'error',
+      startTime,
+      durationMs: duration,
+      jobsQueued: 0,
+      ipAddress
+    })
     
     return NextResponse.json({
       success: false,

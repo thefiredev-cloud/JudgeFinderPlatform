@@ -1,7 +1,7 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard'
-import { isAdmin } from '@/lib/auth/admin'
+import { isAdmin } from '@/lib/auth/is-admin'
 
 export default async function WelcomePage() {
   const { userId } = await auth()

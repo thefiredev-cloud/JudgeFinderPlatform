@@ -1,389 +1,441 @@
 'use client'
 
-import { useSafeUser } from '@/lib/auth/safe-clerk-components'
-import { useState, useEffect } from 'react'
-import { 
-  Settings, 
-  Database, 
-  Users, 
-  Shield, 
-  BarChart3,
-  FileText,
+import { useMemo, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
+import { queueSyncJob, cancelSyncJobs, restartSyncQueue } from '@/app/admin/actions'
+import type { SyncStatusResponse } from '@/lib/admin/sync-status'
+import {
   AlertTriangle,
-  CheckCircle,
+  CheckCircle2,
   Clock,
+  RefreshCcw,
   RefreshCw,
-  Download,
-  Upload
+  Server,
+  Activity,
+  BarChart3,
+  PlayCircle,
+  Square,
+  Triangle
 } from 'lucide-react'
-import Link from 'next/link'
 
-interface AdminStats {
-  totalJudges: number
-  totalCourts: number
-  totalUsers: number
-  pendingSync: number
-  lastSyncTime: string
-  systemHealth: 'healthy' | 'warning' | 'error'
-  activeUsers: number
-  searchVolume: number
+interface AdminDashboardProps {
+  status: SyncStatusResponse | null
 }
 
-interface SyncJob {
-  id: string
-  type: 'judges' | 'courts' | 'decisions'
-  status: 'pending' | 'running' | 'completed' | 'failed'
-  startTime: string
-  endTime?: string
-  recordsProcessed: number
-  errors: number
+type ActionType = 'queue-decisions' | 'cancel-decisions' | 'restart-queue'
+
+type Feedback = {
+  type: 'success' | 'error'
+  message: string
 }
 
-export default function AdminDashboard() {
-  const { user } = useSafeUser()
-  const [stats, setStats] = useState<AdminStats>({
-    totalJudges: 0,
-    totalCourts: 0,
-    totalUsers: 0,
-    pendingSync: 0,
-    lastSyncTime: '',
-    systemHealth: 'healthy',
-    activeUsers: 0,
-    searchVolume: 0
-  })
-  const [syncJobs, setSyncJobs] = useState<SyncJob[]>([])
-  const [loading, setLoading] = useState(true)
+const ACTION_META: Record<ActionType, { title: string; description: string; confirmLabel: string }> = {
+  'queue-decisions': {
+    title: 'Queue CA decision document sync',
+    description: 'Adds a high-priority job to pull recent CourtListener decisions for California.',
+    confirmLabel: 'Queue job'
+  },
+  'cancel-decisions': {
+    title: 'Cancel pending decision jobs',
+    description: 'Stops queued decision document jobs to prevent duplicates.',
+    confirmLabel: 'Cancel jobs'
+  },
+  'restart-queue': {
+    title: 'Restart sync queue processor',
+    description: 'Stops and restarts the queue worker to clear stuck jobs.',
+    confirmLabel: 'Restart queue'
+  }
+}
 
-  useEffect(() => {
-    fetchAdminData()
-  }, [])
+function formatNumber(value: number | null | undefined, fallback = '0') {
+  if (typeof value !== 'number' || Number.isNaN(value)) return fallback
+  return value.toLocaleString()
+}
 
-  const fetchAdminData = async () => {
-    try {
-      // Fetch admin statistics
-      const [statsResponse, syncResponse] = await Promise.all([
-        fetch('/api/admin/stats'),
-        fetch('/api/admin/sync-status')
-      ])
+function formatRelative(dateString: string | null | undefined) {
+  if (!dateString) return 'Unknown'
+  const target = new Date(dateString)
+  if (Number.isNaN(target.getTime())) return 'Unknown'
 
-      if (statsResponse.ok) {
-        const statsData = await statsResponse.json()
-        setStats(statsData)
+  const diffMs = Date.now() - target.getTime()
+  if (diffMs < 0) return 'Just now'
+
+  const diffMinutes = Math.floor(diffMs / 60000)
+  if (diffMinutes < 1) return 'Just now'
+  if (diffMinutes < 60) return `${diffMinutes} min ago`
+
+  const diffHours = Math.floor(diffMinutes / 60)
+  if (diffHours < 24) return `${diffHours} hr${diffHours === 1 ? '' : 's'} ago`
+
+  const diffDays = Math.floor(diffHours / 24)
+  return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`
+}
+
+function healthPill(status: SyncStatusResponse['health']['status']) {
+  switch (status) {
+    case 'healthy':
+      return {
+        label: 'Healthy',
+        className: 'bg-green-50 text-green-700 border border-green-200',
+        icon: CheckCircle2
       }
-
-      if (syncResponse.ok) {
-        const syncData = await syncResponse.json()
-        setSyncJobs(syncData.jobs || [])
+    case 'warning':
+      return {
+        label: 'Warning',
+        className: 'bg-yellow-50 text-yellow-700 border border-yellow-200',
+        icon: AlertTriangle
       }
-    } catch (error) {
-      console.error('Error fetching admin data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const triggerSync = async (type: 'judges' | 'courts' | 'decisions') => {
-    try {
-      const response = await fetch('/api/admin/sync', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ type })
-      })
-
-      if (response.ok) {
-        fetchAdminData() // Refresh data
+    case 'critical':
+      return {
+        label: 'Critical',
+        className: 'bg-red-50 text-red-700 border border-red-200',
+        icon: AlertTriangle
       }
-    } catch (error) {
-      console.error('Error triggering sync:', error)
-    }
+    case 'caution':
+      return {
+        label: 'Caution',
+        className: 'bg-orange-50 text-orange-700 border border-orange-200',
+        icon: AlertTriangle
+      }
+    default:
+      return {
+        label: 'Unknown',
+        className: 'bg-gray-100 text-gray-700 border border-gray-200',
+        icon: Clock
+      }
+  }
+}
+
+export default function AdminDashboard({ status }: AdminDashboardProps) {
+  const router = useRouter()
+  const [pendingAction, setPendingAction] = useState<ActionType | null>(null)
+  const [feedback, setFeedback] = useState<Feedback | null>(null)
+  const [isPending, startTransition] = useTransition()
+
+  const health = useMemo(() => healthPill(status?.health.status || 'caution'), [status?.health.status])
+
+  const handleAction = (action: ActionType) => {
+    setPendingAction(action)
   }
 
-  const getHealthStatus = () => {
-    switch (stats.systemHealth) {
-      case 'healthy':
-        return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-100' }
-      case 'warning':
-        return { icon: AlertTriangle, color: 'text-yellow-600', bg: 'bg-yellow-100' }
-      case 'error':
-        return { icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-100' }
-      default:
-        return { icon: CheckCircle, color: 'text-gray-600', bg: 'bg-gray-100' }
-    }
+  const executeAction = () => {
+    if (!pendingAction) return
+    const action = pendingAction
+
+    startTransition(async () => {
+      try {
+        switch (action) {
+          case 'queue-decisions':
+            await queueSyncJob({
+              type: 'decision',
+              options: {
+                jurisdiction: 'CA',
+                schedule: 'daily',
+                priority: 'high',
+                forceRefresh: true
+              },
+              priority: 80
+            })
+            setFeedback({ type: 'success', message: 'Decision job queued successfully.' })
+            break
+          case 'cancel-decisions':
+            await cancelSyncJobs('decision')
+            setFeedback({ type: 'success', message: 'Pending decision jobs cancelled.' })
+            break
+          case 'restart-queue':
+            await restartSyncQueue()
+            setFeedback({ type: 'success', message: 'Queue restarted successfully.' })
+            break
+        }
+      } catch (error) {
+        console.error(error)
+        setFeedback({ type: 'error', message: 'Action failed. Check server logs for details.' })
+      } finally {
+        setPendingAction(null)
+        router.refresh()
+      }
+    })
   }
 
-  const formatTimeAgo = (dateString: string) => {
-    if (!dateString) return 'Never'
-    const now = new Date()
-    const past = new Date(dateString)
-    const diffInMinutes = Math.floor((now.getTime() - past.getTime()) / (1000 * 60))
-    
-    if (diffInMinutes < 1) return 'Just now'
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`
-    const diffInHours = Math.floor(diffInMinutes / 60)
-    if (diffInHours < 24) return `${diffInHours}h ago`
-    const diffInDays = Math.floor(diffInHours / 24)
-    return `${diffInDays}d ago`
+  const cancelAction = () => {
+    setPendingAction(null)
   }
 
-  if (loading) {
+  if (!status) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-300 rounded w-1/3 mb-4"></div>
-            <div className="h-4 bg-gray-300 rounded w-1/2 mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-32 bg-gray-300 rounded-lg"></div>
-              ))}
-            </div>
-          </div>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
+        <AlertTriangle className="h-10 w-10 text-red-500" />
+        <div className="text-center">
+          <p className="text-lg font-medium text-gray-900">Unable to load operations data</p>
+          <p className="text-sm text-gray-600">Verify SYNC_API_KEY and admin API availability.</p>
         </div>
+        <button
+          onClick={() => router.refresh()}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          <RefreshCcw className="h-4 w-4 mr-2" />Try again
+        </button>
       </div>
     )
   }
 
-  const healthStatus = getHealthStatus()
+  const queueStats = status.queue?.stats || { pending: 0, running: 0, succeeded: 0, failed: 0 }
+  const external = status.performance?.external_api || {
+    courtlistener_failures_24h: 0,
+    courtlistener_circuit_opens_24h: 0,
+    courtlistener_circuit_shortcircuits_24h: 0
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Law Professional Dashboard
-          </h1>
-          <p className="text-gray-600">
-            Comprehensive judicial analytics and transparency tools for legal professionals
-          </p>
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold text-gray-900">Operations Dashboard</h1>
+          <p className="text-gray-600">Monitor sync pipelines, queue health, and CourtListener integrations.</p>
         </div>
-
-        {/* Quick Actions */}
-        <div className="mb-8 flex flex-wrap gap-4">
-          <Link 
-            href="/judges"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-          >
-            <Users className="h-4 w-4 mr-2" />
-            Browse Judges
-          </Link>
-          <Link 
-            href="/courts"
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"
-          >
-            <Database className="h-4 w-4 mr-2" />
-            View Courts
-          </Link>
+        <div className="flex items-center gap-3">
+          <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium ${health.className}`}>
+            <health.icon className="h-4 w-4" />
+            {health.label}
+          </div>
+          <div className="text-sm text-gray-500">
+            Last updated {formatRelative(status.timestamp)}
+          </div>
           <button
-            onClick={() => fetchAdminData()}
-            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center"
+            onClick={() => router.refresh()}
+            className="inline-flex items-center rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh Data
+            <RefreshCw className="h-4 w-4 mr-2" />Refresh
           </button>
         </div>
+      </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Users className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Judges</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalJudges.toLocaleString()}</p>
-              </div>
+      {feedback && (
+        <div
+          className={`rounded-md border px-4 py-3 text-sm ${
+            feedback.type === 'success'
+              ? 'border-green-200 bg-green-50 text-green-700'
+              : 'border-red-200 bg-red-50 text-red-700'
+          }`}
+        >
+          {feedback.message}
+        </div>
+      )}
+
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Queue backlog</p>
+              <p className="mt-2 text-3xl font-semibold text-gray-900">{formatNumber(status.queue?.backlog)}</p>
             </div>
+            <Server className="h-10 w-10 text-blue-500" />
           </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <Database className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Courts</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalCourts.toLocaleString()}</p>
-              </div>
+          <p className="mt-3 text-xs text-gray-500">Pending + running jobs.</p>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Daily success rate</p>
+              <p className="mt-2 text-3xl font-semibold text-gray-900">{formatNumber(status.performance?.daily?.success_rate, '0')}%</p>
             </div>
+            <BarChart3 className="h-10 w-10 text-purple-500" />
           </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <Users className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Platform Users</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalUsers.toLocaleString()}</p>
-              </div>
+          <p className="mt-3 text-xs text-gray-500">{formatNumber(status.performance?.daily?.failed_runs)} failures in the last 24h.</p>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">CourtListener incidents (24h)</p>
+              <p className="mt-2 text-3xl font-semibold text-gray-900">{formatNumber(external.courtlistener_failures_24h)}</p>
             </div>
+            <AlertTriangle className="h-10 w-10 text-amber-500" />
           </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className={`p-3 rounded-lg ${healthStatus.bg}`}>
-                <healthStatus.icon className={`h-6 w-6 ${healthStatus.color}`} />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">System Health</p>
-                <p className="text-lg font-semibold text-gray-900 capitalize">{stats.systemHealth}</p>
-              </div>
+          <p className="mt-3 text-xs text-gray-500">
+            Circuit opens: {formatNumber(external.courtlistener_circuit_opens_24h)} · Short-circuits: {formatNumber(external.courtlistener_circuit_shortcircuits_24h)}
+          </p>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Judge data freshness</p>
+              <p className="mt-2 text-3xl font-semibold text-gray-900">{formatRelative(status.freshness?.judges?.last_sync)}</p>
             </div>
+            <Clock className="h-10 w-10 text-teal-500" />
+          </div>
+          <p className="mt-3 text-xs text-gray-500">Decisions updated {formatRelative(status.freshness?.decisions?.last_created)}.</p>
+        </div>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+            <h2 className="text-sm font-semibold text-gray-900">Queue status</h2>
+            <Activity className="h-5 w-5 text-gray-400" />
+          </div>
+          <div className="px-6 py-4">
+            <dl className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+              <div className="rounded-md bg-gray-50 p-4">
+                <dt className="font-medium text-gray-500">Pending</dt>
+                <dd className="mt-1 text-xl font-semibold text-gray-900">{formatNumber(queueStats.pending)}</dd>
+              </div>
+              <div className="rounded-md bg-gray-50 p-4">
+                <dt className="font-medium text-gray-500">Running</dt>
+                <dd className="mt-1 text-xl font-semibold text-gray-900">{formatNumber(queueStats.running)}</dd>
+              </div>
+              <div className="rounded-md bg-gray-50 p-4">
+                <dt className="font-medium text-gray-500">Succeeded (24h)</dt>
+                <dd className="mt-1 text-xl font-semibold text-gray-900">{formatNumber(queueStats.succeeded)}</dd>
+              </div>
+              <div className="rounded-md bg-gray-50 p-4">
+                <dt className="font-medium text-gray-500">Failed (24h)</dt>
+                <dd className="mt-1 text-xl font-semibold text-gray-900">{formatNumber(queueStats.failed)}</dd>
+              </div>
+            </dl>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Data Sync Management */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Data Synchronization</h2>
-              <div className="text-sm text-gray-600">
-                Last sync: {formatTimeAgo(stats.lastSyncTime)}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">Judge Data Sync</p>
-                  <p className="text-sm text-gray-600">Sync from CourtListener API</p>
-                </div>
-                <button
-                  onClick={() => triggerSync('judges')}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Sync Now
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">Court Data Sync</p>
-                  <p className="text-sm text-gray-600">Update court information</p>
-                </div>
-                <button
-                  onClick={() => triggerSync('courts')}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Sync Now
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">Decision Data Sync</p>
-                  <p className="text-sm text-gray-600">Import recent decisions</p>
-                </div>
-                <button
-                  onClick={() => triggerSync('decisions')}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Sync Now
-                </button>
-              </div>
-            </div>
+        <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+            <h2 className="text-sm font-semibold text-gray-900">Performance summary</h2>
+            <BarChart3 className="h-5 w-5 text-gray-400" />
           </div>
-
-          {/* Recent Sync Jobs */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Sync Jobs</h2>
-            
-            <div className="space-y-4">
-              {syncJobs.length > 0 ? (
-                syncJobs.map((job) => (
-                  <div key={job.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg ${
-                        job.status === 'completed' ? 'bg-green-100 text-green-600' :
-                        job.status === 'failed' ? 'bg-red-100 text-red-600' :
-                        job.status === 'running' ? 'bg-blue-100 text-blue-600' :
-                        'bg-gray-100 text-gray-600'
-                      }`}>
-                        {job.status === 'running' ? (
-                          <RefreshCw className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <FileText className="h-4 w-4" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900 capitalize">{job.type} Sync</p>
-                        <p className="text-sm text-gray-600">
-                          {job.recordsProcessed} processed • {job.errors} errors
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                        job.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        job.status === 'failed' ? 'bg-red-100 text-red-800' :
-                        job.status === 'running' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {job.status}
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {formatTimeAgo(job.startTime)}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">No recent sync jobs</p>
-                </div>
-              )}
+          <div className="grid grid-cols-1 gap-4 px-6 py-4 md:grid-cols-2">
+            <div className="rounded-md bg-gray-50 p-4">
+              <p className="text-xs font-medium uppercase text-gray-500">Daily</p>
+              <p className="mt-2 text-3xl font-semibold text-gray-900">{formatNumber(status.performance?.daily?.total_runs)}</p>
+              <p className="mt-1 text-sm text-gray-600">Avg duration {formatNumber(status.performance?.daily?.avg_duration_ms)} ms</p>
             </div>
-          </div>
-        </div>
-
-        {/* System Management */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">System Management</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-6 bg-gray-50 rounded-lg">
-              <Database className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Database Health</h3>
-              <p className="text-gray-600 mb-4">Monitor database performance and integrity</p>
-              <Link 
-                href="/admin/database"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                View Details
-              </Link>
-            </div>
-
-            <div className="text-center p-6 bg-gray-50 rounded-lg">
-              <Settings className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">System Settings</h3>
-              <p className="text-gray-600 mb-4">Configure platform settings and preferences</p>
-              <Link 
-                href="/admin/settings"
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-              >
-                Manage Settings
-              </Link>
-            </div>
-
-            <div className="text-center p-6 bg-gray-50 rounded-lg">
-              <Shield className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">User Management</h3>
-              <p className="text-gray-600 mb-4">Manage user accounts and permissions</p>
-              <Link 
-                href="/admin/users"
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                Manage Users
-              </Link>
+            <div className="rounded-md bg-gray-50 p-4">
+              <p className="text-xs font-medium uppercase text-gray-500">Weekly</p>
+              <p className="mt-2 text-3xl font-semibold text-gray-900">{formatNumber(status.performance?.weekly?.total_runs)}</p>
+              <p className="mt-1 text-sm text-gray-600">Failures {formatNumber(status.performance?.weekly?.failed_runs)}</p>
             </div>
           </div>
         </div>
       </div>
+
+      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+          <h2 className="text-sm font-semibold text-gray-900">Recent sync activity</h2>
+          <Triangle className="h-5 w-5 text-gray-400 rotate-180" />
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Sync type</th>
+                <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Status</th>
+                <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Started</th>
+                <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Duration (ms)</th>
+                <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Error</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 bg-white">
+              {status.recent_logs.slice(0, 8).map(log => (
+                <tr key={log.id}>
+                  <td className="px-6 py-3 text-gray-900">{log.sync_type}</td>
+                  <td className="px-6 py-3">
+                    <span
+                      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${
+                        log.status === 'completed'
+                          ? 'bg-green-50 text-green-700'
+                          : log.status === 'failed'
+                            ? 'bg-red-50 text-red-700'
+                            : 'bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      {log.status === 'completed' ? <CheckCircle2 className="h-3 w-3" /> : log.status === 'failed' ? <AlertTriangle className="h-3 w-3" /> : <Square className="h-3 w-3" />}
+                      {log.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-3 text-gray-600">{formatRelative(log.started_at)}</td>
+                  <td className="px-6 py-3 text-gray-600">{formatNumber(log.duration_ms)}</td>
+                  <td className="px-6 py-3 text-gray-600">{log.error_message || '—'}</td>
+                </tr>
+              ))}
+              {status.recent_logs.length === 0 && (
+                <tr>
+                  <td className="px-6 py-4 text-center text-gray-500" colSpan={5}>
+                    No recent sync jobs recorded.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">Admin actions</h2>
+            <p className="text-xs text-gray-500">Actions run via secure server-side API key.</p>
+          </div>
+          {isPending && (
+            <div className="inline-flex items-center gap-2 text-sm text-gray-500">
+              <RefreshCcw className="h-4 w-4 animate-spin" />Processing…
+            </div>
+          )}
+        </div>
+        <div className="grid gap-4 px-6 py-6 md:grid-cols-3">
+          <button
+            onClick={() => handleAction('queue-decisions')}
+            className="rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-left text-sm font-medium text-blue-700 hover:bg-blue-100"
+          >
+            <div className="flex items-center gap-2">
+              <PlayCircle className="h-4 w-4" />
+              Queue CA decision sync
+            </div>
+            <p className="mt-1 text-xs font-normal text-blue-600/80">Runs the daily high-priority CA decision ingest.</p>
+          </button>
+          <button
+            onClick={() => handleAction('cancel-decisions')}
+            className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm font-medium text-amber-700 hover:bg-amber-100"
+          >
+            <div className="flex items-center gap-2">
+              <Square className="h-4 w-4" />
+              Cancel decision jobs
+            </div>
+            <p className="mt-1 text-xs font-normal text-amber-600/80">Stops duplicate or stale decision sync jobs.</p>
+          </button>
+          <button
+            onClick={() => handleAction('restart-queue')}
+            className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-left text-sm font-medium text-gray-700 hover:bg-gray-100"
+          >
+            <div className="flex items-center gap-2">
+              <RefreshCcw className="h-4 w-4" />
+              Restart queue processor
+            </div>
+            <p className="mt-1 text-xs font-normal text-gray-500">Gracefully restarts the queue worker.</p>
+          </button>
+        </div>
+      </div>
+
+      {pendingAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900">{ACTION_META[pendingAction].title}</h3>
+            <p className="mt-2 text-sm text-gray-600">{ACTION_META[pendingAction].description}</p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={cancelAction}
+                className="rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                disabled={isPending}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeAction}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                disabled={isPending}
+              >
+                {ACTION_META[pendingAction].confirmLabel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
