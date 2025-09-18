@@ -99,7 +99,7 @@ function ParticleBackground() {
   )
 }
 
-export function CourtsPageClient({ initialCourts }: { initialCourts: Court[] }) {
+export function CourtsPageClient({ initialCourts, initialJurisdiction = 'CA' }: { initialCourts: Court[], initialJurisdiction?: string }) {
   const { scrollYProgress } = useScroll()
   const y = useTransform(scrollYProgress, [0, 1], [0, -50])
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.3])
@@ -166,7 +166,7 @@ export function CourtsPageClient({ initialCourts }: { initialCourts: Court[] }) 
           >
             <h1 className="mb-6 text-5xl md:text-7xl font-bold tracking-tight">
               <span className="bg-gradient-to-r from-enterprise-primary to-enterprise-deep bg-clip-text text-transparent">
-                California Courts
+                Courts
               </span>
               <br />
               <span className="text-foreground">
@@ -181,7 +181,7 @@ export function CourtsPageClient({ initialCourts }: { initialCourts: Court[] }) 
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.8 }}
           >
-            Browse 852+ courts across California. Search by type, jurisdiction, and location 
+            Browse courts across jurisdictions. Search by type, jurisdiction, and location
             to find court information and assigned judges.
           </motion.p>
           
@@ -253,7 +253,7 @@ export function CourtsPageClient({ initialCourts }: { initialCourts: Court[] }) 
             </div>
           </motion.div>
           
-          <CourtsSearch initialCourts={initialCourts} initialJurisdiction="CA" />
+          <CourtsSearch initialCourts={initialCourts} initialJurisdiction={initialJurisdiction} />
         </div>
       </motion.section>
     </div>

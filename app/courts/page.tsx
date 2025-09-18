@@ -18,19 +18,20 @@ interface Court {
 }
 
 export const metadata: Metadata = {
-  title: 'California Courts Directory | JudgeFinder',
-  description: 'Browse all 852 California courts. Search by court type, jurisdiction, and name. Find contact information and assigned judges for comprehensive legal research.',
-  keywords: 'California courts, court directory, superior courts, municipal courts, legal research, court information',
+  title: 'Courts Directory | JudgeFinder',
+  description: 'Browse courts and judges. Search by type, jurisdiction, and name. Find contact information and assigned judges for comprehensive legal research.',
+  keywords: 'courts directory, federal courts, state courts, legal research, court information, California courts',
 }
 
-async function getInitialCourts(): Promise<Court[]> {
+async function getInitialCourts(jurisdiction?: string): Promise<Court[]> {
   try {
     const supabase = await createServerClient()
     
     const { data, error } = await supabase
       .from('courts')
       .select('id, name, type, jurisdiction, slug, address, phone, website, judge_count')
-      .eq('jurisdiction', 'CA') // Default to California
+      // If a jurisdiction is provided (e.g. 'CA', 'US'), filter; otherwise show all
+      .match(jurisdiction && jurisdiction !== 'ALL' ? { jurisdiction } : {})
       .order('name')
       .limit(20)
 
@@ -46,8 +47,14 @@ async function getInitialCourts(): Promise<Court[]> {
   }
 }
 
-export default async function CourtsPage() {
-  const initialCourts = await getInitialCourts()
+export default async function CourtsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined
+  const jurisdictionParam = (resolvedSearchParams?.jurisdiction as string | undefined) || 'CA'
+  const initialCourts = await getInitialCourts(jurisdictionParam)
 
-  return <CourtsPageClient initialCourts={initialCourts} />
+  return <CourtsPageClient initialCourts={initialCourts} initialJurisdiction={jurisdictionParam} />
 }

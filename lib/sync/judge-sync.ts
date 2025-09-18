@@ -318,11 +318,14 @@ export class JudgeSyncManager {
 
     const baseUrl = 'https://www.courtlistener.com/api/rest/v4/people/'
     const results: Array<{ id: number | string }> = []
+    const requestedJurisdiction = (options.jurisdiction || 'CA').toUpperCase()
+
     let nextUrl: string | null = `${baseUrl}?format=json&page_size=100&ordering=-date_modified`
 
-    // Filter by court jurisdiction (e.g., 'US' for federal, 'CA' for California)
-    const jurisdiction = (options.jurisdiction || 'CA').toUpperCase()
-    nextUrl += `&positions__court__jurisdiction=${jurisdiction}`
+    const jurisdictionFilter = this.buildCourtListenerJurisdictionFilter(requestedJurisdiction)
+    if (jurisdictionFilter) {
+      nextUrl += `&${jurisdictionFilter}`
+    }
 
     // Allow larger discovery when requested; otherwise default to a safe cap
     const discoverCap = Math.max(50, options.discoverLimit || 500)
@@ -355,6 +358,27 @@ export class JudgeSyncManager {
     }
 
     return results
+  }
+
+  private buildCourtListenerJurisdictionFilter(jurisdiction: string): string | null {
+    if (jurisdiction === 'ALL' || jurisdiction === '') {
+      return null
+    }
+
+    const normalized = jurisdiction.toUpperCase()
+
+    // Federal requests map to the CourtListener jurisdiction code "F"
+    if (['US', 'F', 'FEDERAL'].includes(normalized)) {
+      return 'positions__court__jurisdiction=F'
+    }
+
+    // Two-letter state/territory codes map to the court state filter (CourtListener expects lowercase)
+    if (/^[A-Z]{2}$/.test(normalized)) {
+      return `positions__court__state=${normalized.toLowerCase()}`
+    }
+
+    // Fall back to the raw jurisdiction filter for any other valid CourtListener code (e.g., tribal, military)
+    return `positions__court__jurisdiction=${normalized}`
   }
 
   private async getExistingCourtListenerIds(options: JudgeSyncOptions): Promise<Set<string>> {
@@ -589,8 +613,21 @@ export class JudgeSyncManager {
    * Extract jurisdiction from position data
    */
   private extractJurisdiction(position: any): string {
-    if (position.court?.jurisdiction) return position.court.jurisdiction
-    
+    const courtJurisdiction: string | undefined = position.court?.jurisdiction
+    if (courtJurisdiction) {
+      const upperJurisdiction = courtJurisdiction.toUpperCase()
+
+      if (['F', 'FS', 'MA', 'TR', 'TF'].includes(upperJurisdiction)) {
+        return 'US'
+      }
+
+      if (upperJurisdiction.length === 2) {
+        return upperJurisdiction
+      }
+
+      return upperJurisdiction
+    }
+
     const courtName = position.court?.full_name || position.court?.name || ''
     
     if (courtName.includes('California') || courtName.includes('CA ')) return 'CA'

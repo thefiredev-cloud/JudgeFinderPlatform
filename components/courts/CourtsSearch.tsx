@@ -162,6 +162,7 @@ export function CourtsSearch({ initialCourts, initialJurisdiction = 'CA' }: Cour
               >
                 <option value="">All Jurisdictions</option>
                 <option value="CA">California</option>
+                <option value="US">United States (Federal)</option>
                 <option value="NY">New York</option>
                 <option value="TX">Texas</option>
                 <option value="FL">Florida</option>
@@ -178,10 +179,9 @@ export function CourtsSearch({ initialCourts, initialJurisdiction = 'CA' }: Cour
                 onChange={(e) => setSelectedType(e.target.value)}
               >
                 <option value="">All Types</option>
-                <option value="Superior Court">Superior Court</option>
-                <option value="Municipal Court">Municipal Court</option>
-                <option value="Family Court">Family Court</option>
-                <option value="Criminal Court">Criminal Court</option>
+                <option value="state">State</option>
+                <option value="local">Local</option>
+                <option value="federal">Federal</option>
               </select>
             </div>
           </div>
