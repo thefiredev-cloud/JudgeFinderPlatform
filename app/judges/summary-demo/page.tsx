@@ -1,8 +1,9 @@
 "use client"
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import JudgeSummary from '@/components/judges/JudgeSummary'
 
-export default function JudgeSummaryDemoPage() {
+function JudgeSummaryDemoContent() {
   const params = useSearchParams()
   const judgeId = params.get('judgeId') || ''
   const apiKey = params.get('key') || undefined
@@ -21,6 +22,14 @@ export default function JudgeSummaryDemoPage() {
       <h1 className="text-2xl font-semibold mb-4">Judge Summary</h1>
       <JudgeSummary judgeId={judgeId} apiKey={apiKey} />
     </div>
+  )
+}
+
+export default function JudgeSummaryDemoPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 py-8 max-w-2xl">Loading…</div>}>
+      <JudgeSummaryDemoContent />
+    </Suspense>
   )
 }
 
