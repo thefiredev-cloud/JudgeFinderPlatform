@@ -15,7 +15,8 @@ const fetchJudges = async () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.CRON_SECRET}`
+        // Use SYNC_API_KEY per API security contract
+        'x-api-key': process.env.SYNC_API_KEY
       }
     })
     
@@ -32,7 +33,8 @@ const fetchCourts = async () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.CRON_SECRET}`
+        // Use SYNC_API_KEY per API security contract
+        'x-api-key': process.env.SYNC_API_KEY
       }
     })
     
@@ -49,7 +51,8 @@ const fetchDecisions = async () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.CRON_SECRET}`
+        // Use SYNC_API_KEY per API security contract
+        'x-api-key': process.env.SYNC_API_KEY
       }
     })
     
