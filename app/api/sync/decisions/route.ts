@@ -61,6 +61,10 @@ export async function POST(request: NextRequest) {
         decisionsCreated: result.decisionsCreated,
         decisionsUpdated: result.decisionsUpdated,
         duplicatesSkipped: result.duplicatesSkipped,
+        filingsProcessed: result.filingsProcessed,
+        filingsCreated: result.filingsCreated,
+        filingsUpdated: result.filingsUpdated,
+        filingsSkipped: result.filingsSkipped,
         duration: result.duration,
         apiDuration: duration
       },
@@ -111,7 +115,10 @@ export async function GET(request: NextRequest) {
         jurisdiction: 'Filter by jurisdiction (default: CA)',
         daysSinceLast: 'Fetch decisions from X days ago (overrides automatic detection)',
         judgeIds: 'Array of specific judge IDs to sync decisions for (optional)',
-        maxDecisionsPerJudge: 'Maximum new decisions to fetch per judge (default: 50)'
+        maxDecisionsPerJudge: 'Maximum new decisions to fetch per judge (default: 50)',
+        includeDockets: 'Set to false to skip docket (court filing) ingestion',
+        maxFilingsPerJudge: 'Maximum number of docket filings to fetch per judge (default: 300)',
+        filingYearsBack: 'How many years back to request docket filings when none exist yet (default: matches yearsBack)'
       },
       example: {
         method: 'POST',
@@ -124,13 +131,14 @@ export async function GET(request: NextRequest) {
           jurisdiction: 'CA',
           daysSinceLast: 7,
           maxDecisionsPerJudge: 50,
+          maxFilingsPerJudge: 150,
           judgeIds: ['judge-id-1', 'judge-id-2']
         }
       },
       notes: [
         'This endpoint has stricter rate limiting due to CourtListener API constraints',
         'Processing time may be longer for large datasets',
-        'Duplicate decisions are automatically skipped'
+        'Duplicate decisions and docket filings are automatically skipped based on CourtListener IDs'
       ]
     })
 

@@ -4,7 +4,7 @@
  */
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { CourtListenerClient } from '@/lib/courtlistener/client'
+import { CourtListenerClient, type CourtListenerDocket } from '@/lib/courtlistener/client'
 import { logger } from '@/lib/utils/logger'
 import { sleep } from '@/lib/utils/helpers'
 
@@ -15,6 +15,10 @@ interface DecisionSyncOptions {
   judgeIds?: string[]
   maxDecisionsPerJudge?: number
   yearsBack?: number
+  includeDockets?: boolean
+  maxFilingsPerJudge?: number
+  filingYearsBack?: number
+  filingDaysSinceLast?: number
 }
 
 interface DecisionSyncResult {
@@ -24,6 +28,10 @@ interface DecisionSyncResult {
   decisionsCreated: number
   decisionsUpdated: number
   duplicatesSkipped: number
+  filingsProcessed: number
+  filingsCreated: number
+  filingsUpdated: number
+  filingsSkipped: number
   errors: string[]
   duration: number
 }
@@ -72,6 +80,10 @@ export class DecisionSyncManager {
       decisionsCreated: 0,
       decisionsUpdated: 0,
       duplicatesSkipped: 0,
+      filingsProcessed: 0,
+      filingsCreated: 0,
+      filingsUpdated: 0,
+      filingsSkipped: 0,
       errors: [],
       duration: 0
     }
@@ -100,10 +112,14 @@ export class DecisionSyncManager {
         
         try {
           const batchResult = await this.processBatch(batch, options)
-          result.decisionsProcessed += batchResult.processed
-          result.decisionsCreated += batchResult.created
-          result.decisionsUpdated += batchResult.updated
+          result.decisionsProcessed += batchResult.decisionsProcessed
+          result.decisionsCreated += batchResult.decisionsCreated
+          result.decisionsUpdated += batchResult.decisionsUpdated
           result.duplicatesSkipped += batchResult.duplicatesSkipped
+          result.filingsProcessed += batchResult.filingsProcessed
+          result.filingsCreated += batchResult.filingsCreated
+          result.filingsUpdated += batchResult.filingsUpdated
+          result.filingsSkipped += batchResult.filingsSkipped
         } catch (error) {
           const errorMsg = `Batch ${Math.floor(i / batchSize) + 1} failed: ${error}`
           result.errors.push(errorMsg)
@@ -173,18 +189,26 @@ export class DecisionSyncManager {
    * Process a batch of judges for decision updates
    */
   private async processBatch(judges: any[], options: DecisionSyncOptions) {
-    let processed = 0
-    let created = 0
-    let updated = 0
+    let decisionsProcessed = 0
+    let decisionsCreated = 0
+    let decisionsUpdated = 0
     let duplicatesSkipped = 0
+    let filingsProcessed = 0
+    let filingsCreated = 0
+    let filingsUpdated = 0
+    let filingsSkipped = 0
 
     for (const judge of judges) {
       try {
         const result = await this.syncJudgeDecisions(judge, options)
-        processed += result.processed
-        created += result.created
-        updated += result.updated
+        decisionsProcessed += result.decisionsProcessed
+        decisionsCreated += result.decisionsCreated
+        decisionsUpdated += result.decisionsUpdated
         duplicatesSkipped += result.duplicatesSkipped
+        filingsProcessed += result.filingsProcessed
+        filingsCreated += result.filingsCreated
+        filingsUpdated += result.filingsUpdated
+        filingsSkipped += result.filingsSkipped
 
         // Small delay between judges
         await sleep(1000)
@@ -199,95 +223,123 @@ export class DecisionSyncManager {
       }
     }
 
-    return { processed, created, updated, duplicatesSkipped }
+    return {
+      decisionsProcessed,
+      decisionsCreated,
+      decisionsUpdated,
+      duplicatesSkipped,
+      filingsProcessed,
+      filingsCreated,
+      filingsUpdated,
+      filingsSkipped
+    }
   }
 
   /**
    * Sync decisions for a single judge
    */
   private async syncJudgeDecisions(judge: any, options: DecisionSyncOptions) {
-    const result = {
+    const decisionStats = {
       processed: 0,
       created: 0,
       updated: 0,
       duplicatesSkipped: 0
     }
 
+    let filingStats = {
+      processed: 0,
+      created: 0,
+      updated: 0,
+      skipped: 0
+    }
+
     try {
       // Determine date range for fetching decisions
       const sinceDate = await this.getSinceDateForJudge(judge.id, options)
-      
-      logger.info('Syncing decisions for judge', { 
-        judge: judge.name, 
-        courtlistenerId: judge.courtlistener_id, 
-        sinceDate 
+
+      logger.info('Syncing decisions for judge', {
+        judge: judge.name,
+        courtlistenerId: judge.courtlistener_id,
+        sinceDate
       })
 
       // Fetch recent decisions from CourtListener
       const decisions = await this.fetchJudgeDecisions(judge.courtlistener_id, sinceDate, options)
-      result.processed = decisions.length
+      decisionStats.processed = decisions.length
 
       if (decisions.length === 0) {
         logger.info('No new decisions found for judge', { judge: judge.name })
-        return result
-      }
+      } else {
+        // Check for existing decisions to avoid duplicates
+        const decisionKeys = decisions
+          .map(decision => this.getDecisionKey(decision))
+          .filter(Boolean) as string[]
+        const existingDecisions = await this.getExistingDecisions(judge.id, decisionKeys)
 
-      // Check for existing decisions to avoid duplicates
-      const decisionKeys = decisions
-        .map(decision => this.getDecisionKey(decision))
-        .filter(Boolean) as string[]
-      const existingDecisions = await this.getExistingDecisions(judge.id, decisionKeys)
+        for (const decision of decisions) {
+          const decisionKey = this.getDecisionKey(decision)
 
-      // Process new decisions
-      for (const decision of decisions) {
-        const decisionKey = this.getDecisionKey(decision)
+          try {
+            if (decisionKey && existingDecisions.has(decisionKey)) {
+              const existingCaseId = existingDecisions.get(decisionKey)
+              if (existingCaseId) {
+                await this.ensureOpinionForCase(existingCaseId, decision)
+                decisionStats.updated++
+              } else {
+                decisionStats.duplicatesSkipped++
+              }
+              continue
+            }
 
-        try {
-          if (decisionKey && existingDecisions.has(decisionKey)) {
-            const existingCaseId = existingDecisions.get(decisionKey)
-            if (existingCaseId) {
-              await this.ensureOpinionForCase(existingCaseId, decision)
-              result.updated++
+            const caseResult = await this.createOrUpdateDecision(judge.id, judge.jurisdiction || null, decision)
+            if (caseResult.caseId) {
+              await this.ensureOpinionForCase(caseResult.caseId, decision)
+              if (decisionKey) {
+                existingDecisions.set(decisionKey, caseResult.caseId)
+              }
+            }
+
+            if (caseResult.created) {
+              decisionStats.created++
+            } else if (caseResult.caseId) {
+              decisionStats.updated++
             } else {
-              result.duplicatesSkipped++
+              decisionStats.duplicatesSkipped++
             }
-            continue
-          }
 
-          const caseResult = await this.createOrUpdateDecision(judge.id, decision)
-          if (caseResult.caseId) {
-            await this.ensureOpinionForCase(caseResult.caseId, decision)
-            if (decisionKey) {
-              existingDecisions.set(decisionKey, caseResult.caseId)
-            }
+          } catch (error) {
+            logger.error('Failed to process decision', {
+              judge: judge.name,
+              decision: decision.case_name,
+              error
+            })
           }
-
-          if (caseResult.created) {
-            result.created++
-          } else if (caseResult.caseId) {
-            result.updated++
-          } else {
-            result.duplicatesSkipped++
-          }
-
-        } catch (error) {
-          logger.error('Failed to process decision', { 
-            judge: judge.name, 
-            decision: decision.case_name, 
-            error 
-          })
         }
       }
 
-      // Update judge's total_cases count
+      if (options.includeDockets !== false) {
+        filingStats = await this.syncJudgeFilings(judge, options)
+      }
+
+      // Update judge's total case count after decisions and filings
       await this.updateJudgeCaseCount(judge.id)
 
-      logger.info('Completed decision sync for judge', { 
-        judge: judge.name, 
-        result 
+      logger.info('Completed decision sync for judge', {
+        judge: judge.name,
+        decisions: decisionStats,
+        filings: filingStats
       })
 
-      return result
+      return {
+        decisionsProcessed: decisionStats.processed,
+        decisionsCreated: decisionStats.created,
+        decisionsUpdated: decisionStats.updated,
+        duplicatesSkipped: decisionStats.duplicatesSkipped,
+        filingsProcessed: filingStats.processed,
+        filingsCreated: filingStats.created,
+        filingsUpdated: filingStats.updated,
+        filingsSkipped: filingStats.skipped
+      }
 
     } catch (error) {
       logger.error('Error syncing judge decisions', { judge: judge.name, error })
@@ -335,6 +387,37 @@ export class DecisionSyncManager {
   }
 
   /**
+   * Get the date from which to fetch filings (dockets) for a judge
+   */
+  private async getSinceDateForFilings(judgeId: string, options: DecisionSyncOptions): Promise<string> {
+    if (options.filingDaysSinceLast) {
+      const daysAgo = new Date()
+      daysAgo.setDate(daysAgo.getDate() - options.filingDaysSinceLast)
+      return daysAgo.toISOString().split('T')[0]
+    }
+
+    const { data, error } = await this.supabase
+      .from('cases')
+      .select('filing_date')
+      .eq('judge_id', judgeId)
+      .not('filing_date', 'is', null)
+      .order('filing_date', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (error || !data) {
+      const yearsBack = options.filingYearsBack ?? options.yearsBack ?? 5
+      const fallback = new Date()
+      fallback.setFullYear(fallback.getFullYear() - yearsBack)
+      return fallback.toISOString().split('T')[0]
+    }
+
+    const lastDate = new Date(data.filing_date)
+    lastDate.setDate(lastDate.getDate() + 1)
+    return lastDate.toISOString().split('T')[0]
+  }
+
+  /**
    * Fetch decisions for a judge from CourtListener
    */
   private async fetchJudgeDecisions(
@@ -368,6 +451,115 @@ export class DecisionSyncManager {
   }
 
   /**
+   * Sync docket filings for a judge
+   */
+  private async syncJudgeFilings(judge: any, options: DecisionSyncOptions) {
+    const stats = {
+      processed: 0,
+      created: 0,
+      updated: 0,
+      skipped: 0
+    }
+
+    try {
+      if (!judge.courtlistener_id) {
+        return stats
+      }
+
+      const sinceDate = await this.getSinceDateForFilings(judge.id, options)
+      const yearsBack = options.filingYearsBack ?? options.yearsBack ?? 5
+      const maxRecords = options.maxFilingsPerJudge ?? 300
+
+      const filings = await this.courtListener.getRecentDocketsByJudge(judge.courtlistener_id, {
+        startDate: sinceDate,
+        yearsBack,
+        maxRecords
+      })
+
+      stats.processed = filings.length
+
+      if (filings.length === 0) {
+        return stats
+      }
+
+      const normalizedCaseNumbers = Array.from(
+        new Set(
+          filings
+            .map(filing => this.normalizeCaseNumber(filing))
+            .filter((value): value is string => Boolean(value))
+        )
+      )
+
+      const existingFilings = await this.getExistingFilings(judge.id, normalizedCaseNumbers)
+
+      for (const docket of filings) {
+        const caseNumber = this.normalizeCaseNumber(docket)
+        const filingDate = this.formatDate(docket.date_filed)
+
+        if (!caseNumber || !filingDate) {
+          stats.skipped++
+          continue
+        }
+
+        const record = this.buildCaseRecordFromDocket(judge, docket, filingDate)
+        const existing = existingFilings.get(caseNumber)
+
+        if (existing) {
+          const { error: updateError } = await this.supabase
+            .from('cases')
+            .update(record)
+            .eq('id', existing.id)
+
+          if (updateError) {
+            logger.error('Failed to update existing filing', {
+              judgeId: judge.id,
+              caseNumber,
+              error: updateError
+            })
+            stats.skipped++
+            continue
+          }
+
+          stats.updated++
+        } else {
+          const insertRecord = {
+            ...record,
+            judge_id: judge.id,
+            case_number: caseNumber,
+            court_id: record.court_id ?? judge.court_id ?? null
+          }
+
+          const { error: insertError } = await this.supabase
+            .from('cases')
+            .upsert(insertRecord, { onConflict: 'case_number,jurisdiction' })
+
+          if (insertError) {
+            logger.error('Failed to insert filing', {
+              judgeId: judge.id,
+              caseNumber,
+              error: insertError
+            })
+            stats.skipped++
+            continue
+          }
+
+          stats.created++
+        }
+      }
+
+      return stats
+
+    } catch (error) {
+      logger.error('Failed to sync docket filings for judge', {
+        judgeId: judge.id,
+        judgeName: judge.name,
+        error
+      })
+      return stats
+    }
+  }
+
+  /**
    * Get existing decisions to avoid duplicates
    */
   private async getExistingDecisions(judgeId: string, courtlistenerIds: string[]): Promise<Map<string, string>> {
@@ -395,9 +587,195 @@ export class DecisionSyncManager {
   }
 
   /**
+   * Get existing filings for a judge by case number
+   */
+  private async getExistingFilings(judgeId: string, caseNumbers: string[]): Promise<Map<string, { id: string }>> {
+    const map = new Map<string, { id: string }>()
+
+    if (!caseNumbers || caseNumbers.length === 0) {
+      return map
+    }
+
+    const { data, error } = await this.supabase
+      .from('cases')
+      .select('id, case_number')
+      .eq('judge_id', judgeId)
+      .in('case_number', caseNumbers)
+
+    if (error) {
+      logger.error('Failed to get existing filings', { error, judgeId })
+      return map
+    }
+
+    for (const row of data || []) {
+      if (row.case_number && row.id) {
+        map.set(row.case_number, { id: row.id })
+      }
+    }
+
+    return map
+  }
+
+  private buildCaseRecordFromDocket(judge: any, docket: CourtListenerDocket, filingDate: string) {
+    const caseName = (docket.case_name || docket.case_name_short || 'Unknown Case').substring(0, 500)
+    const decisionDate = this.formatDate(docket.date_terminated) || this.formatDate(docket.date_last_filing)
+    const status = decisionDate ? 'decided' as const : 'pending' as const
+    const caseType = this.classifyCaseTypeFromDocket(docket)
+    const outcome = docket.status
+      ? this.toTitleCase(docket.status)
+      : decisionDate
+        ? 'Closed'
+        : 'Active'
+    const lastActivity = this.formatDate(docket.date_last_filing)
+    const summary = this.buildCaseSummaryFromDocket(docket, filingDate, decisionDate, lastActivity)
+
+    return {
+      case_name: caseName,
+      case_type: caseType,
+      filing_date: filingDate,
+      decision_date: decisionDate,
+      status,
+      outcome,
+      summary,
+      court_id: judge.court_id ?? null,
+      courtlistener_id: docket.id ? `docket-${docket.id}` : null,
+      source_url: this.buildCourtListenerUrl(docket.absolute_url),
+      jurisdiction: judge.jurisdiction || null
+    }
+  }
+
+  private classifyCaseTypeFromDocket(docket: CourtListenerDocket): string {
+    const nature = (docket.nature_of_suit || '').toLowerCase()
+    const jurisdiction = (docket.jurisdiction_type || '').toLowerCase()
+    const caseName = (docket.case_name || docket.case_name_short || '').toLowerCase()
+
+    if (jurisdiction.includes('criminal') || nature.includes('criminal') || caseName.includes('people v')) {
+      return 'Criminal'
+    }
+    if (
+      jurisdiction.includes('family') ||
+      nature.includes('domestic') ||
+      nature.includes('family') ||
+      caseName.includes('marriage') ||
+      caseName.includes('custody')
+    ) {
+      return 'Family Law'
+    }
+    if (nature.includes('probate') || caseName.includes('estate')) {
+      return 'Probate'
+    }
+    if (nature.includes('bankruptcy') || caseName.includes('bankruptcy')) {
+      return 'Bankruptcy'
+    }
+    if (nature.includes('tax') || jurisdiction.includes('tax')) {
+      return 'Tax'
+    }
+    if (nature.includes('labor') || nature.includes('employment')) {
+      return 'Employment'
+    }
+    if (jurisdiction.includes('appeal') || caseName.includes('appeal')) {
+      return 'Appeals'
+    }
+    if (nature.includes('traffic')) {
+      return 'Traffic'
+    }
+    if (nature.includes('immigration') || caseName.includes('immigration')) {
+      return 'Immigration'
+    }
+    if (nature.includes('insurance')) {
+      return 'Insurance'
+    }
+
+    if (jurisdiction.includes('civil') || nature.includes('civil')) {
+      return 'Civil Litigation'
+    }
+
+    return 'General Litigation'
+  }
+
+  private buildCaseSummaryFromDocket(
+    docket: CourtListenerDocket,
+    filingDate: string,
+    decisionDate: string | null,
+    lastActivity: string | null
+  ): string | null {
+    const parts: string[] = []
+
+    parts.push(`Filed ${filingDate}`)
+
+    if (decisionDate) {
+      parts.push(`Closed ${decisionDate}`)
+    } else if (lastActivity && lastActivity !== filingDate) {
+      parts.push(`Last activity ${lastActivity}`)
+    }
+
+    if (docket.nature_of_suit) {
+      parts.push(`Nature: ${docket.nature_of_suit}`)
+    }
+
+    if (docket.jurisdiction_type) {
+      parts.push(`Jurisdiction: ${this.toTitleCase(docket.jurisdiction_type)}`)
+    }
+
+    if (typeof docket.docket_entries_count === 'number' && docket.docket_entries_count > 0) {
+      parts.push(`Entries: ${docket.docket_entries_count}`)
+    }
+
+    if (docket.assigned_to_str) {
+      parts.push(`Assigned: ${docket.assigned_to_str}`)
+    }
+
+    if (parts.length === 0) {
+      return null
+    }
+
+    return parts.join(' | ').substring(0, 500)
+  }
+
+  private normalizeCaseNumber(docket: CourtListenerDocket): string | null {
+    const raw = docket.docket_number || docket.pacer_case_id
+
+    if (raw && raw.trim().length > 0) {
+      return raw.trim().slice(0, 100)
+    }
+
+    if (docket.id) {
+      return `CL-DKT-${docket.id}`.slice(0, 100)
+    }
+
+    return null
+  }
+
+  private formatDate(value?: string | null): string | null {
+    if (!value) return null
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) {
+      return null
+    }
+    return date.toISOString().split('T')[0]
+  }
+
+  private buildCourtListenerUrl(absoluteUrl?: string | null): string | null {
+    if (!absoluteUrl) return null
+    if (absoluteUrl.startsWith('http')) {
+      return absoluteUrl
+    }
+    return `https://www.courtlistener.com${absoluteUrl}`
+  }
+
+  private toTitleCase(value: string): string {
+    return value
+      .replace(/_/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase()
+      .replace(/(^|\s)\w/g, match => match.toUpperCase())
+  }
+
+  /**
    * Create a new decision record
    */
-  private async createOrUpdateDecision(judgeId: string, decision: CourtListenerDecision): Promise<{ caseId: string | null; created: boolean }> {
+  private async createOrUpdateDecision(judgeId: string, jurisdiction: string | null, decision: CourtListenerDecision): Promise<{ caseId: string | null; created: boolean }> {
     const decisionKey = this.getDecisionKey(decision)
     const caseRecord = {
       judge_id: judgeId,
@@ -410,33 +788,22 @@ export class DecisionSyncManager {
       outcome: decision.precedential_status || null,
       summary: decision.case_name ? `CourtListener opinion for ${decision.case_name}` : `CourtListener opinion ${decisionKey}`,
       courtlistener_id: decisionKey,
+      jurisdiction: jurisdiction,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
 
     const { data, error } = await this.supabase
       .from('cases')
-      .insert(caseRecord)
+      .upsert(caseRecord, { onConflict: 'case_number,jurisdiction' })
       .select('id')
       .single()
 
-    if (!error) {
-      return { caseId: data?.id || null, created: true }
+    if (error) {
+      throw new Error(`Failed to upsert decision: ${error.message}`)
     }
 
-    if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
-      logger.warn('Decision already exists', { judgeId, caseNumber: caseRecord.case_number })
-      const { data: existingCase } = await this.supabase
-        .from('cases')
-        .select('id')
-        .eq('judge_id', judgeId)
-        .eq('courtlistener_id', decisionKey)
-        .maybeSingle()
-
-      return { caseId: existingCase?.id || null, created: false }
-    }
-
-    throw new Error(`Failed to create decision: ${error.message}`)
+    return { caseId: data?.id || null, created: true }
   }
 
   /**

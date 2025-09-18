@@ -1,7 +1,7 @@
 # JudgeFinder Platform - AI Agents & Automation Systems
 
 ## 🚀 LAUNCH STATUS: 5 Days to Production
-See `LAUNCH_PLAN.md` for complete deployment strategy
+See `docs/LAUNCH_PLAN.md` for the complete deployment strategy
 
 ## Overview
 

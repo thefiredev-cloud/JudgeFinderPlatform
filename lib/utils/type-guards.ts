@@ -93,11 +93,15 @@ export function isCase(value: unknown): value is Case {
     isValidUUID(value.judge_id) &&
     isString(value.case_number) &&
     value.case_number.length > 0 &&
+    (value.court_id === null || (isString(value.court_id) && isValidUUID(value.court_id))) &&
     (!value.case_type || isString(value.case_type)) &&
     (!value.filing_date || isString(value.filing_date)) &&
     (!value.outcome || isString(value.outcome)) &&
     (!value.summary || isString(value.summary)) &&
-    (!value.status || isString(value.status))
+    (!value.status || isString(value.status)) &&
+    (!value.courtlistener_id || isString(value.courtlistener_id)) &&
+    (!value.source_url || isString(value.source_url)) &&
+    (!value.jurisdiction || isString(value.jurisdiction))
   )
 }
 

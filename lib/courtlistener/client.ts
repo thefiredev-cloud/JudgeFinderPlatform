@@ -18,6 +18,26 @@ interface CourtListenerOpinion {
   }
 }
 
+export interface CourtListenerDocket {
+  id: number
+  absolute_url?: string
+  case_name: string
+  case_name_short?: string | null
+  docket_number?: string | null
+  court_id?: string | null
+  court?: string | null
+  date_filed?: string | null
+  date_terminated?: string | null
+  date_last_filing?: string | null
+  jurisdiction_type?: string | null
+  nature_of_suit?: string | null
+  assigned_to_str?: string | null
+  assigned_to_id?: string | null
+  pacer_case_id?: string | null
+  status?: string | null
+  docket_entries_count?: number | null
+}
+
 interface CourtListenerResponse<T> {
   count: number
   next: string | null
@@ -179,6 +199,90 @@ export class CourtListenerClient {
     }
 
     return allCases
+  }
+
+  /**
+   * Search for dockets (court filings) by judge identifier
+   */
+  async getDocketsByJudge(
+    judgeId: string,
+    options: {
+      startDate?: string
+      endDate?: string
+      limit?: number
+      offset?: number
+      ordering?: string
+    } = {}
+  ): Promise<CourtListenerResponse<CourtListenerDocket>> {
+    const params: Record<string, string> = {
+      assigned_to_id: judgeId,
+      ordering: options.ordering || '-date_filed'
+    }
+
+    if (options.startDate) params.date_filed__gte = options.startDate
+    if (options.endDate) params.date_filed__lte = options.endDate
+    if (options.limit) params.page_size = options.limit.toString()
+    if (options.offset) params.offset = options.offset.toString()
+
+    return this.makeRequest<CourtListenerResponse<CourtListenerDocket>>('/dockets/', params)
+  }
+
+  /**
+   * Fetch recent court filings (dockets) for a judge with pagination handling
+   */
+  async getRecentDocketsByJudge(
+    judgeId: string,
+    options: {
+      yearsBack?: number
+      maxRecords?: number
+      startDate?: string
+      endDate?: string
+    } = {}
+  ): Promise<CourtListenerDocket[]> {
+    const endDate = options.endDate ? new Date(options.endDate) : new Date()
+    const startDate = options.startDate
+      ? new Date(options.startDate)
+      : (() => {
+          const d = new Date(endDate)
+          d.setFullYear(d.getFullYear() - (options.yearsBack ?? 5))
+          return d
+        })()
+
+    const formattedStart = startDate.toISOString().split('T')[0]
+    const formattedEnd = endDate.toISOString().split('T')[0]
+
+    const allDockets: CourtListenerDocket[] = []
+    let offset = 0
+    const pageSize = 50
+    const maxRecords = options.maxRecords ?? 300
+    let hasMore = true
+
+    while (hasMore && allDockets.length < maxRecords) {
+      try {
+        const response = await this.getDocketsByJudge(judgeId, {
+          startDate: formattedStart,
+          endDate: formattedEnd,
+          limit: pageSize,
+          offset,
+          ordering: '-date_filed'
+        })
+
+        allDockets.push(...response.results)
+
+        hasMore = Boolean(response.next) && response.results.length === pageSize
+        offset += pageSize
+
+      } catch (error) {
+        console.error(`Error fetching dockets for judge ${judgeId} at offset ${offset}:`, error)
+        break
+      }
+
+      if (allDockets.length >= maxRecords) {
+        break
+      }
+    }
+
+    return allDockets.slice(0, maxRecords)
   }
 
   /**

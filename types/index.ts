@@ -36,13 +36,16 @@ export interface Case {
   case_number: string
   case_name: string
   judge_id: string
-  court_id: string
+  court_id: string | null
   case_type: string
   filing_date: string
-  decision_date?: string
+  decision_date?: string | null
   status: 'pending' | 'decided' | 'settled' | 'dismissed'
   outcome?: string
-  summary?: string
+  summary?: string | null
+  courtlistener_id?: string | null
+  source_url?: string | null
+  jurisdiction?: string | null
   created_at: string
   updated_at: string
 }

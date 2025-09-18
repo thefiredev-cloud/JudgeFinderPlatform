@@ -3,7 +3,7 @@
 AI-powered judicial transparency platform providing real-time analytics and bias detection across California's courts.
 
 ### Launch status: 5 Days to Production
-See `LAUNCH_PLAN.md` for the full deployment strategy.
+See `docs/LAUNCH_PLAN.md` for the full deployment strategy.
 
 ## Quick Launch Commands
 ```bash
@@ -24,6 +24,18 @@ JudgeFinder delivers data-driven insights into judicial patterns using AI analys
 - **AI Analytics**: Gemini 1.5 Flash primary, GPT-4o-mini fallback
 - **Real-time Sync**: Daily and weekly automated jobs with retries and queueing
 - **Coverage**: California courts and judges with decision documents
+
+## Docs Navigation
+- Setup & Run: `docs/SETUP.md`
+- Architecture: `docs/ARCHITECTURE.md`
+- AI Agents: `docs/AI_AGENTS.md`
+- Sync & Cron: `docs/SYNC_AND_CRON.md`
+- Commands & APIs: `docs/COMMANDS.md`
+- Operations & Troubleshooting: `docs/OPERATIONS.md`
+- Environment Reference: `docs/ENVIRONMENT.md`
+- Database & Migrations: `docs/DATABASE.md`
+- API Reference: `docs/API_REFERENCE.md`
+- Security: `docs/SECURITY.md`
 
 ## Architecture & Tech Stack
 
@@ -78,7 +90,7 @@ npm install
 # Start dev server
 npm run dev
 ```
-App runs at `http://localhost:3005`.
+Default dev URL: `http://localhost:3000` (Next.js default).
 
 ## Data Sync & Analytics
 
@@ -107,12 +119,8 @@ Health:
 
 ## Scheduled Jobs
 
-Weekly cron (`app/api/cron/weekly-sync/route.ts`):
-- Queues: courts (immediate), judges (T+30m), federal judges (T+45m), decisions (T+60m), cleanup (T+120m)
-- Starts processing via queue manager with backoff/retries
-
-Daily cron (`app/api/cron/daily-sync/route.ts`):
-- Twice daily judge/decision updates (see file for schedule)
+- Daily cron: `app/api/cron/daily-sync/route.ts`
+- Weekly cron: `app/api/cron/weekly-sync/route.ts`
 
 ## Project Structure
 
