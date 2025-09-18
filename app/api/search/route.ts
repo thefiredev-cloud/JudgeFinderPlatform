@@ -102,6 +102,12 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now()
   
   try {
+    const { buildRateLimiter, getClientIp } = await import('@/lib/security/rate-limit')
+    const rl = buildRateLimiter({ tokens: 60, window: '1 m', prefix: 'api:search:get' })
+    const { success, remaining } = await rl.limit(`${getClientIp(request)}:global`)
+    if (!success) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
     const { searchParams } = new URL(request.url)
     const q = searchParams.get('q') || ''
     const type = searchParams.get('type') as 'judge' | 'court' | 'jurisdiction' | 'all' || 'all'
@@ -156,7 +162,8 @@ export async function GET(request: NextRequest) {
           jurisdictions: topJurisdictions.length 
         },
         query: q,
-        took_ms: Date.now() - startTime
+        took_ms: Date.now() - startTime,
+        rate_limit_remaining: remaining
       } as SearchResponse)
     }
 
@@ -236,7 +243,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Set cache headers
-    const responseObj = NextResponse.json(response)
+    const responseObj = NextResponse.json({ ...response, rate_limit_remaining: remaining })
     responseObj.headers.set('Cache-Control', 'public, s-maxage=300, max-age=60, stale-while-revalidate=180')
     responseObj.headers.set('Vary', 'Accept-Encoding')
     

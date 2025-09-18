@@ -134,7 +134,7 @@ export default function AboutPage() {
     { 
       icon: Shield, 
       title: "Your Information is Private", 
-      desc: "Browse anonymously with complete privacy. We never track or store your search history" 
+      desc: "We respect your privacy. We collect limited usage metrics and search queries to improve the service. See our Privacy Policy." 
     },
     { 
       icon: Clock, 
@@ -517,12 +517,12 @@ export default function AboutPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { icon: Award, label: 'Official Court Data', value: '100%', desc: 'All data from public records' },
-              { icon: Shield, label: 'Privacy Protected', value: 'Always', desc: 'No tracking or data storage' },
-              { icon: TrendingUp, label: 'Updated Daily', value: '24/7', desc: 'Fresh data every day' },
-              { icon: Users, label: 'User Reviews', value: '4.9/5', desc: 'Trusted by thousands' },
-              { icon: CheckCircle, label: 'Accuracy Rate', value: '99%+', desc: 'Verified information' },
-              { icon: Heart, label: 'Cost to You', value: '$0', desc: 'Free forever, no strings' }
+              { icon: Award, label: 'Source Provenance', value: 'Tracked', desc: 'Every record lists sources' },
+              { icon: Shield, label: 'Privacy Practices', value: 'Transparent', desc: 'See our Privacy Policy' },
+              { icon: TrendingUp, label: 'Data Freshness', value: 'Daily', desc: 'Scheduled syncs, timestamps shown' },
+              { icon: Users, label: 'Coverage', value: 'CA Courts', desc: 'Judges and decisions statewide' },
+              { icon: CheckCircle, label: 'Metrics', value: 'Published', desc: 'Denominators on charts' },
+              { icon: Heart, label: 'Access', value: 'Free', desc: 'Consumer search remains free' }
             ].map((metric, index) => (
               <motion.div
                 key={metric.label}

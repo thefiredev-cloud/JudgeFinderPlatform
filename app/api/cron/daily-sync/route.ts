@@ -94,10 +94,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Manual trigger for daily sync (with admin auth)
-    const apiKey = request.headers.get('x-api-key')
-    if (!apiKey || apiKey !== process.env.SYNC_API_KEY) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const { requireApiKey } = await import('@/lib/security/api-auth')
+    const auth = requireApiKey(request, { allow: ['SYNC_API_KEY', 'CRON_SECRET'] })
+    if ('ok' in auth === false) return auth
 
     // Get manual sync options from request body
     const body = await request.json().catch(() => ({}))

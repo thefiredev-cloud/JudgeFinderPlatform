@@ -24,7 +24,35 @@ export default function DocsPage() {
             <Code className="h-8 w-8 text-blue-600 mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">API Reference</h2>
             <p className="text-gray-600 mb-4">Integrate JudgeFinder data into your applications</p>
-            <Link href="/docs/API" className="text-blue-600 hover:text-blue-700 font-medium">Open API docs →</Link>
+            <div className="flex flex-col gap-2">
+              <Link href="/api/openapi" className="text-blue-600 hover:text-blue-700 font-medium">OpenAPI (JSON) →</Link>
+              <div className="text-sm text-gray-600">
+                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto">
+                  curl -s https://your-site/api/stats/judges | jq
+                </div>
+                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
+                  curl -s https://your-site/api/stats/courts | jq
+                </div>
+                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
+                  curl -s https://your-site/api/stats/cases | jq
+                </div>
+                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
+                  curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/judges/search?q=smith" | jq
+                </div>
+                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
+                  curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/judges/{$JUDGE_ID}" | jq
+                </div>
+                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
+                  curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/judges/export?per_page=1000" > judges.csv
+                </div>
+                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
+                  curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/judges/{$JUDGE_ID}/analytics/motions?since=2024-01-01&format=csv" > motions.csv
+                </div>
+                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
+                  curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/analytics/time_to_ruling?judge_id={$JUDGE_ID}&format=csv" > ttr.csv
+                </div>
+              </div>
+            </div>
           </div>
           
           <div className="bg-white rounded-lg shadow p-6">
@@ -41,6 +69,8 @@ export default function DocsPage() {
             <div className="flex gap-4">
               <Link href="/docs/RUNBOOKS" className="text-blue-600 hover:text-blue-700 font-medium">Runbooks →</Link>
               <Link href="/docs/NETLIFY_ENV_SETUP" className="text-blue-600 hover:text-blue-700 font-medium">Netlify Setup →</Link>
+              <Link href="/evaluation" className="text-blue-600 hover:text-blue-700 font-medium">Evaluation →</Link>
+              <Link href="/trust" className="text-blue-600 hover:text-blue-700 font-medium">Trust →</Link>
             </div>
           </div>
         </div>

@@ -7,6 +7,12 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
+    const { buildRateLimiter, getClientIp } = await import('@/lib/security/rate-limit')
+    const rl = buildRateLimiter({ tokens: 40, window: '1 m', prefix: 'api:judges:search:get' })
+    const { success, remaining } = await rl.limit(`${getClientIp(request)}:global`)
+    if (!success) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
     const { searchParams } = new URL(request.url)
     const rawQuery = searchParams.get('q') || ''
     const sanitized = sanitizeSearchQuery(rawQuery)
@@ -89,7 +95,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Set cache headers
-    const response = NextResponse.json(result)
+    const response = NextResponse.json({ ...result, rate_limit_remaining: remaining })
     response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=60')
     
     return response
@@ -105,6 +111,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const { buildRateLimiter, getClientIp } = await import('@/lib/security/rate-limit')
+    const rl = buildRateLimiter({ tokens: 20, window: '1 m', prefix: 'api:judges:search:post' })
+    const { success, remaining } = await rl.limit(`${getClientIp(request)}:global`)
+    if (!success) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
     const body = await request.json()
     const { query, filters = {} } = body
 
@@ -172,7 +184,8 @@ export async function POST(request: NextRequest) {
       total_count: totalCount,
       page,
       per_page: limit,
-      has_more: hasMore
+      has_more: hasMore,
+      rate_limit_remaining: remaining
     })
 
     return response

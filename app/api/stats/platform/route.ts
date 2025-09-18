@@ -4,8 +4,14 @@ import { createServerClient } from '@/lib/supabase/server'
 export const dynamic = 'force-dynamic'
 export const revalidate = 300 // Cache for 5 minutes
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { buildRateLimiter, getClientIp } = await import('@/lib/security/rate-limit')
+    const rl = buildRateLimiter({ tokens: 120, window: '1 m', prefix: 'api:stats:platform' })
+    const { success, remaining } = await rl.limit(`${getClientIp(request as any)}:global`)
+    if (!success) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
     const supabase = await createServerClient()
 
     // Get search activity (simulated based on user activity)
@@ -70,7 +76,7 @@ export async function GET() {
       timestamp: new Date().toISOString()
     }
 
-    return NextResponse.json(stats, {
+    return NextResponse.json({ ...stats, rate_limit_remaining: remaining }, {
       headers: {
         'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60'
       }

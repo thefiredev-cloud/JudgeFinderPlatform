@@ -17,6 +17,12 @@ interface CourtLookupResult {
  */
 export async function GET(request: NextRequest) {
   try {
+    const { buildRateLimiter, getClientIp } = await import('@/lib/security/rate-limit')
+    const rl = buildRateLimiter({ tokens: 60, window: '1 m', prefix: 'api:courts:by-slug' })
+    const { success, remaining } = await rl.limit(`${getClientIp(request)}:global`)
+    if (!success) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
     const { searchParams } = new URL(request.url)
     const slug = searchParams.get('slug')
 
@@ -59,7 +65,8 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.json({
       court: result.court,
       found_by: result.found_by,
-      alternatives: result.alternatives || []
+      alternatives: result.alternatives || [],
+      rate_limit_remaining: remaining
     })
 
     // Set cache headers for performance (court data is stable)

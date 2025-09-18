@@ -158,6 +158,6 @@ curl -s -H "x-api-key: $SYNC_API_KEY" https://<site>/api/admin/sync-status | jq
 
 ## License
 
-Proprietary. All rights reserved.
+MIT. See `LICENSE` for details.
 
 — Built for judicial transparency.

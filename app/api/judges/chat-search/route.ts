@@ -5,6 +5,12 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
+    const { buildRateLimiter, getClientIp } = await import('@/lib/security/rate-limit')
+    const rl = buildRateLimiter({ tokens: 20, window: '1 m', prefix: 'api:judges:chat-search' })
+    const { success, remaining } = await rl.limit(`${getClientIp(request)}:global`)
+    if (!success) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
     const { searchParams } = new URL(request.url)
     const name = searchParams.get('name')
     const jurisdiction = searchParams.get('jurisdiction')
@@ -47,7 +53,8 @@ export async function GET(request: NextRequest) {
           case_count: exactMatch.case_count?.[0]?.count || 0,
           // Limited bias score preview for free users
           bias_score: 4.2 // This would normally come from analytics
-        }
+        },
+        rate_limit_remaining: remaining
       })
     }
     
@@ -103,7 +110,8 @@ export async function GET(request: NextRequest) {
         // Limited data for free users
         bias_score: Math.floor(Math.random() * 2) + 3 // Placeholder score 3-5
       })),
-      total: judges.length
+      total: judges.length,
+      rate_limit_remaining: remaining
     })
     
   } catch (error) {

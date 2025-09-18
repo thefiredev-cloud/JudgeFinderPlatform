@@ -9,10 +9,14 @@ export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify admin access
-    const apiKey = request.headers.get('x-api-key')
-    if (!apiKey || apiKey !== process.env.SYNC_API_KEY) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { requireApiKey } = await import('@/lib/security/api-auth')
+    const { buildRateLimiter, getClientIp } = await import('@/lib/security/rate-limit')
+    const auth = requireApiKey(request, { allow: ['SYNC_API_KEY', 'CRON_SECRET'] })
+    if ('ok' in auth === false) return auth
+    const rl = buildRateLimiter({ tokens: 120, window: '1 m', prefix: 'api:admin:sync-status:get' })
+    const { success } = await rl.limit(`${getClientIp(request)}:admin`)
+    if (!success) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
     }
 
     const supabase = createClient(
@@ -96,6 +100,29 @@ export async function GET(request: NextRequest) {
     // Calculate metrics
     const dailySuccessRate = dailyStats ? 
       (dailyStats.filter(s => s.status === 'completed').length / dailyStats.length * 100) : 0
+    // Pull CourtListener failure/circuit metrics (last 24h)
+    let clFailures24h = 0
+    let clCircuitOpens24h = 0
+    let clShortcircuits24h = 0
+    try {
+      const { data: perfRows } = await supabase
+        .from('performance_metrics')
+        .select('metric_name, created_at')
+        .gte('created_at', oneDayAgo.toISOString())
+        .in('metric_name', [
+          'courtlistener_fetch_courts_failed',
+          'courtlistener_fetch_decisions_failed',
+          'courtlistener_circuit_open',
+          'courtlistener_circuit_shortcircuit'
+        ])
+
+      const rows = perfRows || []
+      clFailures24h = rows.filter(r => r.metric_name === 'courtlistener_fetch_courts_failed' || r.metric_name === 'courtlistener_fetch_decisions_failed').length
+      clCircuitOpens24h = rows.filter(r => r.metric_name === 'courtlistener_circuit_open').length
+      clShortcircuits24h = rows.filter(r => r.metric_name === 'courtlistener_circuit_shortcircuit').length
+    } catch (e) {
+      // ignore
+    }
 
     const weeklySuccessRate = weeklyStats ? 
       (weeklyStats.filter(s => s.status === 'completed').length / weeklyStats.length * 100) : 0
@@ -132,6 +159,11 @@ export async function GET(request: NextRequest) {
           total_runs: weeklyStats?.length || 0,
           success_rate: Math.round(weeklySuccessRate * 100) / 100,
           failed_runs: weeklyStats?.filter(s => s.status === 'failed').length || 0
+        },
+        external_api: {
+          courtlistener_failures_24h: clFailures24h,
+          courtlistener_circuit_opens_24h: clCircuitOpens24h,
+          courtlistener_circuit_shortcircuits_24h: clShortcircuits24h
         }
       },
 
@@ -182,10 +214,14 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify admin access
-    const apiKey = request.headers.get('x-api-key')
-    if (!apiKey || apiKey !== process.env.SYNC_API_KEY) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { requireApiKey } = await import('@/lib/security/api-auth')
+    const { buildRateLimiter, getClientIp } = await import('@/lib/security/rate-limit')
+    const auth = requireApiKey(request, { allow: ['SYNC_API_KEY'] })
+    if ('ok' in auth === false) return auth
+    const rl = buildRateLimiter({ tokens: 60, window: '1 m', prefix: 'api:admin:sync-status:post' })
+    const { success } = await rl.limit(`${getClientIp(request)}:admin`)
+    if (!success) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
     }
 
     const body = await request.json().catch(() => ({}))

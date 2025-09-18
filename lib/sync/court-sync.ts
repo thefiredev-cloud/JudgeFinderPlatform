@@ -51,6 +51,19 @@ export class CourtSyncManager {
       auth: { persistSession: false }
     })
     this.courtListener = new CourtListenerClient()
+    this.courtListener.setMetricsReporter(async (name, value, meta) => {
+      try {
+        await this.supabase.from('performance_metrics').insert({
+          metric_name: name,
+          metric_value: value,
+          page_url: '/lib/sync/court-sync',
+          page_type: 'sync',
+          metric_id: name,
+          rating: 'needs-improvement',
+          metadata: meta || null
+        })
+      } catch (_) {}
+    })
     this.syncId = `court-sync-${Date.now()}`
   }
 
@@ -76,6 +89,7 @@ export class CourtSyncManager {
 
       // Fetch courts from CourtListener
       const courtListenerCourts = await this.fetchCourtsFromCourtListener(options)
+      logger.info('Fetched courts from CourtListener', { count: courtListenerCourts.length })
       result.courtsProcessed = courtListenerCourts.length
 
       // Process courts in batches
@@ -159,6 +173,17 @@ export class CourtSyncManager {
 
     } catch (error) {
       logger.error('Failed to fetch courts from CourtListener', { error })
+      // record metric (best-effort)
+      try {
+        await this.supabase.from('performance_metrics').insert({
+          metric_name: 'courtlistener_fetch_courts_failed',
+          metric_value: 1,
+          page_url: '/lib/sync/court-sync',
+          page_type: 'sync',
+          metric_id: 'fetch_courts_failed',
+          rating: 'poor'
+        })
+      } catch (_) {}
       throw error
     }
   }

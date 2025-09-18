@@ -40,6 +40,12 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now()
   
   try {
+    const { buildRateLimiter, getClientIp } = await import('@/lib/security/rate-limit')
+    const rl = buildRateLimiter({ tokens: 30, window: '1 m', prefix: 'api:judges:advanced-search' })
+    const { success, remaining } = await rl.limit(`${getClientIp(request)}:global`)
+    if (!success) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
     const { searchParams } = new URL(request.url)
     
     // Parse search parameters
@@ -134,7 +140,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Set cache headers
-    const response = NextResponse.json(result)
+    const response = NextResponse.json({ ...result, rate_limit_remaining: remaining })
     if (query.trim()) {
       response.headers.set('Cache-Control', 'public, s-maxage=300, max-age=60, stale-while-revalidate=180')
     } else {

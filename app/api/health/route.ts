@@ -23,6 +23,12 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const { buildRateLimiter, getClientIp } = await import('@/lib/security/rate-limit')
+    const rl = buildRateLimiter({ tokens: 60, window: '1 m', prefix: 'api:health' })
+    const { success, remaining } = await rl.limit(`${getClientIp(request)}:global`)
+    if (!success) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
     // Check database connectivity using connection helper
     const connectionHelper = SupabaseConnectionHelper.getInstance()
     const healthCheck = await connectionHelper.healthCheck()
@@ -87,7 +93,7 @@ export async function GET(request: NextRequest) {
     // Return appropriate HTTP status code
     const httpStatus = checks.status === 'healthy' ? 200 : checks.status === 'warning' ? 200 : 503
 
-    return NextResponse.json(checks, { 
+    return NextResponse.json({ ...checks, rate_limit_remaining: remaining }, { 
       status: httpStatus,
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',

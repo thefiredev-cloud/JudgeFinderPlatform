@@ -11,14 +11,9 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now()
 
   try {
-    // Verify API key for security
-    const apiKey = request.headers.get('x-api-key')
-    if (!apiKey || apiKey !== process.env.SYNC_API_KEY) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+    const { requireApiKey } = await import('@/lib/security/api-auth')
+    const auth = requireApiKey(request, { allow: ['SYNC_API_KEY'] })
+    if ('ok' in auth === false) return auth
 
     // Parse request options
     const body = await request.json().catch(() => ({}))

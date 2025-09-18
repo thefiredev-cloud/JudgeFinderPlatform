@@ -65,6 +65,19 @@ export class DecisionSyncManager {
       auth: { persistSession: false }
     })
     this.courtListener = new CourtListenerClient()
+    this.courtListener.setMetricsReporter(async (name, value, meta) => {
+      try {
+        await this.supabase.from('performance_metrics').insert({
+          metric_name: name,
+          metric_value: value,
+          page_url: '/lib/sync/decision-sync',
+          page_type: 'sync',
+          metric_id: name,
+          rating: 'needs-improvement',
+          metadata: meta || null
+        })
+      } catch (_) {}
+    })
     this.syncId = `decision-sync-${Date.now()}`
   }
 
@@ -446,6 +459,16 @@ export class DecisionSyncManager {
         judgeId: courtlistenerJudgeId, 
         error 
       })
+      try {
+        await this.supabase.from('performance_metrics').insert({
+          metric_name: 'courtlistener_fetch_decisions_failed',
+          metric_value: 1,
+          page_url: '/lib/sync/decision-sync',
+          page_type: 'sync',
+          metric_id: 'fetch_decisions_failed',
+          rating: 'poor'
+        })
+      } catch (_) {}
       throw error
     }
   }
@@ -475,6 +498,7 @@ export class DecisionSyncManager {
         yearsBack,
         maxRecords
       })
+      logger.info('Fetched recent docket filings from CourtListener', { judgeId: judge.courtlistener_id, count: filings.length })
 
       stats.processed = filings.length
 

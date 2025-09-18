@@ -67,6 +67,19 @@ export class JudgeSyncManager {
       auth: { persistSession: false }
     })
     this.courtListener = new CourtListenerClient()
+    this.courtListener.setMetricsReporter(async (name, value, meta) => {
+      try {
+        await this.supabase.from('performance_metrics').insert({
+          metric_name: name,
+          metric_value: value,
+          page_url: '/lib/sync/judge-sync',
+          page_type: 'sync',
+          metric_id: name,
+          rating: 'needs-improvement',
+          metadata: meta || null
+        })
+      } catch (_) {}
+    })
     this.syncId = `judge-sync-${Date.now()}`
   }
 

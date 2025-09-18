@@ -13,6 +13,13 @@ export async function GET(request: NextRequest) {
     )
   }
 
+  const { buildRateLimiter, getClientIp } = await import('@/lib/security/rate-limit')
+  const rl = buildRateLimiter({ tokens: 30, window: '1 m', prefix: 'api:seo:search-console' })
+  const { success, remaining } = await rl.limit(`${getClientIp(request)}:global`)
+  if (!success) {
+    return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+  }
+
   // Mock response for development - replace with actual Google Search Console API integration
   const mockData = {
     judge: judge,
@@ -23,7 +30,8 @@ export async function GET(request: NextRequest) {
       position: Math.floor(Math.random() * 10) + 5,
     },
     lastUpdated: new Date().toISOString(),
-    status: 'development_mock'
+    status: 'development_mock',
+    rate_limit_remaining: remaining
   }
 
   return NextResponse.json(mockData)

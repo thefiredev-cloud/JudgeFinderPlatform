@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { chunkArray } from '@/lib/utils/helpers'
+import { buildRateLimiter, getClientIp } from '@/lib/security/rate-limit'
+import { redisGetJSON, redisSetJSON } from '@/lib/cache/redis'
 
 // Import AI analytics pipeline
 const { generateJudicialAnalytics, generateAnalyticsWithOpenAI } = require('@/lib/ai/judicial-analytics')
@@ -72,6 +74,28 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limit per IP per judge analytics
+    const rl = buildRateLimiter({ tokens: 20, window: '1 m', prefix: 'api:judge-analytics' })
+    const ip = getClientIp(request)
+    const judgeKey = (await params).id
+    const { success, remaining } = await rl.limit(`${ip}:${judgeKey}`)
+    if (!success) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
+
+    // Redis edge cache first
+    const redisKey = `judge:analytics:${judgeKey}`
+    const cachedRedis = await redisGetJSON<{ analytics: CaseAnalytics; created_at: string }>(redisKey)
+    if (cachedRedis && isDataFresh(cachedRedis.created_at, 24)) {
+      return NextResponse.json({
+        analytics: cachedRedis.analytics,
+        cached: true,
+        data_source: 'redis_cache',
+        last_updated: cachedRedis.created_at,
+        rate_limit_remaining: remaining
+      })
+    }
+
     const resolvedParams = await params
     const supabase = await createServerClient()
     
@@ -142,14 +166,16 @@ export async function GET(
       analytics = await generateAnalyticsFromCases(judge, enrichedCases, analysisWindow)
     }
 
-    // Cache the results
+    // Cache the results (Redis + DB fallback)
+    await redisSetJSON(redisKey, { analytics, created_at: new Date().toISOString() }, 60 * 60 * 24)
     await cacheAnalytics(supabase, resolvedParams.id, analytics)
 
     return NextResponse.json({ 
       analytics,
       cached: false,
       data_source: enrichedCases.length > 0 ? 'case_analysis' : 'profile_estimation',
-      document_count: enrichedCases.length
+      document_count: enrichedCases.length,
+      rate_limit_remaining: remaining
     })
 
   } catch (error) {

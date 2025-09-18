@@ -127,7 +127,17 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">11. Modifications</h2>
+            <h2 className="text-2xl font-semibold mb-4">11. Fair Credit Reporting Act (FCRA) Notice</h2>
+            <p className="font-semibold">
+              We are not a consumer reporting agency and the Service is not a consumer report as defined by the Fair Credit Reporting Act (FCRA).
+            </p>
+            <p className="mt-2">
+              You agree not to use any information obtained through the Service to make decisions about a person's eligibility for credit, insurance, employment, housing, or any other purpose that would constitute a consumer report under the FCRA. If you need information for an FCRA-permitted purpose, obtain it from a certified consumer reporting agency.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">12. Modifications</h2>
             <p>
               We reserve the right to modify these terms at any time. Continued use of the Service after changes 
               constitutes acceptance of the modified terms.
@@ -135,7 +145,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">12. Termination</h2>
+            <h2 className="text-2xl font-semibold mb-4">13. Termination</h2>
             <p>
               We may terminate or suspend your access to the Service at our discretion, without notice, for any 
               violation of these terms.
@@ -143,7 +153,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">13. Governing Law</h2>
+            <h2 className="text-2xl font-semibold mb-4">14. Governing Law</h2>
             <p>
               These terms are governed by the laws of California, United States. Any disputes shall be resolved in 
               the courts of California.
@@ -151,7 +161,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">14. Contact Information</h2>
+            <h2 className="text-2xl font-semibold mb-4">15. Contact Information</h2>
             <p>
               For questions about these Terms of Service, please contact us at:
             </p>

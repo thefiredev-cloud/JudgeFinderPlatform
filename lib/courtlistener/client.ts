@@ -49,6 +49,14 @@ export class CourtListenerClient {
   private baseUrl = 'https://www.courtlistener.com/api/rest/v4'
   private apiToken: string
   private requestDelay = 1000 // 1 second between requests to respect rate limits
+  private maxRetries = Math.max(0, parseInt(process.env.COURTLISTENER_MAX_RETRIES || '5', 10))
+  private requestTimeoutMs = Math.max(5000, parseInt(process.env.COURTLISTENER_REQUEST_TIMEOUT_MS || '30000', 10))
+  private backoffCapMs = Math.max(2000, parseInt(process.env.COURTLISTENER_BACKOFF_CAP_MS || '15000', 10))
+  private circuitOpenUntil = 0
+  private circuitFailures = 0
+  private circuitThreshold = Math.max(3, parseInt(process.env.COURTLISTENER_CIRCUIT_THRESHOLD || '5', 10))
+  private circuitCooldownMs = Math.max(10000, parseInt(process.env.COURTLISTENER_CIRCUIT_COOLDOWN_MS || '60000', 10))
+  private metricsReporter?: (name: string, value: number, meta?: Record<string, any>) => void | Promise<void>
 
   constructor() {
     this.apiToken = process.env.COURTLISTENER_API_KEY || process.env.COURTLISTENER_API_TOKEN || ''
@@ -57,7 +65,20 @@ export class CourtListenerClient {
     }
   }
 
+  setMetricsReporter(reporter: (name: string, value: number, meta?: Record<string, any>) => void | Promise<void>) {
+    this.metricsReporter = reporter
+  }
+
   private async makeRequest<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
+    // Circuit breaker: short-circuit requests during cooldown window
+    const now = Date.now()
+    if (now < this.circuitOpenUntil) {
+      const waitMs = this.circuitOpenUntil - now
+      const err = new Error(`CourtListener circuit open, retry after ${waitMs}ms`)
+      try { await this.metricsReporter?.('courtlistener_circuit_shortcircuit', 1, { waitMs }) } catch {}
+      throw err
+    }
+
     const url = new URL(`${this.baseUrl}${endpoint}`)
     
     // Add API token to params
@@ -77,29 +98,68 @@ export class CourtListenerClient {
       headers['Authorization'] = `Token ${this.apiToken}`
     }
 
-    try {
-      console.log(`Making request to: ${url.toString()}`)
-      
-      const response = await fetch(url.toString(), {
-        method: 'GET',
-        headers
-      })
+    // Exponential backoff with jitter
+    const maxRetries = this.maxRetries
+    let attempt = 0
+    let lastError: any = null
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`CourtListener API error ${response.status}: ${errorText}`)
+    while (attempt <= maxRetries) {
+      try {
+        console.log(`Making request to: ${url.toString()} (attempt ${attempt + 1}/${maxRetries + 1})`)
+        const controller = new AbortController()
+        const timeoutMs = this.requestTimeoutMs
+        const timeout = setTimeout(() => controller.abort(), timeoutMs)
+
+        const response = await fetch(url.toString(), {
+          method: 'GET',
+          headers,
+          signal: controller.signal
+        })
+        clearTimeout(timeout)
+
+        if (!response.ok) {
+          const status = response.status
+          const errorText = await response.text().catch(() => '')
+
+          // Handle 429/5xx with retry
+          if (status === 429 || (status >= 500 && status < 600)) {
+            lastError = new Error(`CourtListener API error ${status}: ${errorText}`)
+          } else {
+            throw new Error(`CourtListener API error ${status}: ${errorText}`)
+          }
+        } else {
+          const data = await response.json()
+          await sleep(this.requestDelay)
+          // reset failure counter on success
+          this.circuitFailures = 0
+          return data
+        }
+      } catch (error) {
+        lastError = error
+        // AbortError or network error should retry
       }
 
-      const data = await response.json()
-      
-      // Add delay to respect rate limits
-      await sleep(this.requestDelay)
-      
-      return data
-    } catch (error) {
-      console.error('CourtListener API request failed:', error)
-      throw error
+      // Backoff before next attempt
+      attempt += 1
+      if (attempt > maxRetries) break
+      const base = Math.min(1000 * 2 ** attempt, this.backoffCapMs)
+      const jitter = Math.floor(Math.random() * 500)
+      const backoff = base + jitter
+      console.warn(`CourtListener backoff attempt ${attempt}/${maxRetries} for ${backoff}ms`)
+      await sleep(backoff)
     }
+
+    // open circuit
+    this.circuitFailures += 1
+    if (this.circuitFailures >= this.circuitThreshold) {
+      this.circuitOpenUntil = Date.now() + this.circuitCooldownMs
+      console.warn(`CourtListener circuit opened for ${this.circuitCooldownMs}ms after ${this.circuitFailures} failures`)
+      try { await this.metricsReporter?.('courtlistener_circuit_open', 1, { cooldownMs: this.circuitCooldownMs }) } catch {}
+      this.circuitFailures = 0
+    }
+
+    console.error('CourtListener API request failed after retries:', lastError)
+    throw lastError || new Error('CourtListener API request failed')
   }
 
   /**
