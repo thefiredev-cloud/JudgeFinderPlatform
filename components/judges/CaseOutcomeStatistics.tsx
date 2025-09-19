@@ -1,9 +1,27 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
-import { TrendingUp, Target, Clock, Scale, Award, AlertTriangle } from 'lucide-react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  Legend,
+} from 'recharts'
+import type { LucideIcon } from 'lucide-react'
+import { TrendingUp, Target, Clock, Scale, Award, AlertTriangle, BarChart3 } from 'lucide-react'
 import type { Judge } from '@/types'
+import { chartTheme } from '@/lib/charts/theme'
+import { cn } from '@/lib/utils/index'
+import { useJudgeFilterParams } from '@/hooks/useJudgeFilters'
 
 interface CaseOutcomeStats {
   overall_stats: {
@@ -28,8 +46,8 @@ interface CaseOutcomeStats {
     win_rate: number
   }>
   performance_metrics: {
-    efficiency_score: number // Cases per month
-    consistency_score: number // Variance in outcomes
+    efficiency_score: number
+    consistency_score: number
     speed_ranking: 'Fast' | 'Average' | 'Slow'
     specialization_areas: string[]
   }
@@ -39,17 +57,31 @@ interface CaseOutcomeStatisticsProps {
   judge: Judge
 }
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899']
+const VIEW_TABS = [
+  { id: 'overview', label: 'Overview', icon: Target },
+  { id: 'breakdown', label: 'Case types', icon: BarChart3 },
+  { id: 'trends', label: 'Trends', icon: TrendingUp },
+] as const
+
+type ViewTabId = (typeof VIEW_TABS)[number]['id']
 
 export function CaseOutcomeStatistics({ judge }: CaseOutcomeStatisticsProps) {
   const [outcomeStats, setOutcomeStats] = useState<CaseOutcomeStats | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeView, setActiveView] = useState<'overview' | 'breakdown' | 'trends'>('overview')
+  const [activeView, setActiveView] = useState<ViewTabId>('overview')
+  const [activeSeries, setActiveSeries] = useState<string[]>(['win_rate', 'settlement_rate'])
+  const { filters, filtersKey } = useJudgeFilterParams()
 
   useEffect(() => {
     const fetchOutcomeStats = async () => {
       try {
-        const response = await fetch(`/api/judges/${judge.id}/case-outcomes`)
+        const params = new URLSearchParams()
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value) params.set(key, value)
+        })
+        const response = await fetch(
+          `/api/judges/${judge.id}/case-outcomes${params.toString() ? `?${params.toString()}` : ''}`,
+        )
         if (response.ok) {
           const data = await response.json()
           setOutcomeStats(data)
@@ -62,178 +94,219 @@ export function CaseOutcomeStatistics({ judge }: CaseOutcomeStatisticsProps) {
     }
 
     fetchOutcomeStats()
-  }, [judge.id])
+  }, [filters, filtersKey, judge.id])
+
+  const handleSeriesToggle = useCallback((dataKey?: string) => {
+    if (!dataKey) return
+    setActiveSeries((prev) => {
+      const isActive = prev.includes(dataKey)
+      if (isActive && prev.length === 1) return prev
+      return isActive ? prev.filter((key) => key !== dataKey) : [...prev, dataKey]
+    })
+  }, [])
+
+  const isSeriesActive = useCallback((dataKey: string) => activeSeries.includes(dataKey), [activeSeries])
+
+  const containerClass = 'rounded-2xl border border-border bg-card/90 p-6 shadow-md backdrop-blur supports-[backdrop-filter]:bg-card/75'
+
+  const pieData = useMemo(() => {
+    if (!outcomeStats) return []
+
+    const { settlement_rate, win_rate, dismissal_rate } = outcomeStats.overall_stats
+    const otherShare = 1 - (settlement_rate + win_rate + dismissal_rate)
+    const segments = [
+      { name: 'Settlements', value: settlement_rate, tone: 'positive' as const },
+      { name: 'Wins', value: Math.max(win_rate - settlement_rate, 0), tone: 'info' as const },
+      { name: 'Dismissals', value: dismissal_rate, tone: 'warn' as const },
+      { name: 'Other', value: Math.max(otherShare, 0), tone: 'muted' as const },
+    ]
+
+    return segments
+      .filter((item) => item.value > 0)
+      .map((item, index) => ({
+        ...item,
+        fill:
+          item.tone === 'positive'
+            ? chartTheme.getSeriesColor(1)
+            : item.tone === 'warn'
+            ? chartTheme.getSeriesColor(2)
+            : item.tone === 'info'
+            ? chartTheme.getSeriesColor(0)
+            : chartTheme.getSeriesColor(3),
+        index,
+      }))
+  }, [outcomeStats])
 
   if (loading) {
     return (
-      <div className="bg-gray-900 rounded-lg p-6">
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-700 rounded w-1/2 mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-700 rounded"></div>
+      <section className={containerClass} aria-busy>
+        <div className="flex flex-col gap-4">
+          <div className="h-4 w-1/3 rounded bg-muted animate-pulse" />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4" id="overview">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="h-20 rounded-xl border border-border bg-muted animate-pulse" />
             ))}
           </div>
+          <div className="h-64 rounded-2xl border border-border bg-muted animate-pulse" />
         </div>
-      </div>
+      </section>
     )
   }
 
   if (!outcomeStats) {
     return (
-      <div className="bg-gray-900 rounded-lg p-6 text-center">
-        <AlertTriangle className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-        <p className="text-gray-300">Case outcome statistics unavailable</p>
-      </div>
+      <section className={cn(containerClass, 'text-center text-sm text-muted-foreground')}>
+        <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-[color:hsl(var(--warn))]" />
+        <p>Case outcome statistics are unavailable right now. Refresh the page or try narrowing your filters.</p>
+      </section>
     )
   }
 
-  const pieData = [
-    { name: 'Settlements', value: outcomeStats.overall_stats.settlement_rate * 100, color: '#10B981' },
-    { name: 'Wins', value: (outcomeStats.overall_stats.win_rate - outcomeStats.overall_stats.settlement_rate) * 100, color: '#3B82F6' },
-    { name: 'Dismissals', value: outcomeStats.overall_stats.dismissal_rate * 100, color: '#F59E0B' },
-    { name: 'Other', value: 100 - (outcomeStats.overall_stats.settlement_rate + outcomeStats.overall_stats.win_rate + outcomeStats.overall_stats.dismissal_rate) * 100, color: '#6B7280' }
-  ].filter(item => item.value > 0)
+  const speedToneClass =
+    outcomeStats.performance_metrics.speed_ranking === 'Fast'
+      ? 'text-[color:hsl(var(--pos))]'
+      : outcomeStats.performance_metrics.speed_ranking === 'Slow'
+      ? 'text-[color:hsl(var(--neg))]'
+      : 'text-[color:hsl(var(--warn))]'
 
   return (
-    <div className="bg-gray-900 rounded-lg p-6">
-      <div className="flex items-center gap-2 mb-6">
-        <Target className="h-6 w-6 text-green-400" />
-        <h3 className="text-xl font-semibold text-white">Case Outcome Statistics</h3>
-      </div>
+    <section className={containerClass}>
+      <header className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2 text-foreground">
+          <Target className="h-6 w-6 text-[color:hsl(var(--accent))]" aria-hidden />
+          <h3 className="text-xl font-semibold">Case outcome statistics</h3>
+        </div>
+        <p className="text-sm text-muted-foreground">Key performance signals generated from verified rulings.</p>
+      </header>
 
-      {/* Navigation */}
-      <div className="flex gap-4 mb-6 border-b border-gray-700">
-        {[
-          { id: 'overview', label: 'Overview', icon: Target },
-          { id: 'breakdown', label: 'Case Types', icon: BarChart },
-          { id: 'trends', label: 'Trends', icon: TrendingUp }
-        ].map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setActiveView(id as any)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-t-lg transition-colors ${
-              activeView === id
-                ? 'bg-green-600 text-white border-b-2 border-green-400'
-                : 'text-gray-400 hover:text-gray-200'
-            }`}
-          >
-            <Icon className="h-4 w-4" />
-            {label}
-          </button>
-        ))}
-      </div>
+      <nav className="-mx-2 mb-6 overflow-x-auto pb-2" role="tablist" aria-label="Case outcome views">
+        <div className="flex min-w-full items-center gap-2 px-2">
+          {VIEW_TABS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={activeView === id}
+              aria-controls={`${id}-panel`}
+              onClick={() => setActiveView(id)}
+              className={cn(
+                'flex items-center gap-2 rounded-full border border-transparent px-4 py-2 text-sm font-medium transition-colors',
+                activeView === id
+                  ? 'bg-[color:hsl(var(--accent))] text-[color:hsl(var(--accent-foreground))] shadow-sm'
+                  : 'bg-[hsl(var(--bg-1))] text-[color:hsl(var(--text-2))] hover:text-[color:hsl(var(--text-1))]',
+              )}
+            >
+              <Icon className="h-4 w-4" aria-hidden />
+              {label}
+            </button>
+          ))}
+        </div>
+      </nav>
 
-      {/* Overview */}
       {activeView === 'overview' && (
-        <div>
-          {/* Key Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-gray-800 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Scale className="h-5 w-5 text-blue-400" />
-                <span className="text-sm text-gray-400">Total Cases</span>
-              </div>
-              <div className="text-2xl font-bold text-blue-400">
-                {outcomeStats.overall_stats.total_cases.toLocaleString()}
-              </div>
-            </div>
-            
-            <div className="bg-gray-800 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Award className="h-5 w-5 text-green-400" />
-                <span className="text-sm text-gray-400">Win Rate</span>
-              </div>
-              <div className="text-2xl font-bold text-green-400">
-                {(outcomeStats.overall_stats.win_rate * 100).toFixed(1)}%
-              </div>
-            </div>
-            
-            <div className="bg-gray-800 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Target className="h-5 w-5 text-purple-400" />
-                <span className="text-sm text-gray-400">Settlement Rate</span>
-              </div>
-              <div className="text-2xl font-bold text-purple-400">
-                {(outcomeStats.overall_stats.settlement_rate * 100).toFixed(1)}%
-              </div>
-            </div>
-            
-            <div className="bg-gray-800 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Clock className="h-5 w-5 text-yellow-400" />
-                <span className="text-sm text-gray-400">Avg Duration</span>
-              </div>
-              <div className="text-2xl font-bold text-yellow-400">
-                {outcomeStats.overall_stats.average_case_duration} days
-              </div>
-            </div>
+        <section id="overview-panel" role="tabpanel" aria-labelledby="overview">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <MetricTile
+              icon={Scale}
+              label="Total decisions"
+              value={outcomeStats.overall_stats.total_cases.toLocaleString()}
+              tone="info"
+            />
+            <MetricTile
+              icon={Award}
+              label="Win rate"
+              value={`${(outcomeStats.overall_stats.win_rate * 100).toFixed(1)}%`}
+              tone="positive"
+            />
+            <MetricTile
+              icon={Target}
+              label="Settlement rate"
+              value={`${(outcomeStats.overall_stats.settlement_rate * 100).toFixed(1)}%`}
+              tone="accent"
+            />
+            <MetricTile
+              icon={Clock}
+              label="Median days to decision"
+              value={`${outcomeStats.overall_stats.average_case_duration} days`
+              }
+              tone="muted"
+            />
           </div>
 
-          {/* Outcome Distribution */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <h4 className="text-lg font-medium text-white mb-4">Outcome Distribution</h4>
-              <ResponsiveContainer width="100%" height={250}>
+          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="rounded-2xl border border-border bg-[hsl(var(--bg-2))] p-4">
+              <h4 className="mb-4 text-lg font-medium text-foreground">Outcome distribution</h4>
+              <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={index} fill={entry.color} />
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={65} outerRadius={110} dataKey="value">
+                    {pieData.map((segment) => (
+                      <Cell key={segment.name} fill={segment.fill} />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    formatter={(value: number) => [`${value.toFixed(1)}%`, '']}
-                    contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }}
+                  <Tooltip
+                    formatter={(value: number, name: string) => [`${(value as number * 100).toFixed(1)}%`, name]}
+                    contentStyle={{
+                      backgroundColor: chartTheme.tooltip.backgroundColor,
+                      border: `1px solid ${chartTheme.tooltip.borderColor}`,
+                      borderRadius: '0.75rem',
+                      color: chartTheme.tooltip.textColor,
+                    }}
+                  />
+                  <Legend
+                    align="left"
+                    verticalAlign="top"
+                    iconType="circle"
+                    iconSize={8}
+                    wrapperStyle={{ paddingBottom: 12 }}
+                    formatter={(value) => (
+                      <span className="text-xs" style={{ color: chartTheme.legend.textColor }}>
+                        {value}
+                      </span>
+                    )}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            
-            <div>
-              <h4 className="text-lg font-medium text-white mb-4">Performance Metrics</h4>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Efficiency Score</span>
-                  <span className="text-green-400 font-medium">
+
+            <div className="rounded-2xl border border-border bg-[hsl(var(--bg-2))] p-4">
+              <h4 className="mb-4 text-lg font-medium text-foreground">Performance signals</h4>
+              <dl className="space-y-3 text-sm text-[color:hsl(var(--text-2))]">
+                <div className="flex items-center justify-between">
+                  <dt>Efficiency score</dt>
+                  <dd className="font-medium text-[color:hsl(var(--pos))]">
                     {outcomeStats.performance_metrics.efficiency_score.toFixed(1)} cases/month
-                  </span>
+                  </dd>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Consistency Score</span>
-                  <span className="text-blue-400 font-medium">
+                <div className="flex items-center justify-between">
+                  <dt>Consistency score</dt>
+                  <dd className="font-medium text-[color:hsl(var(--accent))]">
                     {outcomeStats.performance_metrics.consistency_score.toFixed(0)}/100
-                  </span>
+                  </dd>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Decision Speed</span>
-                  <span className={`font-medium ${
-                    outcomeStats.performance_metrics.speed_ranking === 'Fast' ? 'text-green-400' :
-                    outcomeStats.performance_metrics.speed_ranking === 'Slow' ? 'text-red-400' : 'text-yellow-400'
-                  }`}>
+                <div className="flex items-center justify-between">
+                  <dt>Decision speed</dt>
+                  <dd className={cn('font-medium', speedToneClass)}>
                     {outcomeStats.performance_metrics.speed_ranking}
-                  </span>
+                  </dd>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Reversal Rate</span>
-                  <span className="text-orange-400 font-medium">
+                <div className="flex items-center justify-between">
+                  <dt>Reversal rate</dt>
+                  <dd className="font-medium text-[color:hsl(var(--neg))]">
                     {(outcomeStats.overall_stats.reversal_rate * 100).toFixed(1)}%
-                  </span>
+                  </dd>
                 </div>
-              </div>
-              
-              {/* Specialization Areas */}
-              <div className="mt-4">
-                <h5 className="text-md font-medium text-white mb-2">Specialization Areas</h5>
-                <div className="flex flex-wrap gap-2">
-                  {outcomeStats.performance_metrics.specialization_areas.map((area, index) => (
-                    <span key={index} className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded">
+              </dl>
+
+              <div className="mt-5">
+                <h5 className="text-sm font-medium uppercase tracking-[0.24em] text-[color:hsl(var(--text-3))]">
+                  Specialization areas
+                </h5>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {outcomeStats.performance_metrics.specialization_areas.map((area) => (
+                    <span
+                      key={area}
+                      className="inline-flex items-center rounded-full border border-border/60 bg-[hsl(var(--bg-1))] px-3 py-1 text-xs text-[color:hsl(var(--text-2))]"
+                    >
                       {area}
                     </span>
                   ))}
@@ -241,80 +314,211 @@ export function CaseOutcomeStatistics({ judge }: CaseOutcomeStatisticsProps) {
               </div>
             </div>
           </div>
-        </div>
+        </section>
       )}
 
-      {/* Case Type Breakdown */}
       {activeView === 'breakdown' && (
-        <div>
-          <h4 className="text-lg font-medium text-white mb-4">Performance by Case Type</h4>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={outcomeStats.case_type_breakdown}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="case_type" stroke="#9CA3AF" angle={-45} textAnchor="end" height={100} />
-              <YAxis stroke="#9CA3AF" />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }}
-                formatter={(value: number, name: string) => [
-                  name.includes('rate') ? `${(value * 100).toFixed(1)}%` : value,
-                  name.replace('_', ' ')
-                ]}
-              />
-              <Bar dataKey="win_rate" fill="#10B981" name="Win Rate" />
-              <Bar dataKey="settlement_rate" fill="#3B82F6" name="Settlement Rate" />
-            </BarChart>
-          </ResponsiveContainer>
-          
+        <section id="breakdown-panel" role="tabpanel" aria-labelledby="breakdown">
+          <h4 className="mb-4 text-lg font-medium text-foreground">Performance by case type</h4>
+          <div className="rounded-2xl border border-border bg-[hsl(var(--bg-2))] p-4" id="case-types">
+            <ResponsiveContainer width="100%" height={360}>
+              <BarChart data={outcomeStats.case_type_breakdown}>
+                <CartesianGrid vertical={false} stroke={chartTheme.gridStroke} />
+                <XAxis
+                  dataKey="case_type"
+                  stroke={chartTheme.axisLine}
+                  tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                  tickLine={false}
+                  axisLine={{ stroke: chartTheme.axisLine }}
+                  angle={-30}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis
+                  stroke={chartTheme.axisLine}
+                  tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                  tickFormatter={(value: number) => `${Math.round(value * 100)}%`}
+                  tickLine={false}
+                  axisLine={{ stroke: chartTheme.axisLine }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: chartTheme.tooltip.backgroundColor,
+                    border: `1px solid ${chartTheme.tooltip.borderColor}`,
+                    borderRadius: '0.75rem',
+                    color: chartTheme.tooltip.textColor,
+                  }}
+                  formatter={(value: number, name: string) => [
+                    name.includes('rate') ? `${(value as number * 100).toFixed(1)}%` : value,
+                    name.replace('_', ' '),
+                  ]}
+                />
+                <Legend
+                  align="left"
+                  verticalAlign="top"
+                  iconType="circle"
+                  iconSize={8}
+                  wrapperStyle={{ paddingBottom: 12 }}
+                  onClick={(entry) => handleSeriesToggle(entry?.dataKey as string)}
+                  formatter={(value, entry) => (
+                    <span
+                      className="text-xs"
+                      style={{
+                        color: chartTheme.legend.textColor,
+                        opacity: entry?.dataKey && isSeriesActive(entry.dataKey as string) ? 1 : 0.4,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {value}
+                    </span>
+                  )}
+                />
+                <Bar
+                  dataKey="win_rate"
+                  name="Win rate"
+                  fill={chartTheme.getSeriesColor(1)}
+                  radius={[6, 6, 0, 0]}
+                  hide={!isSeriesActive('win_rate')}
+                />
+                <Bar
+                  dataKey="settlement_rate"
+                  name="Settlement rate"
+                  fill={chartTheme.getSeriesColor(0)}
+                  radius={[6, 6, 0, 0]}
+                  hide={!isSeriesActive('settlement_rate')}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
           <div className="mt-6 overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[640px] text-sm">
               <thead>
-                <tr className="border-b border-gray-700">
-                  <th className="text-left text-gray-400 py-2">Case Type</th>
-                  <th className="text-right text-gray-400 py-2">Cases</th>
-                  <th className="text-right text-gray-400 py-2">Win Rate</th>
-                  <th className="text-right text-gray-400 py-2">Settlement Rate</th>
-                  <th className="text-right text-gray-400 py-2">Avg Duration</th>
+                <tr className="border-b border-border/80 text-[color:hsl(var(--text-3))]">
+                  <th className="py-2 text-left font-medium">Case type</th>
+                  <th className="py-2 text-right font-medium">Cases</th>
+                  <th className="py-2 text-right font-medium">Win rate</th>
+                  <th className="py-2 text-right font-medium">Settlement rate</th>
+                  <th className="py-2 text-right font-medium">Median duration</th>
                 </tr>
               </thead>
               <tbody>
                 {outcomeStats.case_type_breakdown.map((item, index) => (
-                  <tr key={index} className="border-b border-gray-800">
-                    <td className="text-white py-2">{item.case_type}</td>
-                    <td className="text-gray-300 py-2 text-right">{item.total_cases}</td>
-                    <td className="text-green-400 py-2 text-right">{(item.win_rate * 100).toFixed(1)}%</td>
-                    <td className="text-blue-400 py-2 text-right">{(item.settlement_rate * 100).toFixed(1)}%</td>
-                    <td className="text-yellow-400 py-2 text-right">{item.avg_duration} days</td>
+                  <tr key={item.case_type} className={index % 2 === 0 ? 'bg-[hsl(var(--bg-1))]/40' : ''}>
+                    <td className="py-2 text-left text-[color:hsl(var(--text-1))]">{item.case_type}</td>
+                    <td className="py-2 text-right text-[color:hsl(var(--text-2))]">{item.total_cases}</td>
+                    <td className="py-2 text-right text-[color:hsl(var(--pos))]">{(item.win_rate * 100).toFixed(1)}%</td>
+                    <td className="py-2 text-right text-[color:hsl(var(--accent))]">{(item.settlement_rate * 100).toFixed(1)}%</td>
+                    <td className="py-2 text-right text-[color:hsl(var(--warn))]">{item.avg_duration} days</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       )}
 
-      {/* Trends */}
       {activeView === 'trends' && (
-        <div>
-          <h4 className="text-lg font-medium text-white mb-4">Performance Trends Over Time</h4>
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={outcomeStats.yearly_trends}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="year" stroke="#9CA3AF" />
-              <YAxis stroke="#9CA3AF" />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }}
-                formatter={(value: number, name: string) => [
-                  name.includes('rate') ? `${(value * 100).toFixed(1)}%` : value,
-                  name.replace('_', ' ')
-                ]}
-              />
-              <Line type="monotone" dataKey="total_cases" stroke="#8B5CF6" name="Total Cases" />
-              <Line type="monotone" dataKey="win_rate" stroke="#10B981" name="Win Rate" />
-              <Line type="monotone" dataKey="settlement_rate" stroke="#3B82F6" name="Settlement Rate" />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        <section id="trends-panel" role="tabpanel" aria-labelledby="trends">
+          <h4 className="mb-4 text-lg font-medium text-foreground">Performance trends over time</h4>
+          <div className="rounded-2xl border border-border bg-[hsl(var(--bg-2))] p-4" id="trends">
+            <ResponsiveContainer width="100%" height={360}>
+              <LineChart data={outcomeStats.yearly_trends}>
+                <CartesianGrid vertical={false} stroke={chartTheme.gridStroke} />
+                <XAxis
+                  dataKey="year"
+                  stroke={chartTheme.axisLine}
+                  tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                  tickLine={false}
+                  axisLine={{ stroke: chartTheme.axisLine }}
+                />
+                <YAxis
+                  stroke={chartTheme.axisLine}
+                  tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                  tickLine={false}
+                  axisLine={{ stroke: chartTheme.axisLine }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: chartTheme.tooltip.backgroundColor,
+                    border: `1px solid ${chartTheme.tooltip.borderColor}`,
+                    borderRadius: '0.75rem',
+                    color: chartTheme.tooltip.textColor,
+                  }}
+                  formatter={(value: number, name: string) => [
+                    name.includes('rate') ? `${(value as number * 100).toFixed(1)}%` : value,
+                    name.replace('_', ' '),
+                  ]}
+                />
+                <Legend
+                  align="left"
+                  verticalAlign="top"
+                  iconType="circle"
+                  iconSize={8}
+                  wrapperStyle={{ paddingBottom: 12 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="total_cases"
+                  name="Total cases"
+                  stroke={chartTheme.getSeriesColor(3)}
+                  strokeWidth={2.5}
+                  dot={{ r: 2.5, strokeWidth: 2, stroke: chartTheme.getSeriesColor(3), fillOpacity: 0 }}
+                  activeDot={{ r: 5 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="win_rate"
+                  name="Win rate"
+                  stroke={chartTheme.getSeriesColor(1)}
+                  strokeWidth={2.5}
+                  dot={{ r: 2.5, strokeWidth: 2, stroke: chartTheme.getSeriesColor(1), fillOpacity: 0 }}
+                  strokeDasharray="6 4"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="settlement_rate"
+                  name="Settlement rate"
+                  stroke={chartTheme.getSeriesColor(0)}
+                  strokeWidth={2.5}
+                  dot={{ r: 2.5, strokeWidth: 2, stroke: chartTheme.getSeriesColor(0), fillOpacity: 0 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
       )}
-    </div>
+    </section>
+  )
+}
+
+function MetricTile({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: LucideIcon
+  label: string
+  value: string
+  tone: 'positive' | 'accent' | 'info' | 'muted'
+}) {
+  const toneClass =
+    tone === 'positive'
+      ? 'bg-[rgba(103,232,169,0.14)] text-[color:hsl(var(--pos))]'
+      : tone === 'accent'
+      ? 'bg-[rgba(110,168,254,0.18)] text-[color:hsl(var(--accent))]'
+      : tone === 'info'
+      ? 'bg-[hsl(var(--bg-1))]/70 text-[color:hsl(var(--text-1))]'
+      : 'bg-[hsl(var(--bg-1))] text-[color:hsl(var(--text-2))]'
+
+  return (
+    <article className="rounded-2xl border border-border/60 bg-[hsl(var(--bg-2))] p-4">
+      <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-[color:hsl(var(--text-3))]">
+        <Icon className="h-4 w-4" aria-hidden />
+        {label}
+      </div>
+      <div className={cn('mt-3 inline-flex rounded-full px-4 py-2 text-base font-semibold', toneClass)}>{value}</div>
+    </article>
   )
 }

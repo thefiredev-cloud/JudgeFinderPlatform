@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSafeUser, SafeSignInButton } from '@/lib/auth/safe-clerk-components'
 import { BookmarkIcon, LoaderIcon } from 'lucide-react'
+import { useSafeUser, SafeSignInButton } from '@/lib/auth/safe-clerk-components'
+import { cn } from '@/lib/utils/index'
 
 interface BookmarkButtonProps {
   judgeId: string
@@ -82,7 +83,7 @@ export function BookmarkButton({ judgeId, judgeName, className = '' }: BookmarkB
   if (!isLoaded) {
     return (
       <div className={`flex items-center justify-center ${className}`}>
-        <LoaderIcon className="h-5 w-5 animate-spin text-gray-400" />
+        <LoaderIcon className="h-5 w-5 animate-spin text-[color:hsl(var(--text-3))]" />
       </div>
     )
   }
@@ -90,9 +91,14 @@ export function BookmarkButton({ judgeId, judgeName, className = '' }: BookmarkB
   if (!isSignedIn) {
     return (
       <SafeSignInButton mode="modal">
-        <button className={`flex items-center space-x-2 px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg hover:bg-gray-600/50 transition-colors ${className}`}>
-          <BookmarkIcon className="h-5 w-5 text-gray-400" />
-          <span className="text-gray-300">Save Judge</span>
+        <button
+          className={cn(
+            'flex items-center space-x-2 rounded-full border border-border/70 bg-[hsl(var(--bg-1))] px-4 py-2 text-[color:hsl(var(--text-2))] transition-colors hover:text-[color:hsl(var(--text-1))]',
+            className,
+          )}
+        >
+          <BookmarkIcon className="h-5 w-5" />
+          <span>Save Judge</span>
         </button>
       </SafeSignInButton>
     )
@@ -102,11 +108,13 @@ export function BookmarkButton({ judgeId, judgeName, className = '' }: BookmarkB
     <button
       onClick={toggleBookmark}
       disabled={isLoading}
-      className={`flex items-center space-x-2 px-4 py-2 border rounded-lg transition-colors ${
+      className={cn(
+        'flex items-center space-x-2 rounded-full border px-4 py-2 transition-colors',
         isBookmarked
-          ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/30'
-          : 'bg-gray-700/50 border-gray-600 text-gray-300 hover:bg-gray-600/50'
-      } ${className}`}
+          ? 'border-[rgba(110,168,254,0.45)] bg-[rgba(110,168,254,0.18)] text-[color:hsl(var(--text-1))] hover:bg-[rgba(110,168,254,0.24)]'
+          : 'border-border/70 bg-[hsl(var(--bg-1))] text-[color:hsl(var(--text-2))] hover:text-[color:hsl(var(--text-1))]',
+        className,
+      )}
     >
       {isLoading ? (
         <LoaderIcon className="h-5 w-5 animate-spin" />

@@ -278,13 +278,19 @@ export default async function JudgePage({ params }: JudgePageProps) {
             <JudgeProfile judge={judge} />
             
             {/* Professional Background Section */}
-            <ProfessionalBackground judge={judge} />
+            <section id="professional-background" className="scroll-mt-32">
+              <ProfessionalBackground judge={judge} />
+            </section>
             
             {/* AI Analytics Section */}
-            <AnalyticsSliders judgeId={judge.id} judgeName={safeName} />
+            <section id="analytics" className="scroll-mt-32">
+              <AnalyticsSliders judgeId={judge.id} judgeName={safeName} />
+            </section>
             
             {/* Recent Decisions */}
-            <RecentDecisions judgeId={judge.id} />
+            <section id="recent-decisions" className="scroll-mt-32">
+              <RecentDecisions judgeId={judge.id} />
+            </section>
           </div>
 
           {/* Right Column - Sidebar Content */}

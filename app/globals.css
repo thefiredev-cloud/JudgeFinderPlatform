@@ -4,58 +4,114 @@
 
 @layer base {
   :root {
-    /* Light theme - Enterprise */
-    --background: 0 0% 100%;
-    --foreground: 222 84% 5%; /* Slate Black #0f172a */
-    --card: 0 0% 100%;
-    --card-foreground: 222 84% 5%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 84% 5%;
-    --primary: 221 83% 53%; /* Primary Blue #2563eb */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
-    --accent: 217 91% 60%; /* Accent Blue #3b82f6 */
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 221 83% 53%;
-    --radius: 0.5rem;
-    
-    /* Enterprise brand colors */
-    --enterprise-primary: #2563eb;
-    --enterprise-deep: #1e40af;
-    --enterprise-slate-black: #0f172a;
-    --enterprise-slate-800: #1e293b;
-    --enterprise-accent: #3b82f6;
-    --enterprise-light: #60a5fa;
+    color-scheme: light;
+
+    /* Core surface + type scale */
+    --bg-0: 210 40% 98%; /* page */
+    --bg-1: 213 44% 96%; /* panels */
+    --bg-2: 216 41% 92%; /* cards */
+    --text-1: 222 47% 11%;
+    --text-2: 221 15% 34%;
+    --text-3: 220 13% 46%;
+    --border-1: 220 13% 91%;
+    --muted-1: 220 14% 96%;
+
+    /* Accent + semantic hues */
+    --accent: 216 98% 71%;
+    --accent-foreground: 222 84% 5%;
+    --pos: 151 74% 66%;
+    --neg: 0 94% 82%;
+    --warn: 38 93% 77%;
+
+    /* Legacy Tailwind tokens mapped to palette */
+    --background: var(--bg-0);
+    --foreground: var(--text-1);
+    --card: var(--bg-2);
+    --card-foreground: var(--text-1);
+    --popover: var(--bg-1);
+    --popover-foreground: var(--text-1);
+    --primary: var(--accent);
+    --primary-foreground: var(--accent-foreground);
+    --secondary: var(--bg-2);
+    --secondary-foreground: var(--text-1);
+    --muted: var(--muted-1);
+    --muted-foreground: var(--text-3);
+    --border: var(--border-1);
+    --input: var(--border-1);
+    --ring: var(--accent);
+    --destructive: var(--neg);
+    --destructive-foreground: var(--text-1);
+    --radius: 0.75rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --bg-0: 228 19% 5%;
+      --bg-1: 223 17% 8%;
+      --bg-2: 226 23% 11%;
+      --text-1: 216 16% 94%;
+      --text-2: 217 14% 74%;
+      --text-3: 216 12% 54%;
+      --border-1: 221 17% 18%;
+      --muted-1: 220 21% 14%;
+      --accent: 216 99% 71%;
+      --accent-foreground: 222 84% 5%;
+      --pos: 151 74% 66%;
+      --neg: 0 94% 82%;
+      --warn: 38 93% 77%;
+      --background: var(--bg-0);
+      --foreground: var(--text-1);
+      --card: var(--bg-2);
+      --card-foreground: var(--text-1);
+      --popover: var(--bg-1);
+      --popover-foreground: var(--text-1);
+      --primary: var(--accent);
+      --primary-foreground: var(--accent-foreground);
+      --secondary: var(--bg-2);
+      --secondary-foreground: var(--text-1);
+      --muted: var(--muted-1);
+      --muted-foreground: var(--text-3);
+      --border: var(--border-1);
+      --input: var(--border-1);
+      --ring: var(--accent);
+      --destructive: var(--neg);
+      --destructive-foreground: var(--text-1);
+    }
   }
 
   .dark {
-    /* Dark theme - Enterprise */
-    --background: 222 84% 5%; /* Slate Black #0f172a */
-    --foreground: 210 40% 98%;
-    --card: 222 47% 11%; /* Slate 800 #1e293b */
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 213 94% 68%; /* Light Blue #60a5fa */
-    --primary-foreground: 222 84% 5%;
-    --secondary: 222 47% 11%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 199 89% 77%; /* Light Blue Accent #93c5fd */
+    color-scheme: dark;
+    --bg-0: 228 19% 5%;
+    --bg-1: 223 17% 8%;
+    --bg-2: 226 23% 11%;
+    --text-1: 216 16% 94%;
+    --text-2: 217 14% 74%;
+    --text-3: 216 12% 54%;
+    --border-1: 221 17% 18%;
+    --muted-1: 220 21% 14%;
+    --accent: 216 99% 71%;
     --accent-foreground: 222 84% 5%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 213 94% 68%;
+    --pos: 151 74% 66%;
+    --neg: 0 94% 82%;
+    --warn: 38 93% 77%;
+    --background: var(--bg-0);
+    --foreground: var(--text-1);
+    --card: var(--bg-2);
+    --card-foreground: var(--text-1);
+    --popover: var(--bg-1);
+    --popover-foreground: var(--text-1);
+    --primary: var(--accent);
+    --primary-foreground: var(--accent-foreground);
+    --secondary: var(--bg-2);
+    --secondary-foreground: var(--text-1);
+    --muted: var(--muted-1);
+    --muted-foreground: var(--text-3);
+    --border: var(--border-1);
+    --input: var(--border-1);
+    --ring: var(--accent);
+    --destructive: var(--neg);
+    --destructive-foreground: var(--text-1);
   }
 }
 

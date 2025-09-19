@@ -1,6 +1,7 @@
 # JudgeFinder Platform - AI Agents & Automation Systems
 
 ## 🚀 LAUNCH STATUS: 5 Days to Production
+
 See `docs/LAUNCH_PLAN.md` for the complete deployment strategy
 
 ## Overview
@@ -10,6 +11,7 @@ The JudgeFinder Platform employs a sophisticated network of AI agents and automa
 **Platform Mission:** Promote judicial transparency through AI-powered bias detection and automated data analysis.
 
 ### Quick Launch Commands
+
 ```bash
 # Generate AI analytics for all judges (Day 1-2)
 npm run launch:analytics
@@ -30,6 +32,7 @@ npm run launch:validate
 **Purpose:** Generates comprehensive judicial bias and pattern analysis
 
 #### Capabilities
+
 - **Case Document Analysis**: Processes up to 50 case documents per judge
 - **Pattern Recognition**: Identifies judicial tendencies across 6 key categories:
   - Civil litigation plaintiff/defendant favor rates
@@ -40,6 +43,7 @@ npm run launch:validate
   - Plea deal acceptance patterns
 
 #### Analytics Output
+
 ```json
 {
   "civil_plaintiff_favor": 52,
@@ -53,6 +57,7 @@ npm run launch:validate
 ```
 
 #### Prompt Engineering
+
 - Uses structured prompts with confidence scoring (60-95%)
 - Implements fallback analytics for insufficient data
 - Validates output with normalization functions
@@ -65,6 +70,7 @@ npm run launch:validate
 **Purpose:** Backup analytics generation when Gemini fails
 
 #### Features
+
 - Simplified analytics generation with reduced token limits
 - Error-resistant processing for edge cases
 - Maintains consistency with primary agent output format
@@ -78,6 +84,7 @@ npm run launch:validate
 **Purpose:** Automated court data updates from CourtListener API
 
 #### Features
+
 - **Batch Processing**: Handles court updates in configurable batches (default: 20)
 - **Rate Limiting**: Built-in delays to respect API limits
 - **Change Detection**: Only updates courts with actual changes
@@ -85,6 +92,7 @@ npm run launch:validate
 - **Logging**: Comprehensive sync tracking and performance metrics
 
 #### Sync Process
+
 ```typescript
 // Daily court sync
 await courtSyncManager.syncCourts({
@@ -100,6 +108,7 @@ await courtSyncManager.syncCourts({
 **Purpose:** Maintains up-to-date judge information
 
 #### Capabilities
+
 - CourtListener integration for official judge data
 - Position history tracking
 - Automatic slug generation for SEO
@@ -111,6 +120,7 @@ await courtSyncManager.syncCourts({
 **Purpose:** Fetches and processes recent judicial decisions
 
 #### Features
+
 - **Real-time Updates**: Daily sync of new decisions
 - **Text Processing**: Extracts analyzable content from court documents
 - **Analytics Integration**: Feeds processed decisions to AI analytics agents
@@ -122,12 +132,14 @@ await courtSyncManager.syncCourts({
 **Purpose:** Monitors and updates judge-court assignments
 
 #### Intelligence Features
+
 - **Change Detection**: Identifies new positions, ended assignments
 - **Data Validation**: Cross-references external sources
 - **Automated Actions**: Marks assignments for review based on severity
 - **Historical Tracking**: Maintains assignment change history
 
 #### Severity Levels
+
 - **High**: Position ended, requires immediate review
 - **Medium**: New position detected, create assignment
 - **Low**: Routine verification update
@@ -140,6 +152,7 @@ await courtSyncManager.syncCourts({
 **Schedule:** Every day at 2:00 AM and 2:00 PM
 
 #### Tasks
+
 - Queue decision document sync (high priority)
 - Queue judge profile updates (medium priority)
 - Rate limiting and batch processing
@@ -151,6 +164,7 @@ await courtSyncManager.syncCourts({
 **Schedule:** Sundays at 3:00 AM
 
 #### Tasks
+
 - Comprehensive court data refresh
 - Full analytics regeneration
 - Data integrity validation
@@ -161,6 +175,7 @@ await courtSyncManager.syncCourts({
 **Schedule:** Daily at 2:00 AM and 2:00 PM + Weekly Monday 3:00 AM
 
 #### Features
+
 ```javascript
 // Twice daily updates
 cron.schedule('0 2,14 * * *', async () => {
@@ -181,6 +196,7 @@ cron.schedule('0 3 * * 1', async () => {
 **Purpose:** Manages async processing of sync operations
 
 #### Features
+
 - Priority-based job scheduling
 - Failure recovery and retry logic
 - Performance monitoring
@@ -192,6 +208,7 @@ cron.schedule('0 3 * * 1', async () => {
 **Purpose:** Real-time bias pattern visualization
 
 #### Analytics Components
+
 - **Case Type Patterns**: Distribution and outcome analysis
 - **Temporal Trends**: Time-based pattern identification
 - **Bias Indicators**: 5-metric scoring system:
@@ -209,6 +226,7 @@ cron.schedule('0 3 * * 1', async () => {
 **Purpose:** Official court data integration
 
 #### Features
+
 - Authentication handling
 - Rate limiting compliance
 - Data transformation and validation
@@ -219,6 +237,7 @@ cron.schedule('0 3 * * 1', async () => {
 **Purpose:** Performance optimization for complex analytics
 
 #### Features
+
 - Redis-based caching for analytics results
 - Automatic cache invalidation on data updates
 - Performance metrics tracking
@@ -231,6 +250,7 @@ cron.schedule('0 3 * * 1', async () => {
 **Location:** `scripts/comprehensive-validation.js`
 
 #### Validation Systems
+
 - **Court-Judge Relationship Validator**: Ensures assignment accuracy
 - **URL Accessibility Tester**: Validates external links
 - **Data Integrity Checker**: Identifies orphaned records
@@ -241,6 +261,7 @@ cron.schedule('0 3 * * 1', async () => {
 **Location:** `lib/rate-limit.ts`, `middleware.ts`
 
 #### Protection Mechanisms
+
 - API rate limiting with Redis
 - Request authentication for cron jobs
 - Security headers and CSP
@@ -313,6 +334,7 @@ node scripts/update-recent-decisions.js
 ### Performance Metrics
 
 The platform tracks:
+
 - Sync operation success rates
 - AI API response times and costs
 - Data processing throughput
@@ -328,6 +350,7 @@ The platform tracks:
 ### Logging
 
 All agents and automation systems use structured logging:
+
 - Operation start/completion times
 - Error tracking with context
 - Performance metrics
@@ -336,12 +359,14 @@ All agents and automation systems use structured logging:
 ## Cost Optimization
 
 ### AI Usage Optimization
+
 - **Token Estimation**: Tracks input/output tokens for cost control
 - **Caching Strategy**: Reduces redundant AI API calls
 - **Fallback Logic**: Uses cheaper models when appropriate
 - **Batch Processing**: Optimizes API request patterns
 
 ### Resource Management
+
 - Configurable batch sizes for performance tuning
 - Rate limiting to prevent API overuse
 - Efficient database queries with proper indexing
@@ -382,12 +407,14 @@ node scripts/test-courtlistener.js
 ## Future Enhancements
 
 ### Planned Agent Improvements
+
 - Enhanced natural language processing for case summaries
 - Multi-jurisdiction support beyond California
 - Real-time alert system for significant judicial pattern changes
 - Advanced machine learning models for predictive analytics
 
 ### Automation Expansions
+
 - Automated report generation for transparency organizations
 - Integration with additional legal databases
 - Enhanced bias detection algorithms

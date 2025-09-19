@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import {
   BarChart,
   Bar,
@@ -16,6 +16,8 @@ import {
 import { TrendingUp, Scale, AlertTriangle, CheckCircle, Clock, BarChart3 } from 'lucide-react'
 import type { Judge } from '@/types'
 import { cn } from '@/lib/utils'
+import { chartTheme } from '@/lib/charts/theme'
+import { useJudgeFilterParams } from '@/hooks/useJudgeFilters'
 
 interface BiasMetrics {
   case_type_patterns: Array<{
@@ -61,17 +63,24 @@ interface BiasPatternAnalysisProps {
   judge: Judge
 }
 
-const COLORS = ['#2563eb', '#16a34a', '#f97316', '#ef4444', '#8b5cf6']
-
 export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
   const [biasMetrics, setBiasMetrics] = useState<BiasMetrics | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'patterns' | 'outcomes' | 'trends' | 'indicators'>('patterns')
+  const [outcomeSeries, setOutcomeSeries] = useState<string[]>(['case_count', 'settlement_rate'])
+  const [temporalSeries, setTemporalSeries] = useState<string[]>(['case_count', 'settlement_rate'])
+  const { filters, filtersKey } = useJudgeFilterParams()
 
   useEffect(() => {
     const fetchBiasMetrics = async () => {
       try {
-        const response = await fetch(`/api/judges/${judge.id}/bias-analysis`)
+        const params = new URLSearchParams()
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value) params.set(key, value)
+        })
+        const response = await fetch(
+          `/api/judges/${judge.id}/bias-analysis${params.toString() ? `?${params.toString()}` : ''}`,
+        )
         if (response.ok) {
           const data = await response.json()
           setBiasMetrics(data)
@@ -84,7 +93,7 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
     }
 
     fetchBiasMetrics()
-  }, [judge.id])
+  }, [filters, filtersKey, judge.id])
 
   const tabs = useMemo(
     () => [
@@ -96,17 +105,46 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
     []
   )
 
+  const toggleOutcomeSeries = useCallback((dataKey?: string) => {
+    if (!dataKey) return
+    setOutcomeSeries((prev) => {
+      const isActive = prev.includes(dataKey)
+      if (isActive && prev.length === 1) return prev
+      return isActive ? prev.filter((key) => key !== dataKey) : [...prev, dataKey]
+    })
+  }, [])
+
+  const isOutcomeSeriesActive = useCallback(
+    (dataKey: string) => outcomeSeries.includes(dataKey),
+    [outcomeSeries],
+  )
+
+  const toggleTemporalSeries = useCallback((dataKey?: string) => {
+    if (!dataKey) return
+    setTemporalSeries((prev) => {
+      const isActive = prev.includes(dataKey)
+      if (isActive && prev.length === 1) return prev
+      return isActive ? prev.filter((key) => key !== dataKey) : [...prev, dataKey]
+    })
+  }, [])
+
+  const isTemporalSeriesActive = useCallback(
+    (dataKey: string) => temporalSeries.includes(dataKey),
+    [temporalSeries],
+  )
+
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-emerald-500'
-    if (score >= 60) return 'text-amber-500'
-    if (score >= 40) return 'text-orange-500'
-    return 'text-red-500'
+    if (score >= 80) return 'text-[color:hsl(var(--pos))]'
+    if (score >= 60) return 'text-[color:hsl(var(--warn))]'
+    if (score >= 40) return 'text-[color:hsl(var(--accent))]'
+    return 'text-[color:hsl(var(--neg))]'
   }
 
   const getScoreIcon = (score: number) => {
-    if (score >= 80) return <CheckCircle className="h-4 w-4" />
-    if (score >= 60) return <Clock className="h-4 w-4" />
-    return <AlertTriangle className="h-4 w-4" />
+    if (score >= 80) return <CheckCircle className="h-4 w-4 text-[color:hsl(var(--pos))]" />
+    if (score >= 60) return <Clock className="h-4 w-4 text-[color:hsl(var(--warn))]" />
+    if (score >= 40) return <TrendingUp className="h-4 w-4 text-[color:hsl(var(--accent))]" />
+    return <AlertTriangle className="h-4 w-4 text-[color:hsl(var(--neg))]" />
   }
 
   const containerClass = 'rounded-2xl border border-border bg-card/90 p-6 shadow-md backdrop-blur supports-[backdrop-filter]:bg-card/75'
@@ -129,7 +167,7 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
   if (!biasMetrics) {
     return (
       <section className={cn(containerClass, 'text-center')}>
-        <AlertTriangle className="mx-auto mb-2 h-8 w-8 text-warning" />
+        <AlertTriangle className="mx-auto mb-2 h-8 w-8 text-[color:hsl(var(--warn))]" />
         <p className="text-sm text-muted-foreground">
           We couldn&apos;t load judicial pattern analytics right now. Please refresh the page or try again later.
         </p>
@@ -231,45 +269,66 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
       {activeTab === 'patterns' && (
         <div id="patterns-panel" role="tabpanel" aria-labelledby="patterns">
           <h4 className="mb-4 text-lg font-medium text-foreground">Case type distribution &amp; outcomes</h4>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-xl border border-border bg-muted/20 p-4">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2" id="case-patterns">
+            <div className="rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={biasMetrics.case_type_patterns}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.2)" />
-                  <XAxis dataKey="case_type" stroke="var(--tw-prose-body)" tick={{ fill: 'var(--tw-prose-body)' }} />
-                  <YAxis stroke="var(--tw-prose-body)" tick={{ fill: 'var(--tw-prose-body)' }} />
+                  <CartesianGrid vertical={false} stroke={chartTheme.gridStroke} />
+                  <XAxis
+                    dataKey="case_type"
+                    stroke={chartTheme.axisLine}
+                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={{ stroke: chartTheme.axisLine }}
+                  />
+                  <YAxis
+                    stroke={chartTheme.axisLine}
+                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={{ stroke: chartTheme.axisLine }}
+                  />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'hsl(var(--popover))',
-                      border: '1px solid hsl(var(--border))',
+                      backgroundColor: chartTheme.tooltip.backgroundColor,
+                      border: `1px solid ${chartTheme.tooltip.borderColor}`,
                       borderRadius: '0.75rem',
+                      color: chartTheme.tooltip.textColor,
                     }}
-                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                    labelStyle={{ color: chartTheme.tooltip.textColor }}
                   />
-                  <Bar dataKey="total_cases" fill={COLORS[0]} radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="total_cases" fill={chartTheme.getSeriesColor(0)} radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="rounded-xl border border-border bg-muted/20 p-4">
+            <div className="rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={biasMetrics.case_type_patterns}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.2)" />
-                  <XAxis dataKey="case_type" stroke="var(--tw-prose-body)" tick={{ fill: 'var(--tw-prose-body)' }} />
+                  <CartesianGrid vertical={false} stroke={chartTheme.gridStroke} />
+                  <XAxis
+                    dataKey="case_type"
+                    stroke={chartTheme.axisLine}
+                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={{ stroke: chartTheme.axisLine }}
+                  />
                   <YAxis
-                    stroke="var(--tw-prose-body)"
-                    tick={{ fill: 'var(--tw-prose-body)' }}
+                    stroke={chartTheme.axisLine}
+                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
                     tickFormatter={(value: number) => `${Math.round(value * 100)}%`}
+                    tickLine={false}
+                    axisLine={{ stroke: chartTheme.axisLine }}
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'hsl(var(--popover))',
-                      border: '1px solid hsl(var(--border))',
+                      backgroundColor: chartTheme.tooltip.backgroundColor,
+                      border: `1px solid ${chartTheme.tooltip.borderColor}`,
                       borderRadius: '0.75rem',
+                      color: chartTheme.tooltip.textColor,
                     }}
-                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                    labelStyle={{ color: chartTheme.tooltip.textColor }}
                     formatter={(value: number) => [`${(value * 100).toFixed(1)}%`, 'Settlement rate']}
                   />
-                  <Bar dataKey="settlement_rate" fill={COLORS[1]} radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="settlement_rate" fill={chartTheme.getSeriesColor(1)} radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -288,51 +347,86 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-xl border border-border bg-muted/20 p-4">
+            <div className="rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4" id="outcomes">
               <ResponsiveContainer width="100%" height={320}>
                 <LineChart data={biasMetrics.outcome_analysis.case_value_trends}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.2)" />
-                  <XAxis dataKey="value_range" stroke="var(--tw-prose-body)" tick={{ fill: 'var(--tw-prose-body)' }} />
+                  <CartesianGrid vertical={false} stroke={chartTheme.gridStroke} />
+                  <XAxis
+                    dataKey="value_range"
+                    stroke={chartTheme.axisLine}
+                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={{ stroke: chartTheme.axisLine }}
+                  />
                   <YAxis
                     yAxisId="left"
-                    stroke="var(--tw-prose-body)"
-                    tick={{ fill: 'var(--tw-prose-body)' }}
+                    stroke={chartTheme.axisLine}
+                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={{ stroke: chartTheme.axisLine }}
                   />
                   <YAxis
                     yAxisId="right"
                     orientation="right"
-                    stroke="var(--tw-prose-body)"
-                    tick={{ fill: 'var(--tw-prose-body)' }}
+                    stroke={chartTheme.axisLine}
+                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
                     tickFormatter={(value: number) => `${Math.round(value * 100)}%`}
+                    tickLine={false}
+                    axisLine={{ stroke: chartTheme.axisLine }}
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'hsl(var(--popover))',
-                      border: '1px solid hsl(var(--border))',
+                      backgroundColor: chartTheme.tooltip.backgroundColor,
+                      border: `1px solid ${chartTheme.tooltip.borderColor}`,
                       borderRadius: '0.75rem',
+                      color: chartTheme.tooltip.textColor,
                     }}
-                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                    labelStyle={{ color: chartTheme.tooltip.textColor }}
+                  />
+                  <Legend
+                    align="left"
+                    verticalAlign="top"
+                    iconType="circle"
+                    iconSize={8}
+                    wrapperStyle={{ paddingBottom: 12 }}
+                    onClick={(entry) => toggleOutcomeSeries(entry?.dataKey as string)}
+                    formatter={(value, entry) => (
+                      <span
+                        className="text-xs"
+                        style={{
+                          color: chartTheme.legend.textColor,
+                          opacity: entry?.dataKey && isOutcomeSeriesActive(entry.dataKey as string) ? 1 : 0.4,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {value}
+                      </span>
+                    )}
                   />
                   <Line
                     yAxisId="left"
                     type="monotone"
                     dataKey="case_count"
-                    stroke={COLORS[0]}
+                    stroke={chartTheme.getSeriesColor(0)}
                     strokeWidth={2.5}
-                    dot={false}
+                    dot={{ r: 2.5, strokeWidth: 2, stroke: chartTheme.getSeriesColor(0), fillOpacity: 0 }}
+                    activeDot={{ r: 5 }}
+                    hide={!isOutcomeSeriesActive('case_count')}
                   />
                   <Line
                     yAxisId="right"
                     type="monotone"
                     dataKey="settlement_rate"
-                    stroke={COLORS[1]}
+                    stroke={chartTheme.getSeriesColor(1)}
                     strokeWidth={2.5}
-                    dot={false}
+                    dot={{ r: 2.5, strokeWidth: 2, stroke: chartTheme.getSeriesColor(1), fillOpacity: 0 }}
+                    strokeDasharray="6 4"
+                    hide={!isOutcomeSeriesActive('settlement_rate')}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+            <div className="flex flex-col gap-3 rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4 text-sm text-muted-foreground">
               <h5 className="text-base font-semibold text-foreground">What stands out</h5>
               <ul className="space-y-2">
                 {outcomeSummary.map((item) => (
@@ -351,54 +445,88 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
         <div id="trends-panel" role="tabpanel" aria-labelledby="trends">
           <h4 className="mb-4 text-lg font-medium text-foreground">Temporal trends</h4>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2 rounded-xl border border-border bg-muted/20 p-4">
+            <div className="lg:col-span-2 rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4" id="temporal-trends">
               <ResponsiveContainer width="100%" height={320}>
                 <LineChart data={biasMetrics.temporal_patterns}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.2)" />
-                  <XAxis dataKey="month" stroke="var(--tw-prose-body)" tick={{ fill: 'var(--tw-prose-body)' }} />
+                  <CartesianGrid vertical={false} stroke={chartTheme.gridStroke} />
+                  <XAxis
+                    dataKey="month"
+                    stroke={chartTheme.axisLine}
+                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={{ stroke: chartTheme.axisLine }}
+                  />
                   <YAxis
                     yAxisId="left"
-                    stroke="var(--tw-prose-body)"
-                    tick={{ fill: 'var(--tw-prose-body)' }}
+                    stroke={chartTheme.axisLine}
+                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={{ stroke: chartTheme.axisLine }}
                   />
                   <YAxis
                     yAxisId="right"
                     orientation="right"
-                    stroke="var(--tw-prose-body)"
-                    tick={{ fill: 'var(--tw-prose-body)' }}
+                    stroke={chartTheme.axisLine}
+                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
                     tickFormatter={(value: number) => `${Math.round(value * 100)}%`}
+                    tickLine={false}
+                    axisLine={{ stroke: chartTheme.axisLine }}
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'hsl(var(--popover))',
-                      border: '1px solid hsl(var(--border))',
+                      backgroundColor: chartTheme.tooltip.backgroundColor,
+                      border: `1px solid ${chartTheme.tooltip.borderColor}`,
                       borderRadius: '0.75rem',
+                      color: chartTheme.tooltip.textColor,
                     }}
-                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                    labelStyle={{ color: chartTheme.tooltip.textColor }}
                   />
-                  <Legend formatter={(value) => <span className="text-xs text-muted-foreground">{value}</span>} />
+                  <Legend
+                    align="left"
+                    verticalAlign="top"
+                    iconType="circle"
+                    iconSize={8}
+                    wrapperStyle={{ paddingBottom: 12 }}
+                    onClick={(entry) => toggleTemporalSeries(entry?.dataKey as string)}
+                    formatter={(value, entry) => (
+                      <span
+                        className="text-xs"
+                        style={{
+                          color: chartTheme.legend.textColor,
+                          opacity: entry?.dataKey && isTemporalSeriesActive(entry.dataKey as string) ? 1 : 0.4,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {value}
+                      </span>
+                    )}
+                  />
                   <Line
                     yAxisId="left"
                     type="monotone"
                     dataKey="case_count"
-                    stroke={COLORS[0]}
+                    stroke={chartTheme.getSeriesColor(0)}
                     strokeWidth={2.5}
-                    dot={false}
+                    dot={{ r: 2.5, strokeWidth: 2, stroke: chartTheme.getSeriesColor(0), fillOpacity: 0 }}
                     name="Case count"
+                    activeDot={{ r: 5 }}
+                    hide={!isTemporalSeriesActive('case_count')}
                   />
                   <Line
                     yAxisId="right"
                     type="monotone"
                     dataKey="settlement_rate"
-                    stroke={COLORS[2]}
+                    stroke={chartTheme.getSeriesColor(2)}
                     strokeWidth={2.5}
-                    dot={false}
+                    dot={{ r: 2.5, strokeWidth: 2, stroke: chartTheme.getSeriesColor(2), fillOpacity: 0 }}
                     name="Settlement rate"
+                    strokeDasharray="6 4"
+                    hide={!isTemporalSeriesActive('settlement_rate')}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
-            <div className="rounded-xl border border-border bg-muted/20 p-4">
+            <div className="rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
               <h5 className="text-base font-semibold text-foreground">Seasonal highlights</h5>
               <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                 {formattedBusiestPeriod ? (
@@ -425,7 +553,7 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
           <h4 className="mb-4 text-lg font-medium text-foreground">Bias indicators</h4>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {indicatorDefinitions.map(({ name, value, description }) => (
-              <div key={name} className="rounded-xl border border-border bg-muted/20 p-4">
+              <div key={name} className="rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <span className="text-sm font-medium text-foreground">{name}</span>
                   {getScoreIcon(value)}
@@ -434,14 +562,17 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
                 <p className="mt-2 text-xs text-muted-foreground">{description}</p>
                 <div className="mt-3 h-2 rounded-full bg-muted">
                   <div
-                    className={cn('h-2 rounded-full transition-all duration-500', getScoreColor(value).replace('text', 'bg'))}
+                    className={cn(
+                      'h-2 rounded-full transition-all duration-500',
+                      getScoreColor(value).replace('text', 'bg'),
+                    )}
                     style={{ width: `${Math.min(value, 100)}%` }}
                   />
                 </div>
               </div>
             ))}
           </div>
-          <div className="mt-6 rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+          <div className="mt-6 rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4 text-sm text-muted-foreground">
             <h5 className="text-base font-semibold text-foreground">How to interpret these scores</h5>
             <p className="mt-2">
               Scores above 80 indicate a strong signal (for example, highly consistent rulings), while 60–79 reflect moderate confidence. Values below 40 highlight areas where additional context or qualitative review is recommended.
@@ -456,15 +587,15 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
 function StatCard({ title, value, tone }: { title: string; value: string; tone: 'positive' | 'critical' | 'info' | 'neutral' }) {
   const toneClass =
     tone === 'positive'
-      ? 'bg-emerald-500/10 text-emerald-500'
+      ? 'bg-[rgba(103,232,169,0.12)] text-[color:hsl(var(--pos))]'
       : tone === 'critical'
-      ? 'bg-red-500/10 text-red-500'
+      ? 'bg-[rgba(252,165,165,0.16)] text-[color:hsl(var(--neg))]'
       : tone === 'info'
-      ? 'bg-sky-500/10 text-sky-500'
-      : 'bg-muted text-foreground'
+      ? 'bg-[rgba(110,168,254,0.16)] text-[color:hsl(var(--accent))]'
+      : 'bg-[hsl(var(--bg-1))] text-[color:hsl(var(--text-2))]'
 
   return (
-    <div className="rounded-xl border border-border bg-muted/20 p-4">
+    <div className="rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
       <span className="text-xs uppercase tracking-wide text-muted-foreground">{title}</span>
       <div className={cn('mt-2 inline-flex rounded-full px-3 py-1 text-sm font-semibold', toneClass)}>{value}</div>
     </div>

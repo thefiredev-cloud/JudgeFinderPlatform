@@ -1,8 +1,27 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { TrendingUp, AlertTriangle, Scale, Users, Target, Clock, DollarSign, Filter, Download } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  Legend,
+} from 'recharts'
+import type { LucideIcon } from 'lucide-react'
+import { TrendingUp, AlertTriangle, Scale, Users, Target, Clock, Download } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { chartTheme } from '@/lib/charts/theme'
+import { cn } from '@/lib/utils/index'
 
 interface BiasAnalyticsData {
   overview: {
@@ -52,17 +71,29 @@ interface BiasAnalyticsData {
   }>
 }
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899']
-const RISK_COLORS = {
-  Low: '#10B981',
-  Medium: '#F59E0B', 
-  High: '#EF4444'
-}
+const panelClass = 'rounded-2xl border border-border bg-[hsl(var(--bg-2))] p-5 shadow-[0_1px_0_rgba(38,43,54,0.35)]'
+const selectClass =
+  'rounded-full border border-border/60 bg-[hsl(var(--bg-1))] px-3 py-1.5 text-sm text-[color:hsl(var(--text-1))] focus:outline-none focus:ring-2 focus:ring-[color:hsl(var(--accent))] focus:ring-offset-0'
+
+const RISK_BADGES = {
+  High: 'bg-[rgba(252,165,165,0.2)] text-[color:hsl(var(--neg))] border border-[rgba(252,165,165,0.4)]',
+  Medium: 'bg-[rgba(251,211,141,0.18)] text-[color:hsl(var(--warn))] border border-[rgba(251,211,141,0.35)]',
+  Low: 'bg-[rgba(103,232,169,0.14)] text-[color:hsl(var(--pos))] border border-[rgba(103,232,169,0.35)]',
+} satisfies Record<'High' | 'Medium' | 'Low', string>
+
+type TabId = 'overview' | 'patterns' | 'judges' | 'geographic'
+
+const TABS: Array<{ id: TabId; label: string; icon: LucideIcon }> = [
+  { id: 'overview', label: 'Overview', icon: TrendingUp },
+  { id: 'patterns', label: 'Bias Patterns', icon: Scale },
+  { id: 'judges', label: 'Judge Analysis', icon: Users },
+  { id: 'geographic', label: 'Geographic', icon: Target },
+]
 
 export function BiasAnalyticsDashboard() {
   const [analyticsData, setAnalyticsData] = useState<BiasAnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'overview' | 'patterns' | 'judges' | 'geographic'>('overview')
+  const [activeTab, setActiveTab] = useState<TabId>('overview')
   const [selectedJurisdiction, setSelectedJurisdiction] = useState<string>('all')
   const [riskFilter, setRiskFilter] = useState<string>('all')
 
@@ -94,10 +125,10 @@ export function BiasAnalyticsDashboard() {
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `bias-analytics-${new Date().toISOString().split('T')[0]}.csv`
-        a.click()
+        const anchor = document.createElement('a')
+        anchor.href = url
+        anchor.download = `bias-analytics-${new Date().toISOString().split('T')[0]}.csv`
+        anchor.click()
         window.URL.revokeObjectURL(url)
       }
     } catch (error) {
@@ -105,331 +136,405 @@ export function BiasAnalyticsDashboard() {
     }
   }
 
+  const jurisdictionOptions = useMemo(
+    () => [
+      { value: 'all', label: 'All jurisdictions' },
+      { value: 'CA', label: 'California' },
+      { value: 'Federal', label: 'Federal' },
+    ],
+    [],
+  )
+
   if (loading) {
     return (
-      <div className="bg-white rounded-lg p-8">
-        <div className="animate-pulse space-y-6">
-          <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+      <section className={cn(panelClass, 'flex h-64 items-center justify-center')}>
+        <div className="flex items-center gap-3 text-sm text-[color:hsl(var(--text-2))]">
+          <div className="h-3 w-3 animate-ping rounded-full bg-[color:hsl(var(--accent))]" />
+          Loading bias analytics…
         </div>
-      </div>
+      </section>
     )
   }
 
   if (!analyticsData) {
     return (
-      <div className="bg-white rounded-lg p-8 text-center">
-        <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to Load Analytics</h3>
-        <p className="text-gray-600">There was an error loading the bias analytics data.</p>
-      </div>
+      <section className={cn(panelClass, 'text-center text-sm text-[color:hsl(var(--text-2))]')}>
+        <AlertTriangle className="mx-auto mb-3 h-10 w-10 text-[color:hsl(var(--warn))]" aria-hidden />
+        <p>We couldn’t load analytics right now. Try adjusting filters or refresh later.</p>
+      </section>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Judicial Bias Analytics Dashboard</h2>
-          <p className="text-gray-600">
-            Comprehensive analysis of judicial patterns across {analyticsData.overview.total_judges} judges
-          </p>
+    <section className="space-y-6">
+      <header className={cn(panelClass, 'space-y-4')}
+        aria-label="Dashboard filters"
+      >
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="text-xs uppercase tracking-[0.28em] text-[color:hsl(var(--text-3))]">Platform analytics</div>
+            <h2 className="mt-2 text-2xl font-semibold text-[color:hsl(var(--text-1))]">
+              Judicial bias analytics
+            </h2>
+            <p className="text-sm text-[color:hsl(var(--text-2))]">
+              Aggregated from {analyticsData.overview.total_judges.toLocaleString()} judges · {analyticsData.overview.cases_analyzed.toLocaleString()} cases processed
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={selectedJurisdiction}
+              onChange={(event) => setSelectedJurisdiction(event.target.value)}
+              className={selectClass}
+            >
+              {jurisdictionOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="rounded-full border border-border/60 bg-[hsl(var(--bg-1))] px-3 text-[color:hsl(var(--text-2))] hover:text-[color:hsl(var(--text-1))]"
+              onClick={exportData}
+            >
+              <Download className="h-4 w-4" aria-hidden />
+              Export data
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-3">
-          <select
-            value={selectedJurisdiction}
-            onChange={(e) => setSelectedJurisdiction(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-          >
-            <option value="all">All Jurisdictions</option>
-            <option value="CA">California</option>
-            <option value="Federal">Federal</option>
-          </select>
-          <button
-            onClick={exportData}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            <Download className="h-4 w-4" />
-            Export Data
-          </button>
-        </div>
+      </header>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <MetricCard
+          label="Total judges"
+          value={analyticsData.overview.total_judges.toLocaleString()}
+          icon={Users}
+          tone="info"
+        />
+        <MetricCard
+          label="Avg consistency"
+          value={analyticsData.overview.avg_consistency_score.toFixed(1)}
+          icon={Target}
+          tone="positive"
+        />
+        <MetricCard
+          label="Settlement rate"
+          value={`${(analyticsData.overview.avg_settlement_rate * 100).toFixed(1)}%`}
+          icon={Scale}
+          tone="accent"
+        />
+        <MetricCard
+          label="Bias alerts"
+          value={analyticsData.overview.potential_bias_flags.toLocaleString()}
+          icon={AlertTriangle}
+          tone="critical"
+        />
+        <MetricCard
+          label="Cases analyzed"
+          value={analyticsData.overview.cases_analyzed.toLocaleString()}
+          icon={Clock}
+          tone="muted"
+        />
       </div>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Judges</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {analyticsData.overview.total_judges.toLocaleString()}
-              </p>
-            </div>
-            <Users className="h-8 w-8 text-blue-500" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Avg Consistency</p>
-              <p className="text-2xl font-bold text-green-600">
-                {analyticsData.overview.avg_consistency_score.toFixed(1)}
-              </p>
-            </div>
-            <Target className="h-8 w-8 text-green-500" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Settlement Rate</p>
-              <p className="text-2xl font-bold text-blue-600">
-                {(analyticsData.overview.avg_settlement_rate * 100).toFixed(1)}%
-              </p>
-            </div>
-            <Scale className="h-8 w-8 text-blue-500" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Bias Flags</p>
-              <p className="text-2xl font-bold text-red-600">
-                {analyticsData.overview.potential_bias_flags}
-              </p>
-            </div>
-            <AlertTriangle className="h-8 w-8 text-red-500" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Cases Analyzed</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {analyticsData.overview.cases_analyzed.toLocaleString()}
-              </p>
-            </div>
-            <Clock className="h-8 w-8 text-gray-500" />
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="flex space-x-8">
-          {[
-            { id: 'overview', label: 'Overview', icon: TrendingUp },
-            { id: 'patterns', label: 'Bias Patterns', icon: Scale },
-            { id: 'judges', label: 'Judge Analysis', icon: Users },
-            { id: 'geographic', label: 'Geographic', icon: Target }
-          ].map(({ id, label, icon: Icon }) => (
+      <nav className="-mx-2 overflow-x-auto pb-2" role="tablist" aria-label="Bias analytics sections">
+        <div className="flex min-w-full items-center gap-2 px-2">
+          {TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setActiveTab(id as any)}
-              className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${
+              type="button"
+              role="tab"
+              aria-selected={activeTab === id}
+              aria-controls={`${id}-panel`}
+              onClick={() => setActiveTab(id)}
+              className={cn(
+                'flex items-center gap-2 rounded-full border border-transparent px-4 py-2 text-sm font-medium transition-colors',
                 activeTab === id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
+                  ? 'bg-[color:hsl(var(--accent))] text-[color:hsl(var(--accent-foreground))] shadow-sm'
+                  : 'bg-[hsl(var(--bg-1))] text-[color:hsl(var(--text-2))] hover:text-[color:hsl(var(--text-1))]',
+              )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-4 w-4" aria-hidden />
               {label}
             </button>
           ))}
-        </nav>
-      </div>
+        </div>
+      </nav>
 
-      {/* Tab Content */}
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Consistency Distribution */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Consistency Score Distribution</h3>
-            <ResponsiveContainer width="100%" height={300}>
+        <div id="overview-panel" role="tabpanel" aria-labelledby="overview" className="grid gap-6 lg:grid-cols-2">
+          <article className={panelClass}>
+            <h3 className="text-lg font-semibold text-[color:hsl(var(--text-1))]">Consistency score distribution</h3>
+            <ResponsiveContainer width="100%" height={280}>
               <BarChart data={analyticsData.consistency_distribution}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="score_range" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="judge_count" fill="#3B82F6" />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridStroke} />
+                <XAxis
+                  dataKey="score_range"
+                  tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                  axisLine={{ stroke: chartTheme.axisLine }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                  axisLine={{ stroke: chartTheme.axisLine }}
+                  tickLine={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: chartTheme.tooltip.backgroundColor,
+                    border: `1px solid ${chartTheme.tooltip.borderColor}`,
+                    borderRadius: '0.75rem',
+                    color: chartTheme.tooltip.textColor,
+                  }}
+                  formatter={(value: number, name: string) => [`${value.toLocaleString()}`, name]}
+                />
+                <Bar dataKey="judge_count" fill={chartTheme.getSeriesColor(0)} radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </article>
 
-          {/* Settlement Patterns */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Settlement Patterns by Case Type</h3>
-            <ResponsiveContainer width="100%" height={300}>
+          <article className={panelClass}>
+            <h3 className="text-lg font-semibold text-[color:hsl(var(--text-1))]">Settlement patterns by case type</h3>
+            <ResponsiveContainer width="100%" height={280}>
               <BarChart data={analyticsData.settlement_patterns}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="case_type" angle={-45} textAnchor="end" height={80} />
-                <YAxis />
-                <Tooltip formatter={(value: number) => `${(value * 100).toFixed(1)}%`} />
-                <Bar dataKey="avg_settlement_rate" fill="#10B981" />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridStroke} />
+                <XAxis
+                  dataKey="case_type"
+                  height={80}
+                  angle={-25}
+                  textAnchor="end"
+                  tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                  axisLine={{ stroke: chartTheme.axisLine }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                  axisLine={{ stroke: chartTheme.axisLine }}
+                  tickLine={false}
+                  tickFormatter={(value: number) => `${Math.round(value * 100)}%`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: chartTheme.tooltip.backgroundColor,
+                    border: `1px solid ${chartTheme.tooltip.borderColor}`,
+                    borderRadius: '0.75rem',
+                    color: chartTheme.tooltip.textColor,
+                  }}
+                  formatter={(value: number) => [`${(value as number * 100).toFixed(1)}%`, 'Avg settlement rate']}
+                />
+                <Bar dataKey="avg_settlement_rate" fill={chartTheme.getSeriesColor(1)} radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </article>
         </div>
       )}
 
       {activeTab === 'patterns' && (
-        <div className="space-y-6">
-          {/* Temporal Trends */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Bias Pattern Trends Over Time</h3>
-            <ResponsiveContainer width="100%" height={400}>
+        <section id="patterns-panel" role="tabpanel" aria-labelledby="patterns" className="space-y-6">
+          <article className={panelClass}>
+            <h3 className="text-lg font-semibold text-[color:hsl(var(--text-1))]">Bias pattern trends over time</h3>
+            <ResponsiveContainer width="100%" height={320}>
               <LineChart data={analyticsData.temporal_trends}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="avg_consistency" stroke="#3B82F6" name="Consistency Score" />
-                <Line type="monotone" dataKey="avg_settlement_rate" stroke="#10B981" name="Settlement Rate" />
-                <Line type="monotone" dataKey="case_volume" stroke="#F59E0B" name="Case Volume" />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridStroke} />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                  axisLine={{ stroke: chartTheme.axisLine }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                  axisLine={{ stroke: chartTheme.axisLine }}
+                  tickLine={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: chartTheme.tooltip.backgroundColor,
+                    border: `1px solid ${chartTheme.tooltip.borderColor}`,
+                    borderRadius: '0.75rem',
+                    color: chartTheme.tooltip.textColor,
+                  }}
+                />
+                <Legend
+                  formatter={(value) => (
+                    <span className="text-xs" style={{ color: chartTheme.legend.textColor }}>
+                      {value}
+                    </span>
+                  )}
+                />
+                <Line type="monotone" dataKey="avg_consistency" stroke={chartTheme.getSeriesColor(0)} strokeWidth={2.5} dot={false} name="Consistency score" />
+                <Line type="monotone" dataKey="avg_settlement_rate" stroke={chartTheme.getSeriesColor(1)} strokeWidth={2.5} dot={false} strokeDasharray="6 4" name="Settlement rate" />
+                <Line type="monotone" dataKey="case_volume" stroke={chartTheme.getSeriesColor(2)} strokeWidth={2.5} dot={false} name="Case volume" />
               </LineChart>
             </ResponsiveContainer>
-          </div>
+          </article>
 
-          {/* Case Value Impact */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Case Value Impact on Outcomes</h3>
-            <ResponsiveContainer width="100%" height={300}>
+          <article className={panelClass}>
+            <h3 className="text-lg font-semibold text-[color:hsl(var(--text-1))]">Case value impact on outcomes</h3>
+            <ResponsiveContainer width="100%" height={320}>
               <BarChart data={analyticsData.case_value_impact}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="value_range" />
-                <YAxis />
-                <Tooltip formatter={(value: number) => `${(value * 100).toFixed(1)}%`} />
-                <Legend />
-                <Bar dataKey="settlement_rate" fill="#10B981" name="Settlement Rate" />
-                <Bar dataKey="dismissal_rate" fill="#EF4444" name="Dismissal Rate" />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridStroke} />
+                <XAxis
+                  dataKey="value_range"
+                  tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                  axisLine={{ stroke: chartTheme.axisLine }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                  axisLine={{ stroke: chartTheme.axisLine }}
+                  tickLine={false}
+                  tickFormatter={(value: number) => `${Math.round(value * 100)}%`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: chartTheme.tooltip.backgroundColor,
+                    border: `1px solid ${chartTheme.tooltip.borderColor}`,
+                    borderRadius: '0.75rem',
+                    color: chartTheme.tooltip.textColor,
+                  }}
+                  formatter={(value: number, name: string) => [`${(value as number * 100).toFixed(1)}%`, name.replace('_', ' ')]}
+                />
+                <Legend
+                  formatter={(value) => (
+                    <span className="text-xs" style={{ color: chartTheme.legend.textColor }}>
+                      {value.replace('_', ' ')}
+                    </span>
+                  )}
+                />
+                <Bar dataKey="settlement_rate" fill={chartTheme.getSeriesColor(1)} name="Settlement rate" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="dismissal_rate" fill={chartTheme.getSeriesColor(5)} name="Dismissal rate" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
-        </div>
+          </article>
+        </section>
       )}
 
       {activeTab === 'judges' && (
-        <div className="space-y-6">
-          {/* Risk Filter */}
-          <div className="flex gap-4 items-center">
-            <label className="text-sm font-medium text-gray-700">Filter by Risk Level:</label>
+        <section id="judges-panel" role="tabpanel" aria-labelledby="judges" className="space-y-5">
+          <div className={cn(panelClass, 'flex flex-wrap items-center gap-3 text-sm text-[color:hsl(var(--text-2))]')}>
+            <label htmlFor="risk-filter" className="font-medium text-[color:hsl(var(--text-2))]">
+              Filter by risk level
+            </label>
             <select
+              id="risk-filter"
               value={riskFilter}
-              onChange={(e) => setRiskFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+              onChange={(event) => setRiskFilter(event.target.value)}
+              className={selectClass}
             >
-              <option value="all">All Risk Levels</option>
-              <option value="High">High Risk</option>
-              <option value="Medium">Medium Risk</option>
-              <option value="Low">Low Risk</option>
+              <option value="all">All risk levels</option>
+              <option value="High">High risk</option>
+              <option value="Medium">Medium risk</option>
+              <option value="Low">Low risk</option>
             </select>
           </div>
 
-          {/* Judge Analysis Table */}
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Individual Judge Analysis</h3>
-            </div>
+          <article className={cn(panelClass, 'overflow-hidden p-0')}>
+            <header className="border-b border-border/60 px-6 py-4">
+              <h3 className="text-lg font-semibold text-[color:hsl(var(--text-1))]">Individual judge analysis</h3>
+            </header>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-border/60 text-sm">
+                <thead className="bg-[hsl(var(--bg-1))] text-[color:hsl(var(--text-3))]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Judge
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Consistency
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Settlement Rate
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Speed Score
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Risk Level
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Flags
-                    </th>
+                    <th className="px-6 py-3 text-left font-medium uppercase tracking-wider">Judge</th>
+                    <th className="px-6 py-3 text-left font-medium uppercase tracking-wider">Consistency</th>
+                    <th className="px-6 py-3 text-left font-medium uppercase tracking-wider">Settlement rate</th>
+                    <th className="px-6 py-3 text-left font-medium uppercase tracking-wider">Speed score</th>
+                    <th className="px-6 py-3 text-left font-medium uppercase tracking-wider">Risk level</th>
+                    <th className="px-6 py-3 text-left font-medium uppercase tracking-wider">Flags</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-border/60">
                   {analyticsData.bias_indicators.map((judge) => (
-                    <tr key={judge.judge_id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{judge.judge_name}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{judge.consistency_score}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{(judge.settlement_rate * 100).toFixed(1)}%</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{judge.speed_score}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          judge.bias_risk_level === 'High' ? 'bg-red-100 text-red-800' :
-                          judge.bias_risk_level === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-green-100 text-green-800'
-                        }`}>
+                    <tr key={judge.judge_id} className="hover:bg-[hsl(var(--bg-1))]/60">
+                      <td className="px-6 py-4 text-[color:hsl(var(--text-1))]">{judge.judge_name}</td>
+                      <td className="px-6 py-4 text-[color:hsl(var(--text-2))]">{judge.consistency_score}</td>
+                      <td className="px-6 py-4 text-[color:hsl(var(--text-2))]">{(judge.settlement_rate * 100).toFixed(1)}%</td>
+                      <td className="px-6 py-4 text-[color:hsl(var(--text-2))]">{judge.speed_score}</td>
+                      <td className="px-6 py-4">
+                        <Badge className={cn('border px-3 py-1 text-xs font-semibold', RISK_BADGES[judge.bias_risk_level])}>
                           {judge.bias_risk_level}
-                        </span>
+                        </Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-xs text-gray-500">
-                          {judge.flags.length > 0 ? judge.flags.join(', ') : 'None'}
-                        </div>
+                      <td className="px-6 py-4 text-xs text-[color:hsl(var(--text-3))]">
+                        {judge.flags.length > 0 ? judge.flags.join(', ') : 'None'}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </div>
-        </div>
+          </article>
+        </section>
       )}
 
       {activeTab === 'geographic' && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Geographic Distribution of Bias Patterns</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Jurisdiction</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Judges</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Avg Consistency</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Avg Settlement Rate</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analyticsData.geographic_distribution.map((item, index) => (
-                  <tr key={index} className="border-b border-gray-100">
-                    <td className="py-3 px-4 text-gray-900">{item.jurisdiction}</td>
-                    <td className="py-3 px-4 text-gray-600">{item.judge_count}</td>
-                    <td className="py-3 px-4 text-gray-600">{item.avg_consistency.toFixed(1)}</td>
-                    <td className="py-3 px-4 text-gray-600">{(item.avg_settlement_rate * 100).toFixed(1)}%</td>
+        <section id="geographic-panel" role="tabpanel" aria-labelledby="geographic">
+          <article className={panelClass}>
+            <h3 className="text-lg font-semibold text-[color:hsl(var(--text-1))]">Geographic distribution of bias patterns</h3>
+            <div className="mt-4 overflow-x-auto">
+              <table className="min-w-full divide-y divide-border/60 text-sm">
+                <thead className="bg-[hsl(var(--bg-1))] text-[color:hsl(var(--text-3))]">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium uppercase tracking-wider">Jurisdiction</th>
+                    <th className="px-4 py-3 text-left font-medium uppercase tracking-wider">Judges</th>
+                    <th className="px-4 py-3 text-left font-medium uppercase tracking-wider">Avg consistency</th>
+                    <th className="px-4 py-3 text-left font-medium uppercase tracking-wider">Avg settlement rate</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {analyticsData.geographic_distribution.map((item) => (
+                    <tr key={item.jurisdiction} className="hover:bg-[hsl(var(--bg-1))]/60">
+                      <td className="px-4 py-3 text-[color:hsl(var(--text-1))]">{item.jurisdiction}</td>
+                      <td className="px-4 py-3 text-[color:hsl(var(--text-2))]">{item.judge_count}</td>
+                      <td className="px-4 py-3 text-[color:hsl(var(--text-2))]">{item.avg_consistency.toFixed(1)}</td>
+                      <td className="px-4 py-3 text-[color:hsl(var(--text-2))]">{(item.avg_settlement_rate * 100).toFixed(1)}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </section>
       )}
-    </div>
+    </section>
+  )
+}
+
+function MetricCard({
+  label,
+  value,
+  icon: Icon,
+  tone,
+}: {
+  label: string
+  value: string
+  icon: LucideIcon
+  tone: 'positive' | 'critical' | 'accent' | 'info' | 'muted'
+}) {
+  const toneClass =
+    tone === 'positive'
+      ? 'bg-[rgba(103,232,169,0.14)] text-[color:hsl(var(--pos))]'
+      : tone === 'critical'
+      ? 'bg-[rgba(252,165,165,0.18)] text-[color:hsl(var(--neg))]'
+      : tone === 'accent'
+      ? 'bg-[rgba(110,168,254,0.18)] text-[color:hsl(var(--accent))]'
+      : tone === 'info'
+      ? 'bg-[hsl(var(--bg-1))]/70 text-[color:hsl(var(--text-1))]'
+      : 'bg-[hsl(var(--bg-1))] text-[color:hsl(var(--text-2))]'
+
+  return (
+    <article className={panelClass}>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="text-xs uppercase tracking-[0.24em] text-[color:hsl(var(--text-3))]">{label}</div>
+          <div className={cn('mt-3 inline-flex rounded-full px-4 py-2 text-lg font-semibold', toneClass)}>{value}</div>
+        </div>
+        <Icon className="h-6 w-6 text-[color:hsl(var(--text-3))]" aria-hidden />
+      </div>
+    </article>
   )
 }
