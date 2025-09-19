@@ -297,7 +297,7 @@ async function fetchJudgeIdsWithRecentDecisions(
   }
 
   const uniqueJudgeIds = new Set<string>()
-  data?.forEach(record => {
+  data?.forEach((record: { judge_id: string | null }) => {
     if (record.judge_id) {
       uniqueJudgeIds.add(record.judge_id)
     }
