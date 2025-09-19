@@ -88,8 +88,13 @@ function ConfidenceIndicator({ confidence, sampleSize }: { confidence: number, s
   }
   
   return (
-    <div className="flex items-center gap-2 text-xs">
-      <span className={cn('rounded-full px-2 py-1 font-medium', getConfidenceColor(confidence))}>
+    <div className="flex flex-wrap items-center gap-2 text-xs">
+      <span
+        className={cn(
+          'rounded-full px-2 py-1 font-medium whitespace-normal break-words leading-snug text-left',
+          getConfidenceColor(confidence),
+        )}
+      >
         {getConfidenceLabel(confidence)} ({confidence}%)
       </span>
       <span className="text-[color:hsl(var(--text-3))]">
@@ -109,7 +114,14 @@ function AnalyticsSlider({ label, value, leftLabel, rightLabel, color, descripti
           <h3 className="mb-1 font-semibold text-[color:hsl(var(--text-1))]">{label}</h3>
           <ConfidenceIndicator confidence={confidence} sampleSize={sampleSize} />
         </div>
-        <span className={cn('rounded-full px-3 py-1 text-lg font-semibold', color)}>{value}%</span>
+        <span
+          className={cn(
+            'rounded-full px-3 py-1 text-lg font-semibold whitespace-normal break-words leading-snug text-right',
+            color,
+          )}
+        >
+          {value}%
+        </span>
       </div>
 
       <div className="mb-4">

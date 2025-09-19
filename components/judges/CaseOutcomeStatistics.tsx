@@ -171,16 +171,18 @@ export function CaseOutcomeStatistics({ judge }: CaseOutcomeStatisticsProps) {
 
   return (
     <section className={containerClass}>
-      <header className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <header className="mb-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-foreground">
           <Target className="h-6 w-6 text-[color:hsl(var(--accent))]" aria-hidden />
           <h3 className="text-xl font-semibold">Case outcome statistics</h3>
         </div>
-        <p className="text-sm text-muted-foreground">Key performance signals generated from verified rulings.</p>
+        <p className="text-sm text-muted-foreground break-words sm:min-w-0 sm:text-right sm:leading-relaxed">
+          Key performance signals generated from verified rulings.
+        </p>
       </header>
 
-      <nav className="-mx-2 mb-6 overflow-x-auto pb-2" role="tablist" aria-label="Case outcome views">
-        <div className="flex min-w-full items-center gap-2 px-2">
+      <nav className="-mx-2 mb-6 overflow-x-auto pb-2 sm:overflow-visible" role="tablist" aria-label="Case outcome views">
+        <div className="flex min-w-full flex-wrap items-center gap-2 gap-y-3 px-2 sm:min-w-0">
           {VIEW_TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -190,7 +192,7 @@ export function CaseOutcomeStatistics({ judge }: CaseOutcomeStatisticsProps) {
               aria-controls={`${id}-panel`}
               onClick={() => setActiveView(id)}
               className={cn(
-                'flex items-center gap-2 rounded-full border border-transparent px-4 py-2 text-sm font-medium transition-colors',
+                'flex items-center gap-2 rounded-full border border-transparent px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap',
                 activeView === id
                   ? 'bg-[color:hsl(var(--accent))] text-[color:hsl(var(--accent-foreground))] shadow-sm'
                   : 'bg-[hsl(var(--bg-1))] text-[color:hsl(var(--text-2))] hover:text-[color:hsl(var(--text-1))]',
@@ -518,7 +520,14 @@ function MetricTile({
         <Icon className="h-4 w-4" aria-hidden />
         {label}
       </div>
-      <div className={cn('mt-3 inline-flex rounded-full px-4 py-2 text-base font-semibold', toneClass)}>{value}</div>
+      <div
+        className={cn(
+          'mt-3 inline-flex flex-wrap rounded-full px-4 py-2 text-base font-semibold leading-normal break-words text-left whitespace-normal',
+          toneClass,
+        )}
+      >
+        {value}
+      </div>
     </article>
   )
 }

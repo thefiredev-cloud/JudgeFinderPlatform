@@ -142,23 +142,30 @@ export function JudgeProfile({ judge }: JudgeProfileProps) {
       </div>
 
       <div id="overview" className="grid gap-4 scroll-mt-32 md:grid-cols-2 xl:grid-cols-4">
-        {metricTiles.map((tile) => (
-          <article
-            key={tile.label}
-            className="group relative overflow-hidden rounded-2xl border border-border/50 bg-[hsl(var(--bg-2))] p-5 transition-colors duration-300 hover:border-[rgba(110,168,254,0.45)]"
-          >
-            <div className="text-xs uppercase tracking-[0.24em] text-[color:hsl(var(--text-3))]">
-              {tile.label}
-            </div>
-            <div className="mt-3 text-3xl font-semibold leading-none text-[color:hsl(var(--text-1))]">
-              {tile.value}
-            </div>
-            <div className="mt-3 h-[38px] w-full rounded-full bg-[rgba(124,135,152,0.14)]">
-              <div className="h-full w-1/2 rounded-full bg-[rgba(110,168,254,0.22)] transition-all duration-500 group-hover:w-[62%]" />
-            </div>
-            <p className="mt-3 text-xs text-[color:hsl(var(--text-3))] leading-relaxed">{tile.helper}</p>
-          </article>
-        ))}
+        {metricTiles.map((tile) => {
+          const longValue = typeof tile.value === 'string' && tile.value.length > 18
+          const valueClass = longValue
+            ? 'mt-3 text-lg font-semibold text-[color:hsl(var(--text-1))] leading-relaxed break-words'
+            : 'mt-3 text-3xl font-semibold leading-none text-[color:hsl(var(--text-1))] break-words'
+
+          return (
+            <article
+              key={tile.label}
+              className="group relative overflow-hidden rounded-2xl border border-border/50 bg-[hsl(var(--bg-2))] p-5 transition-colors duration-300 hover:border-[rgba(110,168,254,0.45)]"
+            >
+              <div className="text-xs uppercase tracking-[0.24em] text-[color:hsl(var(--text-3))]">
+                {tile.label}
+              </div>
+              <div className={valueClass}>
+                {tile.value}
+              </div>
+              <div className="mt-3 h-[38px] w-full rounded-full bg-[rgba(124,135,152,0.14)]">
+                <div className="h-full w-1/2 rounded-full bg-[rgba(110,168,254,0.22)] transition-all duration-500 group-hover:w-[62%]" />
+              </div>
+              <p className="mt-3 text-xs text-[color:hsl(var(--text-3))] leading-relaxed">{tile.helper}</p>
+            </article>
+          )
+        })}
       </div>
 
       <aside

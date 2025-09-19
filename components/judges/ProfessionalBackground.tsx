@@ -69,167 +69,144 @@ export function ProfessionalBackground({ judge }: ProfessionalBackgroundProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
-          <Briefcase className="h-5 w-5 mr-2 text-blue-600" />
-          Professional Background
-        </h2>
-      </div>
-      
-      <div className="p-6 space-y-6">
-        {/* Bio Section */}
-        {bio && (
-          <div>
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{bio}</p>
-          </div>
-        )}
-        
-        {/* Key Information Grid */}
+    <section className="overflow-hidden rounded-2xl border border-border bg-[hsl(var(--bg-2))] shadow-md">
+      <header className="flex items-center gap-2 border-b border-border/60 bg-[hsl(var(--bg-1))] px-6 py-4">
+        <Briefcase className="h-5 w-5 text-[color:hsl(var(--accent))]" aria-hidden />
+        <h2 className="text-lg font-semibold text-[color:hsl(var(--text-1))]">Professional background</h2>
+      </header>
+
+      <div className="space-y-6 px-6 py-5 text-sm text-[color:hsl(var(--text-2))]">
+        {bio && <p className="leading-relaxed text-[color:hsl(var(--text-2))]">{bio}</p>}
+
         <div className="grid gap-4 md:grid-cols-2">
-          {/* Court Information */}
-          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-            <div className="flex items-start">
-              <Award className="h-5 w-5 text-blue-600 mt-1 mr-3 flex-shrink-0" />
-              <div>
-                <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
-                  Current Position
+          <article className="rounded-xl border border-border/60 bg-[hsl(var(--bg-1))] p-4">
+            <div className="flex items-start gap-3">
+              <Award className="mt-1 h-5 w-5 text-[color:hsl(var(--accent))]" aria-hidden />
+              <div className="min-w-0 space-y-1">
+                <h3 className="text-xs font-semibold uppercase tracking-[0.24em] text-[color:hsl(var(--text-3))]">
+                  Current position
                 </h3>
-                <p className="text-gray-900 dark:text-gray-100 font-medium">
+                <p className="text-base font-medium text-[color:hsl(var(--text-1))] break-words">
                   {judge.court_name || 'Court not specified'}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                <p className="text-sm text-[color:hsl(var(--text-2))] break-words">
                   {judge.jurisdiction || 'Jurisdiction not specified'}
                 </p>
                 {yearsOfService !== null && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {yearsOfService} years of service
-                  </p>
+                  <p className="text-sm text-[color:hsl(var(--text-3))]">{yearsOfService} years of service</p>
                 )}
               </div>
             </div>
-          </div>
-          
-          {/* Appointment Information */}
+          </article>
+
           {appointmentDate && (
-            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-              <div className="flex items-start">
-                <Calendar className="h-5 w-5 text-blue-600 mt-1 mr-3 flex-shrink-0" />
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
+            <article className="rounded-xl border border-border/60 bg-[hsl(var(--bg-1))] p-4">
+              <div className="flex items-start gap-3">
+                <Calendar className="mt-1 h-5 w-5 text-[color:hsl(var(--accent))]" aria-hidden />
+                <div className="min-w-0 space-y-1">
+                  <h3 className="text-xs font-semibold uppercase tracking-[0.24em] text-[color:hsl(var(--text-3))]">
                     Appointment
                   </h3>
-                  <p className="text-gray-900 dark:text-gray-100 font-medium">
-                    {appointmentDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  <p className="text-base font-medium text-[color:hsl(var(--text-1))] break-words">
+                    {appointmentDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {yearsOfService} years ago
-                  </p>
+                  <p className="text-sm text-[color:hsl(var(--text-3))]">{yearsOfService} years ago</p>
                 </div>
               </div>
-            </div>
+            </article>
           )}
         </div>
-        
-        {/* Education Section */}
+
         {education.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center">
-              <GraduationCap className="h-5 w-5 mr-2 text-blue-600" />
+          <section>
+            <header className="mb-3 flex items-center gap-2 text-sm font-semibold text-[color:hsl(var(--text-1))]">
+              <GraduationCap className="h-5 w-5 text-[color:hsl(var(--accent))]" aria-hidden />
               Education
-            </h3>
+            </header>
             <div className="space-y-2">
               {education.map((edu: any, index: number) => (
-                <div key={index} className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
-                  <p className="font-medium text-gray-900 dark:text-gray-100">
-                    {edu.school}
-                  </p>
-                  {edu.degree && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                <div key={`${edu.school}-${index}`} className="rounded-xl border border-border/50 bg-[hsl(var(--bg-1))] p-3">
+                  <p className="font-medium text-[color:hsl(var(--text-1))] break-words">{edu.school}</p>
+                  {(edu.degree || edu.year) && (
+                    <p className="text-xs text-[color:hsl(var(--text-3))]">
                       {edu.degree}
-                      {edu.year && ` • ${edu.year}`}
+                      {edu.degree && edu.year ? ' • ' : ''}
+                      {edu.year ?? ''}
                     </p>
                   )}
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         )}
-        
-        {/* Career History */}
+
         {careerHistory.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center">
-              <Briefcase className="h-5 w-5 mr-2 text-blue-600" />
-              Previous Experience
-            </h3>
+          <section>
+            <header className="mb-3 flex items-center gap-2 text-sm font-semibold text-[color:hsl(var(--text-1))]">
+              <Briefcase className="h-5 w-5 text-[color:hsl(var(--accent))]" aria-hidden />
+              Previous experience
+            </header>
             <div className="space-y-3">
               {careerHistory.map((position: any, index: number) => (
-                <div key={index} className="border-l-4 border-blue-200 dark:border-blue-800 pl-4 py-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">
+                <article
+                  key={`${position.organization_name || 'role'}-${index}`}
+                  className="rounded-xl border border-border/40 bg-[hsl(var(--bg-1))] p-3"
+                >
+                  <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                    <div className="space-y-1">
+                      <p className="font-medium text-[color:hsl(var(--text-1))] break-words">
                         {position.job_title || 'Position'}
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {position.organization_name}
-                      </p>
+                      <p className="text-xs text-[color:hsl(var(--text-3))] break-words">{position.organization_name}</p>
                     </div>
                     {position.date_start && (
-                      <span className="text-sm text-gray-500 dark:text-gray-500 ml-4">
+                      <span className="text-xs text-[color:hsl(var(--text-3))]">
                         {new Date(position.date_start).getFullYear()}
-                        {position.date_termination && ` - ${new Date(position.date_termination).getFullYear()}`}
+                        {position.date_termination && ` – ${new Date(position.date_termination).getFullYear()}`}
                       </span>
                     )}
                   </div>
-                </div>
+                </article>
               ))}
             </div>
-          </div>
+          </section>
         )}
-        
-        {/* Additional Information */}
+
         {courtlistenerData && (
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-            <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-3">
-              Additional Details
+          <section className="border-t border-border/60 pt-4">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-[color:hsl(var(--text-3))]">
+              Additional details
             </h3>
             <div className="grid gap-3 md:grid-cols-2">
               {courtlistenerData.gender && (
-                <div className="flex items-center text-sm">
-                  <Users className="h-4 w-4 text-gray-400 mr-2" />
-                  <span className="text-gray-600 dark:text-gray-400">Gender:</span>
-                  <span className="ml-2 text-gray-900 dark:text-gray-100 capitalize">
-                    {courtlistenerData.gender}
-                  </span>
+                <div className="flex items-center gap-2 text-xs text-[color:hsl(var(--text-2))]">
+                  <Users className="h-4 w-4 text-[color:hsl(var(--text-3))]" aria-hidden />
+                  <span className="break-words capitalize">{courtlistenerData.gender}</span>
                 </div>
               )}
-              
+
               {courtlistenerData.race && courtlistenerData.race.length > 0 && (
-                <div className="flex items-center text-sm">
-                  <Users className="h-4 w-4 text-gray-400 mr-2" />
-                  <span className="text-gray-600 dark:text-gray-400">Ethnicity:</span>
-                  <span className="ml-2 text-gray-900 dark:text-gray-100">
+                <div className="flex items-center gap-2 text-xs text-[color:hsl(var(--text-2))]">
+                  <Users className="h-4 w-4 text-[color:hsl(var(--text-3))]" aria-hidden />
+                  <span className="break-words">
                     {courtlistenerData.race.map((r: string) => r.replace('_', ' ')).join(', ')}
                   </span>
                 </div>
               )}
-              
+
               {(courtlistenerData.dob_city || courtlistenerData.dob_state) && (
-                <div className="flex items-center text-sm">
-                  <MapPin className="h-4 w-4 text-gray-400 mr-2" />
-                  <span className="text-gray-600 dark:text-gray-400">Birth Location:</span>
-                  <span className="ml-2 text-gray-900 dark:text-gray-100">
+                <div className="flex items-center gap-2 text-xs text-[color:hsl(var(--text-2))]">
+                  <MapPin className="h-4 w-4 text-[color:hsl(var(--text-3))]" aria-hidden />
+                  <span className="break-words">
                     {[courtlistenerData.dob_city, courtlistenerData.dob_state].filter(Boolean).join(', ')}
                   </span>
                 </div>
               )}
-              
+
               {courtlistenerData.political_affiliation?.length > 0 && (
-                <div className="flex items-center text-sm">
-                  <BookOpen className="h-4 w-4 text-gray-400 mr-2" />
-                  <span className="text-gray-600 dark:text-gray-400">Affiliation:</span>
-                  <span className="ml-2 text-gray-900 dark:text-gray-100">
+                <div className="flex items-center gap-2 text-xs text-[color:hsl(var(--text-2))]">
+                  <BookOpen className="h-4 w-4 text-[color:hsl(var(--text-3))]" aria-hidden />
+                  <span className="break-words">
                     {courtlistenerData.political_affiliation
                       .map((aff: any) => aff.political_party || aff)
                       .filter(Boolean)
@@ -238,9 +215,9 @@ export function ProfessionalBackground({ judge }: ProfessionalBackgroundProps) {
                 </div>
               )}
             </div>
-          </div>
+          </section>
         )}
       </div>
-    </div>
+    </section>
   )
 }

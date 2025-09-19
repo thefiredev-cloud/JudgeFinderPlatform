@@ -41,7 +41,7 @@ export function JudgeHeader({
         className,
       )}
     >
-      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-6 md:flex-row md:flex-wrap md:items-center md:justify-between">
         <div className="flex flex-1 items-start gap-4">
           <div
             className={cn(
@@ -63,24 +63,24 @@ export function JudgeHeader({
             )}
           </div>
           <div className="space-y-3">
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[color:hsl(var(--text-3))]">
                 <Sparkles className="h-3 w-3" aria-hidden />
                 Judge Analytics Overview
               </div>
-              <h1 className="mt-1 text-[1.75rem] font-semibold leading-tight text-[color:hsl(var(--text-1))] md:text-[2.125rem]">
+              <h1 className="mt-1 break-words text-[1.75rem] font-semibold leading-tight text-[color:hsl(var(--text-1))] md:text-[2.125rem]">
                 {judge.name}
               </h1>
             </div>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[color:hsl(var(--text-2))]">
               {judge.court_name && (
-                <span className="inline-flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1.5 break-words">
                   <Building2 className="h-4 w-4" aria-hidden />
                   {judge.court_name}
                 </span>
               )}
               {judge.jurisdiction && (
-                <span className="inline-flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1.5 break-words">
                   <Users className="h-4 w-4" aria-hidden />
                   {judge.jurisdiction}
                 </span>
@@ -105,7 +105,9 @@ export function JudgeHeader({
         </div>
         <div className="flex w-full flex-col items-start gap-3 md:w-auto md:items-end">
           <div className="text-xs font-medium uppercase tracking-[0.2em] text-[color:hsl(var(--text-3))]">Data freshness</div>
-          <div className="text-sm text-[color:hsl(var(--text-2))]">{dataFreshnessLabel}</div>
+          <div className="max-w-xs text-sm text-[color:hsl(var(--text-2))] break-words text-left md:text-right">
+            {dataFreshnessLabel}
+          </div>
         </div>
       </div>
     </header>

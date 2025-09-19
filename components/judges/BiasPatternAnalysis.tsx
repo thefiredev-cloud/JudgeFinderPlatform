@@ -228,22 +228,22 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
 
   return (
     <section className={containerClass}>
-      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <Scale className="h-6 w-6 text-primary" />
           <h3 className="text-xl font-semibold text-foreground">Judicial pattern analysis</h3>
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground break-words sm:min-w-0 sm:text-right sm:leading-relaxed">
           Powered by verified decisions and normalized case outcomes for {judge.name}.
         </p>
       </div>
 
       <div
-        className="-mx-2 mb-6 overflow-x-auto pb-2"
+        className="-mx-2 mb-6 overflow-x-auto pb-2 sm:overflow-visible"
         role="tablist"
         aria-label="Bias analysis sections"
       >
-        <div className="flex min-w-full items-center gap-2 px-2">
+        <div className="flex min-w-full flex-wrap items-center gap-2 gap-y-3 px-2 sm:min-w-0">
           {tabs.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -253,7 +253,7 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
               aria-selected={activeTab === id}
               aria-controls={`${id}-panel`}
               className={cn(
-                'flex items-center gap-2 rounded-full border border-transparent px-4 py-2 text-sm font-medium transition-colors',
+                'flex items-center gap-2 rounded-full border border-transparent px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap',
                 activeTab === id
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-muted text-muted-foreground hover:text-foreground'
@@ -432,7 +432,7 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
                 {outcomeSummary.map((item) => (
                   <li key={item} className="flex items-start gap-2">
                     <span className="mt-1 h-2 w-2 rounded-full bg-primary" />
-                    <span>{item}</span>
+                    <span className="flex-1 min-w-0 break-words leading-relaxed">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -597,7 +597,14 @@ function StatCard({ title, value, tone }: { title: string; value: string; tone: 
   return (
     <div className="rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
       <span className="text-xs uppercase tracking-wide text-muted-foreground">{title}</span>
-      <div className={cn('mt-2 inline-flex rounded-full px-3 py-1 text-sm font-semibold', toneClass)}>{value}</div>
+      <div
+        className={cn(
+          'mt-2 inline-flex max-w-full flex-wrap rounded-full px-3 py-1 text-sm font-semibold leading-snug break-words text-left whitespace-normal',
+          toneClass,
+        )}
+      >
+        {value}
+      </div>
     </div>
   )
 }

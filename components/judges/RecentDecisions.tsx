@@ -167,7 +167,8 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
 
   const topCaseType = Object.entries(caseTypeCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
 
-  const badgeBaseClass = 'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium border'
+  const badgeBaseClass =
+    'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium border whitespace-normal break-words leading-snug text-left'
   const getStatusClass = (status: string) => {
     switch (status) {
       case 'decided':
@@ -257,8 +258,10 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
             >
               <div className="mb-3 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-[color:hsl(var(--text-1))]">{decision.case_name}</h3>
-                  <p className="text-sm text-[color:hsl(var(--text-3))]">Case No. {decision.case_number}</p>
+                  <h3 className="break-words text-lg font-semibold text-[color:hsl(var(--text-1))]">
+                    {decision.case_name}
+                  </h3>
+                  <p className="break-words text-sm text-[color:hsl(var(--text-3))]">Case No. {decision.case_number}</p>
                 </div>
                 {externalUrl && (
                   <a
@@ -281,7 +284,7 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
               </div>
 
               {decision.summary && (
-                <p className="mb-3 text-sm leading-relaxed text-[color:hsl(var(--text-2))]">{decision.summary}</p>
+                <p className="mb-3 break-words text-sm leading-relaxed text-[color:hsl(var(--text-2))]">{decision.summary}</p>
               )}
 
               <div className="flex flex-col gap-2 text-xs text-[color:hsl(var(--text-3))] sm:flex-row sm:items-center sm:justify-between">

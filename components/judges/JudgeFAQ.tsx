@@ -34,7 +34,7 @@ export function JudgeFAQ({ judgeName }: JudgeFAQProps) {
   ]
 
   return (
-    <div className="rounded-lg bg-white p-6 shadow-sm">
+    <section className="overflow-hidden rounded-2xl border border-border bg-[hsl(var(--bg-2))] shadow-md">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -49,38 +49,38 @@ export function JudgeFAQ({ judgeName }: JudgeFAQProps) {
           }),
         }}
       />
-      <div className="mb-4 flex items-center">
-        <HelpCircle className="mr-2 h-5 w-5 text-blue-600" />
-        <h2 className="text-xl font-bold text-gray-900">Frequently Asked Questions</h2>
-      </div>
+      <header className="flex items-center gap-2 border-b border-border/60 bg-[hsl(var(--bg-1))] px-6 py-4">
+        <HelpCircle className="h-5 w-5 text-[color:hsl(var(--accent))]" aria-hidden />
+        <h2 className="text-lg font-semibold text-[color:hsl(var(--text-1))]">Frequently asked questions</h2>
+      </header>
 
-      <div className="space-y-3">
+      <div className="space-y-3 px-6 py-5 text-sm text-[color:hsl(var(--text-2))]">
         {faqs.map((faq, index) => (
-          <div key={index} className="border-b border-gray-200 pb-3 last:border-0">
+          <article key={faq.question} className="border-b border-border/60 pb-3 last:border-0">
             <button
               onClick={() => setOpenIndex(openIndex === index ? null : index)}
-              className="flex w-full items-center justify-between text-left transition-colors hover:text-blue-600"
+              className="flex w-full items-center justify-between text-left transition-colors hover:text-[color:hsl(var(--accent))]"
             >
-              <span className="font-medium text-gray-900">{faq.question}</span>
+              <span className="font-medium text-[color:hsl(var(--text-1))] break-words">{faq.question}</span>
               {openIndex === index ? (
-                <ChevronUp className="h-4 w-4 text-gray-500" />
+                <ChevronUp className="h-4 w-4 text-[color:hsl(var(--text-3))]" aria-hidden />
               ) : (
-                <ChevronDown className="h-4 w-4 text-gray-500" />
+                <ChevronDown className="h-4 w-4 text-[color:hsl(var(--text-3))]" aria-hidden />
               )}
             </button>
             {openIndex === index && (
-              <p className="mt-2 text-sm text-gray-600">{faq.answer}</p>
+              <p className="mt-2 leading-relaxed text-[color:hsl(var(--text-2))]">{faq.answer}</p>
             )}
-          </div>
+          </article>
         ))}
       </div>
 
-      <div className="mt-4 rounded-lg bg-gray-50 p-3">
-        <p className="text-sm text-gray-600">
-          <strong>Need more information?</strong> Contact the court clerk's office or consult
-          with an attorney experienced in practicing before {judgeName}.
+      <footer className="border-t border-border/60 bg-[hsl(var(--bg-1))] px-6 py-4 text-sm text-[color:hsl(var(--text-2))]">
+        <p className="leading-relaxed">
+          <strong className="text-[color:hsl(var(--text-1))]">Need more information?</strong> Contact the court clerk&apos;s
+          office or consult with an attorney experienced in practicing before {judgeName}.
         </p>
-      </div>
-    </div>
+      </footer>
+    </section>
   )
 }
