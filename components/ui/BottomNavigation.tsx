@@ -28,12 +28,12 @@ const BottomNavigation = () => {
     },
     { 
       name: 'Saved', 
-      href: isSignedIn ? '/dashboard' : '/auth/login', 
+      href: isSignedIn ? '/dashboard' : '/sign-in', 
       icon: Bookmark
     },
     { 
       name: 'Account', 
-      href: isSignedIn ? '/profile' : '/auth/login', 
+      href: isSignedIn ? '/profile' : '/sign-in', 
       icon: User
     },
   ]

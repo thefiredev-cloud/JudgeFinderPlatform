@@ -424,6 +424,28 @@ export function generateCourtSlug(name: string): string {
 }
 
 /**
+ * Resolve the preferred court slug from a court record.
+ * Prefers the stored database slug and falls back to generating one from the name.
+ */
+export function resolveCourtSlug(
+  court: { slug?: string | null; name?: string | null } | null | undefined
+): string | null {
+  if (!court) {
+    return null
+  }
+
+  if (court.slug && typeof court.slug === 'string' && court.slug.trim().length > 0) {
+    return court.slug
+  }
+
+  if (court.name && typeof court.name === 'string' && court.name.trim().length > 0) {
+    return generateCourtSlug(court.name)
+  }
+
+  return null
+}
+
+/**
  * Convert a court slug back to a readable name format
  * Handles court-specific formatting like commas and proper capitalization
  */

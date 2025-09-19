@@ -93,7 +93,7 @@ export function SafeSignInButton(props: { mode?: 'modal' | 'redirect'; children:
   
   // During SSR or before mount, show fallback
   if (!mounted || !SignInButtonComponent) {
-    return <Link href="/auth/login">{props.children}</Link>
+    return <Link href="/sign-in">{props.children}</Link>
   }
   
   // Use Clerk's SignInButton when loaded

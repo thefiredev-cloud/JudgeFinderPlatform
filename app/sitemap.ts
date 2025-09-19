@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { createServerClient } from '@/lib/supabase/server'
-import { createCanonicalSlug } from '@/lib/utils/slug'
+import { createCanonicalSlug, resolveCourtSlug } from '@/lib/utils/slug'
 
 // Force dynamic rendering since we need to query the database
 export const dynamic = 'force-dynamic'
@@ -29,11 +29,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Add court entries to sitemap
   const { data: courts } = await supabase
     .from('courts')
-    .select('name, updated_at')
+    .select('name, slug, updated_at')
     .limit(500)
 
   const courtEntries = (courts || []).map((c) => {
-    const slug = createCanonicalSlug(c.name)
+    const slug = resolveCourtSlug(c) || createCanonicalSlug(c.name)
     const lastModified = c.updated_at ? new Date(c.updated_at) : new Date()
     
     return {

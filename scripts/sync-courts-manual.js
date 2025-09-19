@@ -65,17 +65,25 @@ async function syncCourts() {
         const annualFilings = Math.floor((caseCount || 0) / 3)
         
         // Update court with statistics
+        const existingMetadata = court.courthouse_metadata || {}
+        const courthouseMetadata = {
+          ...existingMetadata,
+          stats_updated: new Date().toISOString(),
+          total_cases: caseCount || 0,
+          stats: {
+            ...(existingMetadata.stats || {}),
+            judge_count: judgeCount || 0,
+            annual_filings_estimate: annualFilings
+          }
+        }
+
         const { error: updateError } = await supabase
           .from('courts')
           .update({
             judge_count: judgeCount || 0,
             annual_filings: annualFilings,
             last_synced: new Date().toISOString(),
-            metadata: {
-              ...court.metadata,
-              stats_updated: new Date().toISOString(),
-              total_cases: caseCount || 0
-            }
+            courthouse_metadata: courthouseMetadata
           })
           .eq('id', court.id)
         
@@ -143,7 +151,13 @@ async function syncCourts() {
         console.log(`Creating essential court: ${courtData.name}`)
         const { error: insertError } = await supabase
           .from('courts')
-          .insert([courtData])
+          .insert([{
+            ...courtData,
+            courthouse_metadata: {
+              created_by: 'sync-courts-manual',
+              inserted_at: new Date().toISOString()
+            }
+          }])
         
         if (!insertError) {
           stats.totalCourts++

@@ -41,20 +41,39 @@ export default function AnalyticsPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [adminRes, freshRes] = await Promise.all([
-          fetch('/api/admin/stats', { cache: 'no-store' }),
+        const [judgesRes, courtsRes, casesRes, platformRes, freshRes] = await Promise.all([
+          fetch('/api/stats/judges', { cache: 'no-store' }),
+          fetch('/api/stats/courts', { cache: 'no-store' }),
+          fetch('/api/stats/cases', { cache: 'no-store' }),
+          fetch('/api/stats/platform', { cache: 'no-store' }),
           fetch('/api/stats/freshness-by-court', { cache: 'no-store' })
         ])
-        if (!adminRes.ok) {
-          throw new Error('Failed to load platform statistics')
-        }
 
-        const [adminStats, fresh] = await Promise.all([
-          adminRes.json(),
+        const [judges, courts, cases, platform, fresh] = await Promise.all([
+          judgesRes.json(),
+          courtsRes.json(),
+          casesRes.json(),
+          platformRes.json(),
           freshRes.json(),
         ])
 
-        setStats(adminStats as DashboardStats)
+        const combined: DashboardStats = {
+          totalJudges: Number(judges?.totalJudges) || 0,
+          totalCourts: Number(courts?.totalCourts) || 0,
+          totalCases: Number(cases?.totalCases) || 0,
+          pendingSync: 0,
+          lastSyncTime: cases?.lastUpdate || null,
+          systemHealth: 'healthy',
+          activeUsers: Number(platform?.activeUsers) || 0,
+          searchVolume: Number(platform?.monthlySearchesRaw) || 0,
+          syncSuccessRate: 0,
+          retryCount: 0,
+          cacheHitRatio: 0,
+          latencyP50: null,
+          latencyP95: null,
+        }
+
+        setStats(combined)
         setFreshness(fresh.rows || [])
       } catch (e: any) {
         setError('Failed to load analytics stats')

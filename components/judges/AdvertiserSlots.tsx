@@ -13,6 +13,9 @@ interface AdvertiserSlotsProps {
 interface AdSlot {
   id: string
   position: number
+  status?: string
+  base_price_monthly?: number
+  pricing_tier?: string | null
   advertiser?: {
     firm_name: string
     description: string
@@ -32,6 +35,10 @@ interface AdSlot {
   }
 }
 
+interface ApiResponse {
+  slots?: AdSlot[]
+}
+
 export function AdvertiserSlots({ judgeId, judgeName }: AdvertiserSlotsProps) {
   const [slots, setSlots] = useState<AdSlot[]>([])
   const [loading, setLoading] = useState(true)
@@ -48,8 +55,8 @@ export function AdvertiserSlots({ judgeId, judgeName }: AdvertiserSlotsProps) {
         return
       }
 
-      const data = await response.json()
-      setSlots(data.slots || getDemoSlots())
+      const data: ApiResponse = await response.json()
+      setSlots(data.slots ?? getDemoSlots())
     } catch (error) {
       console.error('Error fetching ad slots:', error)
       setSlots(getDemoSlots())

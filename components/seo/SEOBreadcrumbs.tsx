@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { ChevronRight, Home } from 'lucide-react'
 
+import { resolveCourtSlug } from '@/lib/utils/slug'
+
 interface BreadcrumbItem {
   label: string
   href: string
@@ -97,9 +99,12 @@ export function SEOBreadcrumbs({ items, judgeName, jurisdiction }: SEOBreadcrumb
 export function generateJudgeBreadcrumbs(
   judgeName: string, 
   jurisdiction: string, 
-  courtName: string
+  courtName: string,
+  courtSlug?: string | null
 ): BreadcrumbItem[] {
   const jurisdictionSlug = jurisdiction.toLowerCase().replace(/\s+/g, '-')
+  const preferredCourtSlug =
+    courtSlug || resolveCourtSlug({ slug: courtSlug, name: courtName }) || 'unknown-court'
   
   return [
     {
@@ -112,7 +117,7 @@ export function generateJudgeBreadcrumbs(
     },
     {
       label: courtName,
-      href: `/courts/${courtName.toLowerCase().replace(/\s+/g, '-')}`
+      href: `/courts/${preferredCourtSlug}`
     },
     {
       label: `Judge ${judgeName}`,
@@ -125,9 +130,12 @@ export function generateJudgeBreadcrumbs(
 // Helper function for court pages
 export function generateCourtBreadcrumbs(
   courtName: string,
-  jurisdiction: string
+  jurisdiction: string,
+  courtSlug?: string | null
 ): BreadcrumbItem[] {
   const jurisdictionSlug = jurisdiction.toLowerCase().replace(/\s+/g, '-')
+  const preferredCourtSlug =
+    courtSlug || resolveCourtSlug({ slug: courtSlug, name: courtName }) || 'unknown-court'
   
   return [
     {
@@ -140,7 +148,7 @@ export function generateCourtBreadcrumbs(
     },
     {
       label: courtName,
-      href: '#',
+      href: `/courts/${preferredCourtSlug}`,
       current: true
     }
   ]

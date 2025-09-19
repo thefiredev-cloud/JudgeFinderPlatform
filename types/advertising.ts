@@ -30,11 +30,11 @@ export interface AdSpot {
   position: 1 | 2 | 3
   status: 'available' | 'booked' | 'reserved' | 'maintenance'
   base_price_monthly: number
-  current_advertiser_id?: string
+  current_advertiser_id?: string | null
   impressions_total: number
   clicks_total: number
   court_level?: 'federal' | 'state'
-  pricing_tier?: string
+  pricing_tier?: string | null
   created_at: string
   updated_at: string
 }
@@ -50,18 +50,8 @@ export interface AdCampaign {
   budget_daily_limit?: number
   start_date: string
   end_date: string
-  targeting_criteria?: {
-    jurisdictions?: string[]
-    court_types?: string[]
-    min_case_volume?: number
-    max_case_volume?: number
-  }
-  ad_content?: {
-    headline?: string
-    description?: string
-    cta_text?: string
-    cta_url?: string
-  }
+  targeting_criteria?: Record<string, any>
+  ad_content?: Record<string, any>
   impressions_total: number
   clicks_total: number
   approval_notes?: string
@@ -81,6 +71,7 @@ export interface AdBooking {
   payment_status: 'pending' | 'paid' | 'failed' | 'refunded'
   stripe_payment_intent_id?: string
   stripe_invoice_id?: string
+  stripe_subscription_id?: string
   impressions: number
   clicks: number
   pricing_tier_id?: string

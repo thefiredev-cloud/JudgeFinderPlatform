@@ -4,6 +4,7 @@ export interface Judge {
   slug?: string // URL-friendly identifier for reliable routing
   court_id: string | null
   court_name: string | null
+  court_slug?: string | null
   jurisdiction: string
   appointed_date: string | null
   education: string | null
@@ -21,12 +22,15 @@ export interface Judge {
 export interface Court {
   id: string
   name: string
+  slug?: string | null
   type: 'federal' | 'state' | 'local'
-  jurisdiction: string
-  address: string
-  phone: string
-  website: string
-  judge_count: number
+  jurisdiction: string | null
+  address: string | null
+  phone: string | null
+  website: string | null
+  judge_count: number | null
+  courtlistener_id?: string | null
+  courthouse_metadata?: Record<string, any> | null
   created_at: string
   updated_at: string
 }

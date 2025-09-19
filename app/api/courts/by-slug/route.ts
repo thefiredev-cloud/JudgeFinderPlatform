@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { generateSlug, isValidSlug } from '@/lib/utils/slug'
+import { generateSlug, isValidSlug, resolveCourtSlug } from '@/lib/utils/slug'
 import { cache } from '@/lib/cache/simple-cache'
 import type { Court } from '@/types'
 
@@ -235,7 +235,7 @@ function findSimilarCourtSlugs(targetSlug: string, courts: any[]): Court[] {
 
   for (let i = 0; i < maxProcessed; i++) {
     const court = courts[i]
-    const courtSlug = court.slug || generateSlug(court.name)
+    const courtSlug = resolveCourtSlug(court) || generateSlug(court.name)
     const similarity = calculateStringSimilarity(targetSlug, courtSlug)
     
     if (similarity > 0.5) {

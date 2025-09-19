@@ -102,10 +102,17 @@ export default function JudgesContent() {
       
       const data: JudgesResponse = await response.json()
       
+      const mergeUniqueById = (existing: JudgeWithDecisions[], incoming: JudgeWithDecisions[]) => {
+        const map = new Map<string, JudgeWithDecisions>()
+        for (const j of existing) map.set(j.id, j)
+        for (const j of incoming) map.set(j.id, j)
+        return Array.from(map.values())
+      }
+
       if (reset || page === 1) {
-        setJudges(data.judges)
+        setJudges(mergeUniqueById([], data.judges))
       } else {
-        setJudges(prev => [...prev, ...data.judges])
+        setJudges(prev => mergeUniqueById(prev, data.judges))
       }
       
       setTotalCount(data.total_count)

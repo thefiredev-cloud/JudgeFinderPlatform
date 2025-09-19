@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export default async function AdvertiserDashboardPage() {
   const user = await currentUser()
   if (!user) {
-    redirect('/auth/login')
+    redirect('/sign-in')
   }
 
   const advertiserProfile = await getAdvertiserProfileForUser(user.id)

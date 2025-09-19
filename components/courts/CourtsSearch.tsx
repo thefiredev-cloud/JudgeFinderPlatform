@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useSearchDebounce } from '@/lib/hooks/useDebounce'
 import { CourtCardSkeleton } from '@/components/ui/Skeleton'
-import { generateCourtSlug } from '@/lib/utils/slug'
+import { resolveCourtSlug } from '@/lib/utils/slug'
 
 interface Court {
   id: string
@@ -233,7 +233,7 @@ export function CourtsSearch({ initialCourts, initialJurisdiction = 'CA' }: Cour
             className="group"
           >
             <Link
-              href={`/courts/${court.slug || generateCourtSlug(court.name)}`}
+              href={`/courts/${resolveCourtSlug(court) || court.id}`}
               className="block h-full"
             >
               <div className="relative h-full rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:bg-accent/5 group-hover:border-primary/30">

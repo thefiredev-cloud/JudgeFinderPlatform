@@ -60,8 +60,29 @@ export async function isAdmin(): Promise<boolean> {
  * Check if the current user is an advertiser (law firm or attorney)
  */
 export async function isAdvertiser(): Promise<boolean> {
-  const role = await getUserRole()
-  return ['law_firm', 'attorney', 'advertiser'].includes(role)
+  const { userId } = await auth()
+  if (!userId) {
+    return false
+  }
+
+  try {
+    const supabase = await createServerClient()
+    const { data, error } = await supabase
+      .from('advertiser_profiles')
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    if (error) {
+      console.warn('Error checking advertiser profile:', error)
+      return false
+    }
+
+    return Boolean(data)
+  } catch (error) {
+    console.error('Unexpected error checking advertiser status:', error)
+    return false
+  }
 }
 
 /**

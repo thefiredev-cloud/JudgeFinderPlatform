@@ -4,7 +4,7 @@
  */
 
 import type { Judge } from '@/types'
-import { createCanonicalSlug } from '@/lib/utils/slug'
+import { createCanonicalSlug, resolveCourtSlug } from '@/lib/utils/slug'
 
 /**
  * Generate comprehensive structured data for a judge profile
@@ -18,14 +18,18 @@ export function generateJudgeStructuredData(
   const safeName = judge.name || 'Unknown Judge'
   const safeCourtName = judge.court_name || 'Unknown Court'
   const safeJurisdiction = judge.jurisdiction || 'Unknown Jurisdiction'
+  const courtSlug =
+    resolveCourtSlug({ slug: judge.court_slug, name: judge.court_name || safeCourtName }) ||
+    createCanonicalSlug(safeCourtName)
+  const courtUrl = `${baseUrl}/courts/${courtSlug}`
   const canonicalUrl = `${baseUrl}/judges/${canonicalSlug}`
   
   return [
     // Enhanced Person/PublicOfficial Schema
-    generatePersonSchema(judge, safeName, safeCourtName, safeJurisdiction, canonicalSlug, baseUrl),
+    generatePersonSchema(judge, safeName, safeCourtName, safeJurisdiction, canonicalSlug, courtSlug, baseUrl),
     
     // Organization Schema for the Court
-    generateCourtOrganizationSchema(safeCourtName, safeJurisdiction, baseUrl),
+    generateCourtOrganizationSchema(safeCourtName, safeJurisdiction, courtSlug, baseUrl),
     
     // Legal Service Schema for JudgeFinder Platform
     generateLegalServiceSchema(safeName, safeJurisdiction, baseUrl),
@@ -43,7 +47,7 @@ export function generateJudgeStructuredData(
     generateEducationalEventSchema(judge, safeName),
     
     // Government Service Schema
-    generateGovernmentServiceSchema(judge, safeName, safeCourtName, safeJurisdiction),
+    generateGovernmentServiceSchema(judge, safeName, safeCourtName, safeJurisdiction, courtSlug, baseUrl),
     
     // BreadcrumbList Schema for Navigation
     generateBreadcrumbSchema(safeName, safeJurisdiction, canonicalSlug, baseUrl),
@@ -52,16 +56,16 @@ export function generateJudgeStructuredData(
     generateFAQSchema(judge, safeName, safeCourtName, safeJurisdiction, canonicalUrl),
     
     // WebPage Schema with Enhanced SEO Data
-    generateWebPageSchema(judge, safeName, safeCourtName, safeJurisdiction, canonicalSlug, baseUrl),
+    generateWebPageSchema(judge, safeName, safeCourtName, safeJurisdiction, canonicalSlug, courtSlug, baseUrl),
     
     // Organization Schema for JudgeFinder Authority
     generateJudgeFinderOrganizationSchema(baseUrl),
     
     // Dataset Schema for Judicial Data
-    generateDatasetSchema(safeName, safeJurisdiction, canonicalUrl),
+    generateDatasetSchema(safeName, safeJurisdiction, canonicalUrl, courtUrl),
     
     // Place Schema for Court Location
-    generatePlaceSchema(safeCourtName, safeJurisdiction, baseUrl)
+    generatePlaceSchema(safeCourtName, safeJurisdiction, courtSlug, baseUrl)
   ].filter(Boolean)
 }
 
@@ -74,8 +78,10 @@ function generatePersonSchema(
   safeCourtName: string,
   safeJurisdiction: string,
   canonicalSlug: string,
+  courtSlug: string,
   baseUrl: string
 ): any {
+  const courtUrl = `${baseUrl}/courts/${courtSlug}`
   return {
     '@context': 'https://schema.org',
     '@type': ['Person', 'PublicOfficial', 'LegalPerson'],
@@ -96,7 +102,7 @@ function generatePersonSchema(
     // Professional Details
     worksFor: {
       '@type': ['Organization', 'GovernmentOrganization', 'LegalService'],
-      '@id': `${baseUrl}/courts/${safeCourtName.toLowerCase().replace(/\s+/g, '-')}#organization`,
+      '@id': `${courtUrl}#organization`,
       name: safeCourtName,
       legalName: safeCourtName,
       description: `${safeCourtName} - California Superior Court serving ${safeJurisdiction}`,
@@ -106,7 +112,7 @@ function generatePersonSchema(
         addressCountry: 'US',
         addressLocality: safeJurisdiction.replace(' County', '')
       },
-      url: `${baseUrl}/courts/${safeCourtName.toLowerCase().replace(/\s+/g, '-')}`,
+      url: courtUrl,
       serviceArea: {
         '@type': 'State',
         name: 'California'
@@ -232,12 +238,14 @@ function generatePersonSchema(
 function generateCourtOrganizationSchema(
   courtName: string,
   jurisdiction: string,
+  courtSlug: string,
   baseUrl: string
 ): any {
+  const courtUrl = `${baseUrl}/courts/${courtSlug}`
   return {
     '@context': 'https://schema.org',
     '@type': ['LocalBusiness', 'GovernmentOffice', 'LegalService', 'Courthouse'],
-    '@id': `${baseUrl}/courts/${courtName.toLowerCase().replace(/\s+/g, '-')}#localbusiness`,
+    '@id': `${courtUrl}#localbusiness`,
     name: courtName,
     legalName: courtName,
     description: `${courtName} - California Superior Court serving ${jurisdiction} with comprehensive judicial services including civil, criminal, family law, probate, and other legal proceedings.`,
@@ -291,7 +299,7 @@ function generateCourtOrganizationSchema(
     },
     openingHours: 'Mo-Fr 08:00-17:00',
     telephone: 'Contact court directly',
-    url: `${baseUrl}/courts/${courtName.toLowerCase().replace(/\s+/g, '-')}`
+    url: courtUrl
   }
 }
 
@@ -491,8 +499,11 @@ function generateGovernmentServiceSchema(
   judge: Judge,
   judgeName: string,
   courtName: string,
-  jurisdiction: string
+  jurisdiction: string,
+  courtSlug: string,
+  baseUrl: string
 ): any {
+  const courtUrl = `${baseUrl}/courts/${courtSlug}`
   return {
     '@context': 'https://schema.org',
     '@type': 'GovernmentService',
@@ -506,7 +517,12 @@ function generateGovernmentServiceSchema(
       '@type': 'Person',
       name: judgeName
     },
-    serviceType: 'Judicial Services'
+    serviceType: 'Judicial Services',
+    serviceOperator: {
+      '@type': 'GovernmentOrganization',
+      name: courtName,
+      url: courtUrl
+    }
   }
 }
 
@@ -632,8 +648,10 @@ function generateWebPageSchema(
   courtName: string,
   jurisdiction: string,
   canonicalSlug: string,
+  courtSlug: string,
   baseUrl: string
 ): any {
+  const courtUrl = `${baseUrl}/courts/${courtSlug}`
   return {
     '@context': 'https://schema.org',
     '@type': ['WebPage', 'ProfilePage'],
@@ -677,6 +695,7 @@ function generateWebPageSchema(
     ],
     keywords: `Judge ${judgeName}, ${judgeName} Superior Court, ${judgeName} judicial analytics, ${courtName} judges, ${jurisdiction} Superior Court, judicial research, legal analytics, case outcomes, ruling patterns, attorney directory`,
     dateModified: new Date().toISOString(),
+    relatedLink: courtUrl,
     publisher: {
       '@type': 'Organization',
       name: 'JudgeFinder',
@@ -722,7 +741,12 @@ function generateJudgeFinderOrganizationSchema(baseUrl: string): any {
 /**
  * Dataset Schema for Judicial Data
  */
-function generateDatasetSchema(judgeName: string, jurisdiction: string, canonicalUrl: string): any {
+function generateDatasetSchema(
+  judgeName: string,
+  jurisdiction: string,
+  canonicalUrl: string,
+  courtUrl: string
+): any {
   return {
     '@context': 'https://schema.org',
     '@type': 'Dataset',
@@ -738,6 +762,7 @@ function generateDatasetSchema(judgeName: string, jurisdiction: string, canonica
       contentUrl: canonicalUrl,
       encodingFormat: 'text/html'
     },
+    isBasedOn: courtUrl,
     keywords: [
       'judicial analytics',
       'case outcomes',
@@ -751,7 +776,13 @@ function generateDatasetSchema(judgeName: string, jurisdiction: string, canonica
 /**
  * Place Schema for Court Location
  */
-function generatePlaceSchema(courtName: string, jurisdiction: string, baseUrl: string): any {
+function generatePlaceSchema(
+  courtName: string,
+  jurisdiction: string,
+  courtSlug: string,
+  baseUrl: string
+): any {
+  const courtUrl = `${baseUrl}/courts/${courtSlug}`
   return {
     '@context': 'https://schema.org',
     '@type': 'Place',
@@ -767,6 +798,6 @@ function generatePlaceSchema(courtName: string, jurisdiction: string, baseUrl: s
       '@type': 'State',
       name: 'California'
     },
-    url: `${baseUrl}/courts/${courtName.toLowerCase().replace(/\s+/g, '-')}`
+    url: courtUrl
   }
 }

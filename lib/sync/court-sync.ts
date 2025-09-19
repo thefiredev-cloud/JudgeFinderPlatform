@@ -32,6 +32,16 @@ interface CourtListenerCourt {
   position?: string
   date_created?: string
   date_modified?: string
+  short_name?: string
+  citation_string?: string
+  in_use?: boolean
+  has_opinion_scraper?: boolean
+  has_oral_argument_scraper?: boolean
+  position_count?: number
+  start_date?: string
+  end_date?: string
+  location?: string
+  [key: string]: any
 }
 
 export class CourtSyncManager {
@@ -233,7 +243,7 @@ export class CourtSyncManager {
     try {
       const { data: byId, error: byIdError } = await this.supabase
         .from('courts')
-        .select('id, name, courtlistener_id, updated_at')
+        .select('id, name, courtlistener_id, updated_at, courthouse_metadata')
         .eq('courtlistener_id', courtData.id)
         .maybeSingle()
 
@@ -251,7 +261,7 @@ export class CourtSyncManager {
 
       const { data: byName, error: byNameError } = await this.supabase
         .from('courts')
-        .select('id, name, courtlistener_id, updated_at')
+        .select('id, name, courtlistener_id, updated_at, courthouse_metadata')
         .ilike('name', courtData.name)
         .maybeSingle()
 
@@ -284,6 +294,7 @@ export class CourtSyncManager {
    * Update existing court
    */
   private async updateCourt(courtId: string, courtData: CourtListenerCourt) {
+    const metadata = this.buildCourthouseMetadata(courtData)
     const { error } = await this.supabase
       .from('courts')
       .update({
@@ -291,6 +302,8 @@ export class CourtSyncManager {
         courtlistener_id: courtData.id,
         jurisdiction: this.extractJurisdiction(courtData),
         website: courtData.url,
+        address: courtData.location || null,
+        courthouse_metadata: metadata,
         updated_at: new Date().toISOString()
       })
       .eq('id', courtId)
@@ -304,6 +317,7 @@ export class CourtSyncManager {
    * Create new court
    */
   private async createCourt(courtData: CourtListenerCourt) {
+    const metadata = this.buildCourthouseMetadata(courtData)
     const { error } = await this.supabase
       .from('courts')
       .insert({
@@ -312,6 +326,8 @@ export class CourtSyncManager {
         jurisdiction: this.extractJurisdiction(courtData),
         courtlistener_id: courtData.id,
         website: courtData.url,
+        address: courtData.location || null,
+        courthouse_metadata: metadata,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -351,6 +367,27 @@ export class CourtSyncManager {
     }
     
     return 'state' // Default
+  }
+
+  /**
+   * Build structured courthouse metadata for persistence
+   */
+  private buildCourthouseMetadata(courtData: CourtListenerCourt) {
+    return {
+      source: 'courtlistener',
+      sync_id: this.syncId,
+      fetched_at: new Date().toISOString(),
+      short_name: courtData.short_name || null,
+      citation_string: courtData.citation_string || null,
+      in_use: typeof courtData.in_use === 'boolean' ? courtData.in_use : null,
+      has_opinion_scraper: typeof courtData.has_opinion_scraper === 'boolean' ? courtData.has_opinion_scraper : null,
+      has_oral_argument_scraper: typeof courtData.has_oral_argument_scraper === 'boolean' ? courtData.has_oral_argument_scraper : null,
+      position_count: courtData.position_count ?? null,
+      established_date: courtData.start_date || courtData.date_created || null,
+      retired_date: courtData.end_date || null,
+      location: courtData.location || null,
+      raw: courtData
+    }
   }
 
   /**

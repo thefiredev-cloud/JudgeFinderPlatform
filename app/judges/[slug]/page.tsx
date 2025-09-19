@@ -1,4 +1,5 @@
 import { notFound, redirect } from 'next/navigation'
+import { createServerClient } from '@/lib/supabase/server'
 import { JudgeProfile } from '@/components/judges/JudgeProfile'
 import { ProfessionalBackground } from '@/components/judges/ProfessionalBackground'
 import { JudgeRulingPatterns } from '@/components/judges/JudgeRulingPatterns'
@@ -8,11 +9,11 @@ import { JudgeFAQ } from '@/components/judges/JudgeFAQ'
 import AnalyticsSliders from '@/components/judges/AnalyticsSliders'
 import { BookmarkButton } from '@/components/judges/BookmarkButton'
 import { ReportProfileIssueDialog } from '@/components/judges/ReportProfileIssueDialog'
-import { SEOBreadcrumbs } from '@/components/seo/SEOBreadcrumbs'
+import { SEOBreadcrumbs, generateJudgeBreadcrumbs } from '@/components/seo/SEOBreadcrumbs'
 import { RelatedJudges } from '@/components/seo/RelatedJudges'
 import { RelatedContent } from '@/components/seo/RelatedContent'
 import { SEOMonitoring } from '@/components/analytics/SEOMonitoring'
-import { isValidSlug, createCanonicalSlug } from '@/lib/utils/slug'
+import { isValidSlug, createCanonicalSlug, resolveCourtSlug } from '@/lib/utils/slug'
 import { generateJudgeMetadata } from '@/lib/seo/metadata-generator'
 import { generateJudgeStructuredData } from '@/lib/seo/structured-data'
 import { generateUniqueJudgeContent, generateRelatedJudges } from '@/lib/seo/content-generator'
@@ -83,7 +84,6 @@ async function getJudge(slug: string): Promise<Judge | null> {
  */
 async function getRelatedJudges(currentJudge: Judge): Promise<Judge[]> {
   try {
-    const { createServerClient } = await import('@/lib/supabase/server')
     const supabase = await createServerClient()
     
     const relatedJudges = []
@@ -130,7 +130,6 @@ async function getRelatedJudges(currentJudge: Judge): Promise<Judge[]> {
  */
 async function getJudgeFallback(slug: string): Promise<Judge | null> {
   try {
-    const { createServerClient } = await import('@/lib/supabase/server')
     const { slugToName, generateNameVariations } = await import('@/lib/utils/slug')
     
     const supabase = await createServerClient()
@@ -208,6 +207,31 @@ export default async function JudgePage({ params }: JudgePageProps) {
   const safeCourtName = judge.court_name || 'Unknown Court'
   const safeJurisdiction = judge.jurisdiction || 'Unknown Jurisdiction'
 
+  let courtSlug = judge.court_slug ?? null
+  if (!courtSlug && judge.court_id) {
+    try {
+      const supabase = await createServerClient()
+      const { data: courtRecord } = await supabase
+        .from('courts')
+        .select('slug, name')
+        .eq('id', judge.court_id)
+        .maybeSingle()
+
+      if (courtRecord) {
+        courtSlug = resolveCourtSlug(courtRecord)
+      }
+    } catch (error) {
+      console.warn('Failed to resolve court slug for judge', {
+        judgeId: judge.id,
+        error: error instanceof Error ? error.message : error
+      })
+    }
+  }
+
+  if (!courtSlug && judge.court_name) {
+    courtSlug = resolveCourtSlug({ name: judge.court_name })
+  }
+
   // Generate unique content for SEO and user experience
   const uniqueContent = generateUniqueJudgeContent(judge)
 
@@ -237,12 +261,7 @@ export default async function JudgePage({ params }: JudgePageProps) {
       
       {/* SEO Breadcrumbs - Moved to top for better visibility */}
       <SEOBreadcrumbs 
-        items={[
-          { label: 'Judges', href: '/judges' },
-          { label: safeJurisdiction, href: `/jurisdictions/${safeJurisdiction.toLowerCase().replace(/\s+/g, '-')}` },
-          { label: safeCourtName, href: `/courts/${safeCourtName.toLowerCase().replace(/\s+/g, '-')}` },
-          { label: `Judge ${safeName}`, href: '#', current: true }
-        ]}
+        items={generateJudgeBreadcrumbs(safeName, safeJurisdiction, safeCourtName, courtSlug)}
         judgeName={safeName}
         jurisdiction={safeJurisdiction}
       />
@@ -307,6 +326,7 @@ export default async function JudgePage({ params }: JudgePageProps) {
               relatedJudges={relatedJudges}
               jurisdiction={safeJurisdiction}
               courtName={safeCourtName}
+              courtSlug={courtSlug}
             />
             
             <JudgeFAQ judgeName={safeName} />

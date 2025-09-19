@@ -81,7 +81,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, s-maxage=3600, stale-while-revalidate=86400'
+            value: 'public, s-maxage=600, stale-while-revalidate=3600'
           }
         ],
       },
@@ -100,6 +100,19 @@ const nextConfig = {
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          }
+        ],
+      },
+      {
+        source: '/analytics',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store'
           }
         ],
       }

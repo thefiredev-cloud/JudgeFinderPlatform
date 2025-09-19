@@ -6,6 +6,7 @@
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { resolveCourtSlug } from '@/lib/utils/slug'
 import type { Judge } from '@/types'
 
 interface RelatedContentProps {
@@ -13,16 +14,20 @@ interface RelatedContentProps {
   relatedJudges: Judge[]
   jurisdiction: string
   courtName: string
+  courtSlug?: string | null
 }
 
 export function RelatedContent({ 
   currentJudge, 
   relatedJudges, 
   jurisdiction, 
-  courtName 
+  courtName,
+  courtSlug
 }: RelatedContentProps) {
   const safeName = currentJudge.name || 'Unknown Judge'
   const cleanName = safeName.replace(/^(judge|justice|the honorable)\s+/i, '')
+  const preferredCourtSlug =
+    courtSlug || resolveCourtSlug({ slug: currentJudge.court_slug, name: courtName }) || 'unknown-court'
   
   return (
     <div className="space-y-8">
@@ -107,7 +112,7 @@ export function RelatedContent({
             
             <div className="space-y-2">
               <Link 
-                href={`/courts/${courtName.toLowerCase().replace(/\s+/g, '-')}`}
+                href={`/courts/${preferredCourtSlug}`}
                 className="block p-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
               >
                 View {courtName} Directory →

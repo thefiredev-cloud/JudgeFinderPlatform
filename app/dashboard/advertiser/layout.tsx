@@ -11,7 +11,7 @@ export default async function AdvertiserLayout({
   const { userId } = await auth()
   
   if (!userId) {
-    redirect('/auth/login')
+    redirect('/sign-in')
   }
 
   const userIsAdvertiser = await isAdvertiser()

@@ -4,12 +4,14 @@ import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import CourtJudgesSection from '@/components/courts/CourtJudgesSection'
 import { CourtAdvertiserSlots } from '@/components/courts/CourtAdvertiserSlots'
+import { SEOBreadcrumbs, generateCourtBreadcrumbs } from '@/components/seo/SEOBreadcrumbs'
 import { 
   courtSlugToName, 
   generateCourtNameVariations, 
   generateCourtSlug, 
   isCourtIdentifier,
-  normalizeCourtIdentifier 
+  normalizeCourtIdentifier,
+  resolveCourtSlug 
 } from '@/lib/utils/slug'
 import type { Court } from '@/types'
 
@@ -179,6 +181,7 @@ export default async function CourtPage({ params }: { params: Params }) {
 
   // Ensure court is properly serialized before using
   const serializedCourt = JSON.parse(JSON.stringify(court))
+  const preferredCourtSlug = resolveCourtSlug(serializedCourt) || serializedCourt.id
   const { judges: initialJudges, totalCount } = await getInitialJudges(serializedCourt.id)
 
   return (
@@ -192,10 +195,10 @@ export default async function CourtPage({ params }: { params: Params }) {
             {
               '@context': 'https://schema.org',
               '@type': 'GovernmentOffice',
-              '@id': `https://judgefinder.io/courts/${id}#court`,
+              '@id': `https://judgefinder.io/courts/${preferredCourtSlug}#court`,
               name: serializedCourt.name,
               description: `${serializedCourt.name} is a ${serializedCourt.type} court serving ${serializedCourt.jurisdiction}. Research judges, view analytics, and find legal representation.`,
-              url: `https://judgefinder.io/courts/${id}`,
+              url: `https://judgefinder.io/courts/${preferredCourtSlug}`,
               telephone: serializedCourt.phone,
               sameAs: serializedCourt.website ? [serializedCourt.website] : undefined,
               address: serializedCourt.address ? {
@@ -230,11 +233,11 @@ export default async function CourtPage({ params }: { params: Params }) {
             {
               '@context': 'https://schema.org',
               '@type': 'LocalBusiness',
-              '@id': `https://judgefinder.io/courts/${id}#localbusiness`,
+              '@id': `https://judgefinder.io/courts/${preferredCourtSlug}#localbusiness`,
               name: serializedCourt.name,
               description: `Official information and analytics for ${serializedCourt.name} in ${serializedCourt.jurisdiction}`,
               telephone: serializedCourt.phone,
-              url: serializedCourt.website || `https://judgefinder.io/courts/${id}`,
+              url: serializedCourt.website || `https://judgefinder.io/courts/${preferredCourtSlug}`,
               address: serializedCourt.address ? {
                 '@type': 'PostalAddress',
                 streetAddress: serializedCourt.address,
@@ -252,10 +255,10 @@ export default async function CourtPage({ params }: { params: Params }) {
             {
               '@context': 'https://schema.org',
               '@type': 'WebPage',
-              '@id': `https://judgefinder.io/courts/${id}`,
+              '@id': `https://judgefinder.io/courts/${preferredCourtSlug}`,
               name: `${serializedCourt.name} - Court Information | JudgeFinder`,
               description: `Complete information about ${serializedCourt.name} including judges, contact details, and legal services. Find attorneys practicing in this ${serializedCourt.type} court.`,
-              url: `https://judgefinder.io/courts/${id}`,
+              url: `https://judgefinder.io/courts/${preferredCourtSlug}`,
               isPartOf: {
                 '@type': 'WebSite',
                 '@id': 'https://judgefinder.io#website',
@@ -263,14 +266,22 @@ export default async function CourtPage({ params }: { params: Params }) {
                 url: 'https://judgefinder.io'
               },
               about: {
-                '@id': `https://judgefinder.io/courts/${id}#court`
+                '@id': `https://judgefinder.io/courts/${preferredCourtSlug}#court`
               },
               mainEntity: {
-                '@id': `https://judgefinder.io/courts/${id}#court`
+                '@id': `https://judgefinder.io/courts/${preferredCourtSlug}#court`
               }
             }
           ]),
         }}
+      />
+
+      <SEOBreadcrumbs
+        items={generateCourtBreadcrumbs(
+          serializedCourt.name,
+          serializedCourt.jurisdiction || 'California',
+          preferredCourtSlug
+        )}
       />
 
       {/* Hero Section with Enhanced Gradient */}
@@ -486,8 +497,9 @@ export async function generateMetadata({ params }: { params: Params }) {
   // Create location-focused description
   const description = `Complete information about ${court.name} in ${court.jurisdiction}. Find judges, contact information, court procedures, and experienced attorneys practicing in this ${court.type} court. Essential resource for legal professionals.`
   
+  const metadataCourtSlug = resolveCourtSlug(court) || court.id
   const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://judgefinder.io').replace(/\/$/, '')
-  const canonicalUrl = `${baseUrl}/courts/${id}`
+  const canonicalUrl = `${baseUrl}/courts/${metadataCourtSlug}`
 
   return {
     title: `${court.name} - ${cityName} ${court.type.charAt(0).toUpperCase() + court.type.slice(1)} Court | JudgeFinder`,

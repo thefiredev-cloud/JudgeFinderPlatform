@@ -5,6 +5,8 @@ import { Building, MapPin, Users, Scale, Search, Loader2, ArrowLeft } from 'luci
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 
+import { resolveCourtSlug } from '@/lib/utils/slug'
+
 interface Court {
   id: string
   name: string
@@ -14,6 +16,7 @@ interface Court {
   phone?: string
   website?: string
   judge_count: number
+  slug?: string | null
 }
 
 interface CourtsResponse {
@@ -146,7 +149,10 @@ export default function CountyCourtsPage() {
     }
   }
 
-  const generateSlug = (court: Court) => {
+  const getCourtSlug = (court: Court) => {
+    const resolved = resolveCourtSlug(court)
+    if (resolved) return resolved
+
     return court.name
       .toLowerCase()
       .replace(/[^a-z0-9\s]/g, '')
@@ -268,7 +274,7 @@ export default function CountyCourtsPage() {
               {courts.map((court) => (
                 <Link
                   key={court.id}
-                  href={`/courts/${generateSlug(court)}`}
+                  href={`/courts/${getCourtSlug(court)}`}
                   className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-200 p-6 group border border-gray-100 hover:border-blue-200"
                 >
                   <div className="flex items-center justify-between mb-4">

@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { User, MapPin, Building } from 'lucide-react'
 
+import { resolveCourtSlug } from '@/lib/utils/slug'
+
 interface Judge {
   id: string
   name: string
@@ -18,11 +20,13 @@ interface RelatedJudgesProps {
   courtName: string
   jurisdiction: string
   judgeName: string
+  courtSlug?: string | null
 }
 
-export function RelatedJudges({ currentJudgeId, courtName, jurisdiction, judgeName }: RelatedJudgesProps) {
+export function RelatedJudges({ currentJudgeId, courtName, jurisdiction, judgeName, courtSlug }: RelatedJudgesProps) {
   const [relatedJudges, setRelatedJudges] = useState<Judge[]>([])
   const [loading, setLoading] = useState(true)
+  const preferredCourtSlug = courtSlug || resolveCourtSlug({ name: courtName }) || 'unknown-court'
 
   useEffect(() => {
     async function fetchRelatedJudges() {
@@ -112,7 +116,7 @@ export function RelatedJudges({ currentJudgeId, courtName, jurisdiction, judgeNa
       <div className="mt-6 pt-4 border-t border-gray-200">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <Link
-            href={`/courts/${courtName.toLowerCase().replace(/\s+/g, '-')}`}
+            href={`/courts/${preferredCourtSlug}`}
             className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
           >
             <Building className="h-4 w-4 mr-2" />

@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Building, Users, TrendingUp, ArrowRight, Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
+import { resolveCourtSlug } from '@/lib/utils/slug'
+
 interface Court {
   id: string
   name: string
@@ -111,7 +113,7 @@ export function PopularCourts() {
                 whileTap={{ scale: 0.98 }}
               >
                 <Link
-                  href={`/courts/${court.slug}`}
+                  href={`/courts/${resolveCourtSlug(court) || court.id}`}
                   className="group relative block rounded-lg border border-border bg-card p-6 transition-all hover:border-primary/50 hover:bg-muted overflow-hidden"
                 >
                   <div className="mb-4 flex items-center justify-between">
