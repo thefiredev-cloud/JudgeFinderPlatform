@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { ExternalLink, Briefcase, Phone, Mail, Award, Shield, TrendingUp } from 'lucide-react'
+import { ExternalLink, Briefcase, Phone, Mail, Shield } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -22,6 +22,7 @@ interface AdSlot {
     logo_url?: string
     specializations?: string[]
     badge?: string
+    bar_number?: string
   }
   creative?: {
     headline: string
@@ -97,9 +98,9 @@ export function AdvertiserSlots({ judgeId, judgeName }: AdvertiserSlotsProps) {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map(i => (
-          <div key={i} className="bg-gray-50 rounded-lg p-4 animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+          <div key={i} className="animate-pulse rounded-2xl border border-border/60 bg-[hsl(var(--bg-2))] p-4">
+            <div className="mb-2 h-4 w-3/4 rounded bg-muted" />
+            <div className="h-3 w-1/2 rounded bg-muted" />
           </div>
         ))}
       </div>
@@ -107,131 +108,186 @@ export function AdvertiserSlots({ judgeId, judgeName }: AdvertiserSlotsProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900 mb-3">
-        Legal Professionals
-      </h3>
+    <div className="space-y-4" id="attorney-slots">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <h3 className="text-lg font-semibold text-[color:hsl(var(--text-1))]">
+          Verified Legal Professionals
+        </h3>
+        <Link
+          href="/docs/ads-policy"
+          className="inline-flex items-center gap-2 text-xs font-medium text-[color:hsl(var(--accent))] transition-colors hover:text-[color:hsl(var(--text-1))]"
+        >
+          Understand our ad policy
+          <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+        </Link>
+      </div>
+      <p className="text-xs text-[color:hsl(var(--text-3))]">
+        Listings labeled <span className="font-semibold text-[color:hsl(var(--accent))]">Ad</span> are paid placements. We verify
+        every sponsor&apos;s California bar status before activation.
+      </p>
       
-      {slots.map((slot) => (
-        <div key={slot.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-          {slot.advertiser ? (
-            <div className="p-4">
-              {/* Advertiser Header */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-gray-900">
-                      {slot.advertiser.firm_name}
-                    </h4>
-                    {slot.advertiser.badge && (
-                      <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
-                        {slot.advertiser.badge}
-                      </span>
+      {slots.map((slot) => {
+        const advertiser = slot.advertiser
+        const barNumber = advertiser?.bar_number?.trim()
+        const barVerificationUrl = barNumber
+          ? `https://apps.calbar.ca.gov/attorney/Licensee/Detail/${barNumber}`
+          : undefined
+
+        return (
+          <div
+            key={slot.id}
+            className="overflow-hidden rounded-2xl border border-border/60 bg-[hsl(var(--bg-2))] transition-shadow hover:shadow-lg"
+          >
+            {advertiser ? (
+              <div className="space-y-4 p-5">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className="inline-flex items-center rounded-full border border-[rgba(110,168,254,0.45)] bg-[rgba(110,168,254,0.14)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-[color:hsl(var(--accent))]"
+                          aria-label="Sponsored listing"
+                        >
+                          Ad
+                        </span>
+                        {advertiser.badge && (
+                          <span className="inline-flex items-center rounded-full border border-border/60 bg-[hsl(var(--bg-1))] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-[color:hsl(var(--text-3))]">
+                            {advertiser.badge}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="mt-2 text-lg font-semibold text-[color:hsl(var(--text-1))]">
+                        {advertiser.firm_name}
+                      </h4>
+                      <p className="mt-1 text-sm text-[color:hsl(var(--text-2))]">
+                        {advertiser.description}
+                      </p>
+                    </div>
+                    {advertiser.logo_url && (
+                      <Image
+                        src={advertiser.logo_url}
+                        alt={advertiser.firm_name}
+                        width={52}
+                        height={52}
+                        className="h-12 w-12 rounded-lg border border-border/40 bg-[hsl(var(--bg-1))] object-contain p-2"
+                      />
                     )}
                   </div>
-                  <p className="text-sm text-gray-600">
-                    {slot.advertiser.description}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-3 text-[11px] text-[color:hsl(var(--text-3))]">
+                    {barVerificationUrl && (
+                      <a
+                        href={barVerificationUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[color:hsl(var(--accent))] underline-offset-4 hover:text-[color:hsl(var(--text-1))]"
+                      >
+                        <Shield className="h-3 w-3" aria-hidden />
+                        CA Bar #{barNumber}
+                      </a>
+                    )}
+                    <span>Verified by JudgeFinder</span>
+                  </div>
                 </div>
-                {slot.advertiser.logo_url && (
-                  <Image
-                    src={slot.advertiser.logo_url}
-                    alt={slot.advertiser.firm_name}
-                    width={48}
-                    height={48}
-                    className="object-contain"
-                  />
-                )}
-              </div>
 
-              {/* Creative Content */}
-              {slot.creative && (
-                <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-                  <h5 className="font-medium text-gray-900 text-sm mb-1">
-                    {slot.creative.headline}
-                  </h5>
-                  <p className="text-sm text-gray-600">
-                    {slot.creative.description}
-                  </p>
-                </div>
-              )}
-
-              {/* Specializations */}
-              {slot.advertiser.specializations && slot.advertiser.specializations.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {slot.advertiser.specializations.map((spec, idx) => (
-                    <span key={idx} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
-                      {spec}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Contact Info */}
-              <div className="space-y-1 text-sm mb-3">
-                {slot.advertiser.phone && (
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Phone className="h-3 w-3" />
-                    <span>{slot.advertiser.phone}</span>
+                {slot.creative && (
+                  <div className="rounded-xl border border-border/60 bg-[hsl(var(--bg-1))] p-4">
+                    <h5 className="mb-1 text-sm font-semibold text-[color:hsl(var(--text-1))]">
+                      {slot.creative.headline}
+                    </h5>
+                    <p className="text-sm text-[color:hsl(var(--text-2))]">{slot.creative.description}</p>
                   </div>
                 )}
-                {slot.advertiser.website && (
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <ExternalLink className="h-3 w-3" />
-                    <a
-                      href={slot.advertiser.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-700"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        trackClick(slot.id, slot.advertiser!.website!)
-                      }}
-                    >
-                      Visit Website
-                    </a>
+
+                {advertiser.specializations && advertiser.specializations.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {advertiser.specializations.map((spec) => (
+                      <span
+                        key={spec}
+                        className="inline-flex items-center rounded-full border border-border/50 bg-[hsl(var(--bg-1))] px-3 py-1 text-xs text-[color:hsl(var(--text-3))]"
+                      >
+                        {spec}
+                      </span>
+                    ))}
                   </div>
                 )}
-              </div>
 
-              {/* CTA Button */}
-              {slot.creative?.cta_text && slot.creative?.cta_url && (
-                <button
-                  onClick={() => trackClick(slot.id, slot.creative!.cta_url)}
-                  className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                <div className="space-y-2 text-sm text-[color:hsl(var(--text-2))]">
+                  {advertiser.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" aria-hidden />
+                      <span>{advertiser.phone}</span>
+                    </div>
+                  )}
+                  {advertiser.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" aria-hidden />
+                      <a
+                        href={`mailto:${advertiser.email}`}
+                        className="text-[color:hsl(var(--accent))] transition-colors hover:text-[color:hsl(var(--text-1))]"
+                      >
+                        {advertiser.email}
+                      </a>
+                    </div>
+                  )}
+                  {advertiser.website && (
+                    <div className="flex items-center gap-2">
+                      <ExternalLink className="h-4 w-4" aria-hidden />
+                      <a
+                        href={advertiser.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[color:hsl(var(--accent))] transition-colors hover:text-[color:hsl(var(--text-1))]"
+                        onClick={(event) => {
+                          event.preventDefault()
+                          trackClick(slot.id, advertiser.website!)
+                        }}
+                      >
+                        Visit website
+                      </a>
+                    </div>
+                  )}
+                </div>
+
+                {slot.creative?.cta_text && slot.creative?.cta_url && (
+                  <button
+                    type="button"
+                    onClick={() => trackClick(slot.id, slot.creative!.cta_url)}
+                    className="w-full rounded-full border border-[rgba(110,168,254,0.45)] bg-[rgba(110,168,254,0.15)] px-4 py-2 text-sm font-semibold text-[color:hsl(var(--accent))] transition-colors hover:bg-[rgba(110,168,254,0.25)]"
+                  >
+                    {slot.creative.cta_text}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-3 border border-dashed border-border/50 bg-[hsl(var(--bg-1))] p-6 text-center">
+                <Briefcase className="h-8 w-8 text-[color:hsl(var(--text-3))]" aria-hidden />
+                <p className="text-sm font-semibold text-[color:hsl(var(--text-1))]">
+                  Advertising space available
+                </p>
+                <p className="text-xs text-[color:hsl(var(--text-3))]">
+                  Position #{slot.position} • Premium visibility
+                </p>
+                <Link
+                  href="/professional"
+                  className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-[hsl(var(--bg-2))] px-4 py-2 text-sm font-semibold text-[color:hsl(var(--text-2))] transition-colors hover:border-[rgba(110,168,254,0.45)] hover:text-[color:hsl(var(--text-1))]"
                 >
-                  {slot.creative.cta_text}
-                </button>
-              )}
-            </div>
-          ) : (
-            // Empty Slot - Available for Booking
-            <div className="p-4 text-center bg-gray-50">
-              <Briefcase className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm font-medium text-gray-700 mb-1">
-                Advertising Space Available
-              </p>
-              <p className="text-xs text-gray-500 mb-3">
-                Position #{slot.position} • Premium visibility
-              </p>
-              <Link
-                href="/professional"
-                className="inline-block px-4 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                Book This Spot
-              </Link>
-            </div>
-          )}
-        </div>
-      ))}
+                  Book this spot
+                </Link>
+              </div>
+            )}
+          </div>
+        )
+      })}
 
-      {/* Info Footer */}
-      <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-        <div className="flex items-start gap-2">
-          <Shield className="h-4 w-4 text-blue-600 mt-0.5" />
-          <div className="text-xs text-gray-700">
-            <p className="font-medium mb-1">Verified Legal Professionals</p>
-            <p>All advertisers are verified attorneys with active bar memberships.</p>
+      <div className="mt-4 rounded-2xl border border-border/60 bg-[hsl(var(--bg-2))] p-4">
+        <div className="flex items-start gap-2 text-xs text-[color:hsl(var(--text-3))]">
+          <Shield className="mt-0.5 h-4 w-4 text-[color:hsl(var(--accent))]" aria-hidden />
+          <div>
+            <p className="mb-1 font-semibold text-[color:hsl(var(--text-2))]">Trust &amp; verification</p>
+            <p>
+              We confirm California bar standing and active insurance before approving any sponsor. Listings are removed
+              immediately if a bar license lapses.
+            </p>
           </div>
         </div>
       </div>

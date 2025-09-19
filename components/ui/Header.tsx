@@ -14,6 +14,7 @@ const NAV_LINKS = [
   { href: '/judges', label: 'Judges' },
   { href: '/courts', label: 'Courts' },
   { href: '/analytics', label: 'Analytics' },
+  { href: '/docs', label: 'Docs' },
   { href: '/help', label: 'Resources' },
 ]
 

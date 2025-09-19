@@ -18,8 +18,11 @@ import type { Judge } from '@/types'
 import { cn } from '@/lib/utils'
 import { chartTheme } from '@/lib/charts/theme'
 import { useJudgeFilterParams } from '@/hooks/useJudgeFilters'
+import { InfoTooltip } from '@/components/ui/InfoTooltip'
+import { MetricProvenance } from '@/components/judges/MetricProvenance'
+import { getQualityTier, isBelowSampleThreshold } from '@/lib/analytics/config'
 
-interface BiasMetrics {
+interface BiasMetricBody {
   case_type_patterns: Array<{
     case_type: string
     total_cases: number
@@ -57,6 +60,16 @@ interface BiasMetrics {
     risk_tolerance: number
     predictability_score: number
   }
+}
+
+interface CourtBaseline {
+  metrics: BiasMetricBody
+  sample_size: number
+  generated_at: string
+}
+
+interface BiasMetrics extends BiasMetricBody {
+  court_baseline?: CourtBaseline | null
 }
 
 interface BiasPatternAnalysisProps {
@@ -177,26 +190,31 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
 
   const indicatorDefinitions = [
     {
+      key: 'consistency_score' as const,
       name: 'Consistency score',
       value: biasMetrics.bias_indicators.consistency_score,
       description: 'How evenly the judge rules across similar cases',
     },
     {
+      key: 'speed_score' as const,
       name: 'Decision speed',
       value: biasMetrics.bias_indicators.speed_score,
       description: 'Relative time from filing to decision',
     },
     {
+      key: 'settlement_preference' as const,
       name: 'Settlement preference',
       value: Math.abs(biasMetrics.bias_indicators.settlement_preference),
       description: 'Lean toward settlements vs. rulings',
     },
     {
+      key: 'risk_tolerance' as const,
       name: 'Risk tolerance',
       value: biasMetrics.bias_indicators.risk_tolerance,
       description: 'Comfort with high-value or complex matters',
     },
     {
+      key: 'predictability_score' as const,
       name: 'Predictability score',
       value: biasMetrics.bias_indicators.predictability_score,
       description: 'Alignment with historical outcome patterns',
@@ -226,6 +244,40 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
     `Average resolution in ${biasMetrics.outcome_analysis.average_case_duration.toFixed(0)} days`,
   ]
 
+  const casePatternSample = biasMetrics.case_type_patterns.reduce((sum, pattern) => sum + (pattern.total_cases || 0), 0)
+  const outcomeSampleSize = biasMetrics.outcome_analysis.case_value_trends.reduce(
+    (sum, entry) => sum + (entry.case_count || 0),
+    0,
+  )
+  const temporalSampleSize = biasMetrics.temporal_patterns.reduce((sum, entry) => sum + (entry.case_count || 0), 0)
+
+  const caseQuality = getQualityTier(casePatternSample, 75)
+  const outcomeQuality = getQualityTier(outcomeSampleSize, 75)
+  const temporalQuality = getQualityTier(temporalSampleSize, 70)
+
+  const insufficientCasePattern = isBelowSampleThreshold(casePatternSample)
+  const insufficientOutcomeData = isBelowSampleThreshold(outcomeSampleSize)
+  const insufficientTemporalData = isBelowSampleThreshold(temporalSampleSize)
+
+  const lastUpdated = judge.updated_at
+
+  const courtBaseline = biasMetrics.court_baseline
+  const baselineMetrics = courtBaseline?.metrics
+  const baselineOutcome = baselineMetrics?.outcome_analysis
+  const baselineIndicators = baselineMetrics?.bias_indicators
+  const baselineSampleSize = courtBaseline?.sample_size ?? 0
+
+  const tooltipCopy = {
+    patterns:
+      'Includes case types captured in the last 36 months. Categories with fewer than five cases are grouped as “Other”.',
+    outcomes:
+      'Outcome rates reflect cases with a clear disposition in the underlying docket. Sealed or incomplete cases are omitted.',
+    trends:
+      'Shows month-by-month filings and settlements. Months without public filings are displayed as zero for transparency.',
+    indicators:
+      'Composite scores combine timing, variance, and percentile ranks. They are comparative signals, not legal findings.',
+  }
+
   return (
     <section className={containerClass}>
       <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
@@ -237,6 +289,19 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
           Powered by verified decisions and normalized case outcomes for {judge.name}.
         </p>
       </div>
+
+      {courtBaseline && (
+        <div className="mb-6 flex flex-wrap items-center gap-3 text-xs text-[color:hsl(var(--text-3))]">
+          <span className="inline-flex items-center rounded-full border border-border/60 bg-[hsl(var(--bg-1))] px-3 py-1 font-semibold uppercase tracking-[0.2em]">
+            Court average baseline
+          </span>
+          <span>n = {baselineSampleSize.toLocaleString()}</span>
+          <span>
+            Generated {new Date(courtBaseline.generated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+          </span>
+          <span className="text-[color:hsl(var(--accent))]">Δ values compare judge to court average</span>
+        </div>
+      )}
 
       <div
         className="-mx-2 mb-6 overflow-x-auto pb-2 sm:overflow-visible"
@@ -268,69 +333,107 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
 
       {activeTab === 'patterns' && (
         <div id="patterns-panel" role="tabpanel" aria-labelledby="patterns">
-          <h4 className="mb-4 text-lg font-medium text-foreground">Case type distribution &amp; outcomes</h4>
+          <div className="mb-4 flex items-center gap-2">
+            <h4 className="text-lg font-medium text-foreground">Case type distribution &amp; outcomes</h4>
+            <InfoTooltip content={<p className="text-xs text-muted-foreground">{tooltipCopy.patterns}</p>} label="Case patterns methodology" />
+          </div>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2" id="case-patterns">
-            <div className="rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={biasMetrics.case_type_patterns}>
-                  <CartesianGrid vertical={false} stroke={chartTheme.gridStroke} />
-                  <XAxis
-                    dataKey="case_type"
-                    stroke={chartTheme.axisLine}
-                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
-                    tickLine={false}
-                    axisLine={{ stroke: chartTheme.axisLine }}
-                  />
-                  <YAxis
-                    stroke={chartTheme.axisLine}
-                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
-                    tickLine={false}
-                    axisLine={{ stroke: chartTheme.axisLine }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: chartTheme.tooltip.backgroundColor,
-                      border: `1px solid ${chartTheme.tooltip.borderColor}`,
-                      borderRadius: '0.75rem',
-                      color: chartTheme.tooltip.textColor,
-                    }}
-                    labelStyle={{ color: chartTheme.tooltip.textColor }}
-                  />
-                  <Bar dataKey="total_cases" fill={chartTheme.getSeriesColor(0)} radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="flex flex-col rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
+              {insufficientCasePattern ? (
+                <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/60 bg-[hsl(var(--bg-1))] p-6 text-sm text-muted-foreground">
+                  Not enough categorized cases yet to chart case volumes.
+                </div>
+              ) : (
+                <div className="min-h-[260px] flex-1">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={biasMetrics.case_type_patterns}>
+                      <CartesianGrid vertical={false} stroke={chartTheme.gridStroke} />
+                      <XAxis
+                        dataKey="case_type"
+                        stroke={chartTheme.axisLine}
+                        tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                        tickLine={false}
+                        axisLine={{ stroke: chartTheme.axisLine }}
+                      />
+                      <YAxis
+                        stroke={chartTheme.axisLine}
+                        tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                        tickLine={false}
+                        axisLine={{ stroke: chartTheme.axisLine }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: chartTheme.tooltip.backgroundColor,
+                          border: `1px solid ${chartTheme.tooltip.borderColor}`,
+                          borderRadius: '0.75rem',
+                          color: chartTheme.tooltip.textColor,
+                        }}
+                        labelStyle={{ color: chartTheme.tooltip.textColor }}
+                      />
+                      <Bar dataKey="total_cases" fill={chartTheme.getSeriesColor(0)} radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+              <MetricProvenance
+                source="CourtListener + case docket sync"
+                lastUpdated={lastUpdated}
+                n={casePatternSample}
+                quality={caseQuality}
+                className="mt-4"
+              />
+              {courtBaseline && (
+                <p className="mt-2 text-xs text-[color:hsl(var(--text-3))]">
+                  Court sample size: {baselineSampleSize.toLocaleString()} decisions
+                </p>
+              )}
             </div>
-            <div className="rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={biasMetrics.case_type_patterns}>
-                  <CartesianGrid vertical={false} stroke={chartTheme.gridStroke} />
-                  <XAxis
-                    dataKey="case_type"
-                    stroke={chartTheme.axisLine}
-                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
-                    tickLine={false}
-                    axisLine={{ stroke: chartTheme.axisLine }}
-                  />
-                  <YAxis
-                    stroke={chartTheme.axisLine}
-                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
-                    tickFormatter={(value: number) => `${Math.round(value * 100)}%`}
-                    tickLine={false}
-                    axisLine={{ stroke: chartTheme.axisLine }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: chartTheme.tooltip.backgroundColor,
-                      border: `1px solid ${chartTheme.tooltip.borderColor}`,
-                      borderRadius: '0.75rem',
-                      color: chartTheme.tooltip.textColor,
-                    }}
-                    labelStyle={{ color: chartTheme.tooltip.textColor }}
-                    formatter={(value: number) => [`${(value * 100).toFixed(1)}%`, 'Settlement rate']}
-                  />
-                  <Bar dataKey="settlement_rate" fill={chartTheme.getSeriesColor(1)} radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="flex flex-col rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
+              {insufficientCasePattern ? (
+                <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/60 bg-[hsl(var(--bg-1))] p-6 text-sm text-muted-foreground">
+                  Not enough settlement outcomes to calculate reliable rates.
+                </div>
+              ) : (
+                <div className="min-h-[260px] flex-1">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={biasMetrics.case_type_patterns}>
+                      <CartesianGrid vertical={false} stroke={chartTheme.gridStroke} />
+                      <XAxis
+                        dataKey="case_type"
+                        stroke={chartTheme.axisLine}
+                        tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                        tickLine={false}
+                        axisLine={{ stroke: chartTheme.axisLine }}
+                      />
+                      <YAxis
+                        stroke={chartTheme.axisLine}
+                        tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                        tickFormatter={(value: number) => `${Math.round(value * 100)}%`}
+                        tickLine={false}
+                        axisLine={{ stroke: chartTheme.axisLine }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: chartTheme.tooltip.backgroundColor,
+                          border: `1px solid ${chartTheme.tooltip.borderColor}`,
+                          borderRadius: '0.75rem',
+                          color: chartTheme.tooltip.textColor,
+                        }}
+                        labelStyle={{ color: chartTheme.tooltip.textColor }}
+                        formatter={(value: number) => [`${(value * 100).toFixed(1)}%`, 'Settlement rate']}
+                      />
+                      <Bar dataKey="settlement_rate" fill={chartTheme.getSeriesColor(1)} radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+              <MetricProvenance
+                source="CourtListener + case docket sync"
+                lastUpdated={lastUpdated}
+                n={casePatternSample}
+                quality={caseQuality}
+                className="mt-4"
+              />
             </div>
           </div>
         </div>
@@ -338,93 +441,139 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
 
       {activeTab === 'outcomes' && (
         <div id="outcomes-panel" role="tabpanel" aria-labelledby="outcomes">
-          <h4 className="mb-4 text-lg font-medium text-foreground">Outcome analysis</h4>
+          <div className="mb-4 flex items-center gap-2">
+            <h4 className="text-lg font-medium text-foreground">Outcome analysis</h4>
+            <InfoTooltip content={<p className="text-xs text-muted-foreground">{tooltipCopy.outcomes}</p>} label="Outcome analysis methodology" />
+          </div>
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard title="Settlement rate" value={`${(biasMetrics.outcome_analysis.overall_settlement_rate * 100).toFixed(1)}%`} tone="positive" />
-            <StatCard title="Dismissal rate" value={`${(biasMetrics.outcome_analysis.dismissal_rate * 100).toFixed(1)}%`} tone="critical" />
-            <StatCard title="Judgment rate" value={`${(biasMetrics.outcome_analysis.judgment_rate * 100).toFixed(1)}%`} tone="info" />
-            <StatCard title="Avg. duration" value={`${biasMetrics.outcome_analysis.average_case_duration.toFixed(0)} days`} tone="neutral" />
+            <StatCard
+              title="Settlement rate"
+              value={biasMetrics.outcome_analysis.overall_settlement_rate}
+              baseline={baselineOutcome?.overall_settlement_rate ?? null}
+              format={(val) => `${(val * 100).toFixed(1)}%`}
+              formatDelta={(delta) => `${delta >= 0 ? '+' : ''}${(delta * 100).toFixed(1)} pts`}
+              tone="positive"
+            />
+            <StatCard
+              title="Dismissal rate"
+              value={biasMetrics.outcome_analysis.dismissal_rate}
+              baseline={baselineOutcome?.dismissal_rate ?? null}
+              format={(val) => `${(val * 100).toFixed(1)}%`}
+              formatDelta={(delta) => `${delta >= 0 ? '+' : ''}${(delta * 100).toFixed(1)} pts`}
+              tone="critical"
+            />
+            <StatCard
+              title="Judgment rate"
+              value={biasMetrics.outcome_analysis.judgment_rate}
+              baseline={baselineOutcome?.judgment_rate ?? null}
+              format={(val) => `${(val * 100).toFixed(1)}%`}
+              formatDelta={(delta) => `${delta >= 0 ? '+' : ''}${(delta * 100).toFixed(1)} pts`}
+              tone="info"
+            />
+            <StatCard
+              title="Avg. duration"
+              value={biasMetrics.outcome_analysis.average_case_duration}
+              baseline={baselineOutcome?.average_case_duration ?? null}
+              format={(val) => `${val.toFixed(0)} days`}
+              formatDelta={(delta) => `${delta > 0 ? '+' : ''}${delta.toFixed(0)} days`}
+              tone="neutral"
+            />
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4" id="outcomes">
-              <ResponsiveContainer width="100%" height={320}>
-                <LineChart data={biasMetrics.outcome_analysis.case_value_trends}>
-                  <CartesianGrid vertical={false} stroke={chartTheme.gridStroke} />
-                  <XAxis
-                    dataKey="value_range"
-                    stroke={chartTheme.axisLine}
-                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
-                    tickLine={false}
-                    axisLine={{ stroke: chartTheme.axisLine }}
-                  />
-                  <YAxis
-                    yAxisId="left"
-                    stroke={chartTheme.axisLine}
-                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
-                    tickLine={false}
-                    axisLine={{ stroke: chartTheme.axisLine }}
-                  />
-                  <YAxis
-                    yAxisId="right"
-                    orientation="right"
-                    stroke={chartTheme.axisLine}
-                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
-                    tickFormatter={(value: number) => `${Math.round(value * 100)}%`}
-                    tickLine={false}
-                    axisLine={{ stroke: chartTheme.axisLine }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: chartTheme.tooltip.backgroundColor,
-                      border: `1px solid ${chartTheme.tooltip.borderColor}`,
-                      borderRadius: '0.75rem',
-                      color: chartTheme.tooltip.textColor,
-                    }}
-                    labelStyle={{ color: chartTheme.tooltip.textColor }}
-                  />
-                  <Legend
-                    align="left"
-                    verticalAlign="top"
-                    iconType="circle"
-                    iconSize={8}
-                    wrapperStyle={{ paddingBottom: 12 }}
-                    onClick={(entry) => toggleOutcomeSeries(entry?.dataKey as string)}
-                    formatter={(value, entry) => (
-                      <span
-                        className="text-xs"
-                        style={{
-                          color: chartTheme.legend.textColor,
-                          opacity: entry?.dataKey && isOutcomeSeriesActive(entry.dataKey as string) ? 1 : 0.4,
-                          cursor: 'pointer',
+            <div className="flex flex-col rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4" id="outcomes">
+              {insufficientOutcomeData ? (
+                <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/60 bg-[hsl(var(--bg-1))] p-6 text-sm text-muted-foreground">
+                  Outcome charts need more decided cases before they can render.
+                </div>
+              ) : (
+                <div className="min-h-[300px] flex-1">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={biasMetrics.outcome_analysis.case_value_trends}>
+                      <CartesianGrid vertical={false} stroke={chartTheme.gridStroke} />
+                      <XAxis
+                        dataKey="value_range"
+                        stroke={chartTheme.axisLine}
+                        tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                        tickLine={false}
+                        axisLine={{ stroke: chartTheme.axisLine }}
+                      />
+                      <YAxis
+                        yAxisId="left"
+                        stroke={chartTheme.axisLine}
+                        tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                        tickLine={false}
+                        axisLine={{ stroke: chartTheme.axisLine }}
+                      />
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        stroke={chartTheme.axisLine}
+                        tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                        tickFormatter={(value: number) => `${Math.round(value * 100)}%`}
+                        tickLine={false}
+                        axisLine={{ stroke: chartTheme.axisLine }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: chartTheme.tooltip.backgroundColor,
+                          border: `1px solid ${chartTheme.tooltip.borderColor}`,
+                          borderRadius: '0.75rem',
+                          color: chartTheme.tooltip.textColor,
                         }}
-                      >
-                        {value}
-                      </span>
-                    )}
-                  />
-                  <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="case_count"
-                    stroke={chartTheme.getSeriesColor(0)}
-                    strokeWidth={2.5}
-                    dot={{ r: 2.5, strokeWidth: 2, stroke: chartTheme.getSeriesColor(0), fillOpacity: 0 }}
-                    activeDot={{ r: 5 }}
-                    hide={!isOutcomeSeriesActive('case_count')}
-                  />
-                  <Line
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="settlement_rate"
-                    stroke={chartTheme.getSeriesColor(1)}
-                    strokeWidth={2.5}
-                    dot={{ r: 2.5, strokeWidth: 2, stroke: chartTheme.getSeriesColor(1), fillOpacity: 0 }}
-                    strokeDasharray="6 4"
-                    hide={!isOutcomeSeriesActive('settlement_rate')}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+                        labelStyle={{ color: chartTheme.tooltip.textColor }}
+                      />
+                      <Legend
+                        align="left"
+                        verticalAlign="top"
+                        iconType="circle"
+                        iconSize={8}
+                        wrapperStyle={{ paddingBottom: 12 }}
+                        onClick={(entry) => toggleOutcomeSeries(entry?.dataKey as string)}
+                        formatter={(value, entry) => (
+                          <span
+                            className="text-xs"
+                            style={{
+                              color: chartTheme.legend.textColor,
+                              opacity: entry?.dataKey && isOutcomeSeriesActive(entry.dataKey as string) ? 1 : 0.4,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {value}
+                          </span>
+                        )}
+                      />
+                      <Line
+                        yAxisId="left"
+                        type="monotone"
+                        dataKey="case_count"
+                        stroke={chartTheme.getSeriesColor(0)}
+                        strokeWidth={2.5}
+                        dot={{ r: 2.5, strokeWidth: 2, stroke: chartTheme.getSeriesColor(0), fillOpacity: 0 }}
+                        activeDot={{ r: 5 }}
+                        hide={!isOutcomeSeriesActive('case_count')}
+                      />
+                      <Line
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="settlement_rate"
+                        stroke={chartTheme.getSeriesColor(1)}
+                        strokeWidth={2.5}
+                        dot={{ r: 2.5, strokeWidth: 2, stroke: chartTheme.getSeriesColor(1), fillOpacity: 0 }}
+                        strokeDasharray="6 4"
+                        hide={!isOutcomeSeriesActive('settlement_rate')}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+              <MetricProvenance
+                source="CourtListener + case disposal tracking"
+                lastUpdated={lastUpdated}
+                n={outcomeSampleSize}
+                quality={outcomeQuality}
+                className="mt-4"
+              />
             </div>
             <div className="flex flex-col gap-3 rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4 text-sm text-muted-foreground">
               <h5 className="text-base font-semibold text-foreground">What stands out</h5>
@@ -443,88 +592,106 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
 
       {activeTab === 'trends' && (
         <div id="trends-panel" role="tabpanel" aria-labelledby="trends">
-          <h4 className="mb-4 text-lg font-medium text-foreground">Temporal trends</h4>
+          <div className="mb-4 flex items-center gap-2">
+            <h4 className="text-lg font-medium text-foreground">Temporal trends</h4>
+            <InfoTooltip content={<p className="text-xs text-muted-foreground">{tooltipCopy.trends}</p>} label="Temporal trends methodology" />
+          </div>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2 rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4" id="temporal-trends">
-              <ResponsiveContainer width="100%" height={320}>
-                <LineChart data={biasMetrics.temporal_patterns}>
-                  <CartesianGrid vertical={false} stroke={chartTheme.gridStroke} />
-                  <XAxis
-                    dataKey="month"
-                    stroke={chartTheme.axisLine}
-                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
-                    tickLine={false}
-                    axisLine={{ stroke: chartTheme.axisLine }}
-                  />
-                  <YAxis
-                    yAxisId="left"
-                    stroke={chartTheme.axisLine}
-                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
-                    tickLine={false}
-                    axisLine={{ stroke: chartTheme.axisLine }}
-                  />
-                  <YAxis
-                    yAxisId="right"
-                    orientation="right"
-                    stroke={chartTheme.axisLine}
-                    tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
-                    tickFormatter={(value: number) => `${Math.round(value * 100)}%`}
-                    tickLine={false}
-                    axisLine={{ stroke: chartTheme.axisLine }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: chartTheme.tooltip.backgroundColor,
-                      border: `1px solid ${chartTheme.tooltip.borderColor}`,
-                      borderRadius: '0.75rem',
-                      color: chartTheme.tooltip.textColor,
-                    }}
-                    labelStyle={{ color: chartTheme.tooltip.textColor }}
-                  />
-                  <Legend
-                    align="left"
-                    verticalAlign="top"
-                    iconType="circle"
-                    iconSize={8}
-                    wrapperStyle={{ paddingBottom: 12 }}
-                    onClick={(entry) => toggleTemporalSeries(entry?.dataKey as string)}
-                    formatter={(value, entry) => (
-                      <span
-                        className="text-xs"
-                        style={{
-                          color: chartTheme.legend.textColor,
-                          opacity: entry?.dataKey && isTemporalSeriesActive(entry.dataKey as string) ? 1 : 0.4,
-                          cursor: 'pointer',
+            <div className="flex flex-col rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4 lg:col-span-2" id="temporal-trends">
+              {insufficientTemporalData ? (
+                <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/60 bg-[hsl(var(--bg-1))] p-6 text-sm text-muted-foreground">
+                  Temporal trends require more dated filings before a chart can be shown.
+                </div>
+              ) : (
+                <div className="min-h-[300px] flex-1">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={biasMetrics.temporal_patterns}>
+                      <CartesianGrid vertical={false} stroke={chartTheme.gridStroke} />
+                      <XAxis
+                        dataKey="month"
+                        stroke={chartTheme.axisLine}
+                        tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                        tickLine={false}
+                        axisLine={{ stroke: chartTheme.axisLine }}
+                      />
+                      <YAxis
+                        yAxisId="left"
+                        stroke={chartTheme.axisLine}
+                        tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                        tickLine={false}
+                        axisLine={{ stroke: chartTheme.axisLine }}
+                      />
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        stroke={chartTheme.axisLine}
+                        tick={{ fill: chartTheme.axisLabel, fontSize: 12 }}
+                        tickFormatter={(value: number) => `${Math.round(value * 100)}%`}
+                        tickLine={false}
+                        axisLine={{ stroke: chartTheme.axisLine }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: chartTheme.tooltip.backgroundColor,
+                          border: `1px solid ${chartTheme.tooltip.borderColor}`,
+                          borderRadius: '0.75rem',
+                          color: chartTheme.tooltip.textColor,
                         }}
-                      >
-                        {value}
-                      </span>
-                    )}
-                  />
-                  <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="case_count"
-                    stroke={chartTheme.getSeriesColor(0)}
-                    strokeWidth={2.5}
-                    dot={{ r: 2.5, strokeWidth: 2, stroke: chartTheme.getSeriesColor(0), fillOpacity: 0 }}
-                    name="Case count"
-                    activeDot={{ r: 5 }}
-                    hide={!isTemporalSeriesActive('case_count')}
-                  />
-                  <Line
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="settlement_rate"
-                    stroke={chartTheme.getSeriesColor(2)}
-                    strokeWidth={2.5}
-                    dot={{ r: 2.5, strokeWidth: 2, stroke: chartTheme.getSeriesColor(2), fillOpacity: 0 }}
-                    name="Settlement rate"
-                    strokeDasharray="6 4"
-                    hide={!isTemporalSeriesActive('settlement_rate')}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+                        labelStyle={{ color: chartTheme.tooltip.textColor }}
+                      />
+                      <Legend
+                        align="left"
+                        verticalAlign="top"
+                        iconType="circle"
+                        iconSize={8}
+                        wrapperStyle={{ paddingBottom: 12 }}
+                        onClick={(entry) => toggleTemporalSeries(entry?.dataKey as string)}
+                        formatter={(value, entry) => (
+                          <span
+                            className="text-xs"
+                            style={{
+                              color: chartTheme.legend.textColor,
+                              opacity: entry?.dataKey && isTemporalSeriesActive(entry.dataKey as string) ? 1 : 0.4,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {value}
+                          </span>
+                        )}
+                      />
+                      <Line
+                        yAxisId="left"
+                        type="monotone"
+                        dataKey="case_count"
+                        stroke={chartTheme.getSeriesColor(0)}
+                        strokeWidth={2.5}
+                        dot={{ r: 2.5, strokeWidth: 2, stroke: chartTheme.getSeriesColor(0), fillOpacity: 0 }}
+                        name="Case count"
+                        activeDot={{ r: 5 }}
+                        hide={!isTemporalSeriesActive('case_count')}
+                      />
+                      <Line
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="settlement_rate"
+                        stroke={chartTheme.getSeriesColor(2)}
+                        strokeWidth={2.5}
+                        dot={{ r: 2.5, strokeWidth: 2, stroke: chartTheme.getSeriesColor(2), fillOpacity: 0 }}
+                        name="Settlement rate"
+                        strokeDasharray="6 4"
+                        hide={!isTemporalSeriesActive('settlement_rate')}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+              <MetricProvenance
+                source="CourtListener + filings timeline"
+                lastUpdated={lastUpdated}
+                n={temporalSampleSize}
+                quality={temporalQuality}
+                className="mt-4"
+              />
             </div>
             <div className="rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
               <h5 className="text-base font-semibold text-foreground">Seasonal highlights</h5>
@@ -550,27 +717,52 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
 
       {activeTab === 'indicators' && (
         <div id="indicators-panel" role="tabpanel" aria-labelledby="indicators">
-          <h4 className="mb-4 text-lg font-medium text-foreground">Bias indicators</h4>
+          <div className="mb-4 flex items-center gap-2">
+            <h4 className="text-lg font-medium text-foreground">Bias indicators</h4>
+            <InfoTooltip content={<p className="text-xs text-muted-foreground">{tooltipCopy.indicators}</p>} label="Bias indicator methodology" />
+          </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {indicatorDefinitions.map(({ name, value, description }) => (
-              <div key={name} className="rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium text-foreground">{name}</span>
-                  {getScoreIcon(value)}
+            {indicatorDefinitions.map(({ key, name, value, description }) => {
+              const baselineValue = baselineIndicators
+                ? key === 'settlement_preference'
+                  ? Math.abs(baselineIndicators[key])
+                  : baselineIndicators[key]
+                : null
+              const delta = baselineValue !== null && baselineValue !== undefined ? value - baselineValue : null
+              const deltaClass =
+                delta === null
+                  ? 'text-[color:hsl(var(--text-3))]'
+                  : delta > 0
+                  ? 'text-[color:hsl(var(--accent))]'
+                  : delta < 0
+                  ? 'text-[color:hsl(var(--neg))]'
+                  : 'text-[color:hsl(var(--text-3))]'
+
+              return (
+                <div key={name} className="rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium text-foreground">{name}</span>
+                    {getScoreIcon(value)}
+                  </div>
+                  <div className={cn('text-3xl font-semibold', getScoreColor(value))}>{value.toFixed(0)}</div>
+                  {delta !== null && (
+                    <p className={`mt-1 text-xs font-medium ${deltaClass}`}>
+                      {delta >= 0 ? '+' : ''}{delta.toFixed(1)} vs court avg
+                    </p>
+                  )}
+                  <p className="mt-2 text-xs text-muted-foreground">{description}</p>
+                  <div className="mt-3 h-2 rounded-full bg-muted">
+                    <div
+                      className={cn(
+                        'h-2 rounded-full transition-all duration-500',
+                        getScoreColor(value).replace('text', 'bg'),
+                      )}
+                      style={{ width: `${Math.min(value, 100)}%` }}
+                    />
+                  </div>
                 </div>
-                <div className={cn('text-3xl font-semibold', getScoreColor(value))}>{value.toFixed(0)}</div>
-                <p className="mt-2 text-xs text-muted-foreground">{description}</p>
-                <div className="mt-3 h-2 rounded-full bg-muted">
-                  <div
-                    className={cn(
-                      'h-2 rounded-full transition-all duration-500',
-                      getScoreColor(value).replace('text', 'bg'),
-                    )}
-                    style={{ width: `${Math.min(value, 100)}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
           <div className="mt-6 rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4 text-sm text-muted-foreground">
             <h5 className="text-base font-semibold text-foreground">How to interpret these scores</h5>
@@ -578,13 +770,29 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
               Scores above 80 indicate a strong signal (for example, highly consistent rulings), while 60–79 reflect moderate confidence. Values below 40 highlight areas where additional context or qualitative review is recommended.
             </p>
           </div>
+          <MetricProvenance
+            source="JudgeFinder composite scoring"
+            lastUpdated={lastUpdated}
+            n={casePatternSample}
+            quality={caseQuality}
+            className="mt-6"
+          />
         </div>
       )}
     </section>
   )
 }
 
-function StatCard({ title, value, tone }: { title: string; value: string; tone: 'positive' | 'critical' | 'info' | 'neutral' }) {
+interface StatCardProps {
+  title: string
+  value: number
+  tone: 'positive' | 'critical' | 'info' | 'neutral'
+  format?: (value: number) => string
+  baseline?: number | null
+  formatDelta?: (delta: number) => string
+}
+
+function StatCard({ title, value, tone, format = (val) => val.toString(), baseline, formatDelta }: StatCardProps) {
   const toneClass =
     tone === 'positive'
       ? 'bg-[rgba(103,232,169,0.12)] text-[color:hsl(var(--pos))]'
@@ -594,16 +802,32 @@ function StatCard({ title, value, tone }: { title: string; value: string; tone: 
       ? 'bg-[rgba(110,168,254,0.16)] text-[color:hsl(var(--accent))]'
       : 'bg-[hsl(var(--bg-1))] text-[color:hsl(var(--text-2))]'
 
+  const delta = baseline !== undefined && baseline !== null ? value - baseline : null
+  const defaultFormatDelta = (deltaValue: number) => {
+    const sign = deltaValue > 0 ? '+' : ''
+    return `${sign}${deltaValue.toFixed(1)}`
+  }
+  const formattedDelta = delta !== null ? (formatDelta ? formatDelta(delta) : defaultFormatDelta(delta)) : null
+  const deltaClass =
+    delta === null
+      ? 'text-[color:hsl(var(--text-3))]'
+      : delta > 0
+      ? 'text-[color:hsl(var(--accent))]'
+      : delta < 0
+      ? 'text-[color:hsl(var(--neg))]'
+      : 'text-[color:hsl(var(--text-3))]'
+
   return (
     <div className="rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
       <span className="text-xs uppercase tracking-wide text-muted-foreground">{title}</span>
-      <div
-        className={cn(
-          'mt-2 inline-flex max-w-full flex-wrap rounded-full px-3 py-1 text-sm font-semibold leading-snug break-words text-left whitespace-normal',
-          toneClass,
-        )}
-      >
-        {value}
+      <div className="mt-2 text-2xl font-semibold text-[color:hsl(var(--text-1))]">
+        {format(value)}
+      </div>
+      {formattedDelta && (
+        <div className={`mt-1 text-xs font-medium ${deltaClass}`}>{formattedDelta}</div>
+      )}
+      <div className={cn('mt-3 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium', toneClass)}>
+        {title}
       </div>
     </div>
   )

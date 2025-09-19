@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { resolveAdminStatus } from '@/lib/auth/is-admin'
 import { fetchSyncStatus } from '@/lib/admin/sync-status'
+import { createServiceRoleClient } from '@/lib/supabase/server'
 import AdminDashboard from '@/components/dashboard/AdminDashboard'
 
 export const dynamic = 'force-dynamic'
@@ -31,7 +32,32 @@ export default async function AdminPage() {
 
   const status = await fetchSyncStatus()
 
-  return <AdminDashboard status={status} />
+  const supabase = await createServiceRoleClient()
+  const { data: issueRows } = await supabase
+    .from('profile_issues')
+    .select('id, judge_slug, court_id, issue_type, status, reporter_email, created_at')
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  const statuses: Array<'new' | 'researching' | 'resolved' | 'dismissed'> = ['new', 'researching', 'resolved', 'dismissed']
+  const profileIssueCounts = await Promise.all(
+    statuses.map(async (statusKey) => {
+      const { count } = await supabase
+        .from('profile_issues')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', statusKey)
+
+      return { status: statusKey, count: count || 0 }
+    })
+  )
+
+  return (
+    <AdminDashboard
+      status={status}
+      profileIssues={issueRows || []}
+      profileIssueCounts={profileIssueCounts}
+    />
+  )
 }
 
 export const metadata = {

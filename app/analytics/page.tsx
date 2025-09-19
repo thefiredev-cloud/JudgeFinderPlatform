@@ -7,9 +7,19 @@ import { BarChart3, ArrowLeft, Clock, Database, RefreshCcw } from 'lucide-react'
 export const dynamic = 'force-dynamic'
 
 type DashboardStats = {
-  judges: { totalJudges: number; lastUpdate: string }
-  courts: { totalCourts: number }
-  cases: { totalCases: number }
+  totalJudges: number
+  totalCourts: number
+  totalCases: number
+  pendingSync: number
+  lastSyncTime: string | null
+  systemHealth: 'healthy' | 'warning' | 'error'
+  activeUsers: number
+  searchVolume: number
+  syncSuccessRate: number
+  retryCount: number
+  cacheHitRatio: number
+  latencyP50: number | null
+  latencyP95: number | null
 }
 
 export default function AnalyticsPage() {
@@ -18,26 +28,33 @@ export default function AnalyticsPage() {
   const [error, setError] = useState<string | null>(null)
   const [freshness, setFreshness] = useState<Array<{ court_id: string; court_name: string; last_update: string | null }>>([])
 
+  const formatPercent = (value?: number | null) => {
+    if (value === null || value === undefined || Number.isNaN(value)) return '—'
+    return `${value.toFixed(1)}%`
+  }
+
+  const formatLatency = (value?: number | null) => {
+    if (value === null || value === undefined || Number.isNaN(value)) return '—'
+    return `${Math.round(value)} ms`
+  }
+
   useEffect(() => {
     const load = async () => {
       try {
-        const [judgesRes, courtsRes, casesRes, freshRes] = await Promise.all([
-          fetch('/api/stats/judges', { cache: 'no-store' }),
-          fetch('/api/stats/courts', { cache: 'no-store' }),
-          fetch('/api/stats/cases', { cache: 'no-store' }),
+        const [adminRes, freshRes] = await Promise.all([
+          fetch('/api/admin/stats', { cache: 'no-store' }),
           fetch('/api/stats/freshness-by-court', { cache: 'no-store' })
         ])
-        const [judges, courts, cases, fresh] = await Promise.all([
-          judgesRes.json(),
-          courtsRes.json(),
-          casesRes.json(),
-          freshRes.json()
+        if (!adminRes.ok) {
+          throw new Error('Failed to load platform statistics')
+        }
+
+        const [adminStats, fresh] = await Promise.all([
+          adminRes.json(),
+          freshRes.json(),
         ])
-        setStats({
-          judges: { totalJudges: judges.totalJudges, lastUpdate: judges.lastUpdate },
-          courts: { totalCourts: courts.totalCourts },
-          cases: { totalCases: cases.totalCases }
-        })
+
+        setStats(adminStats as DashboardStats)
         setFreshness(fresh.rows || [])
       } catch (e: any) {
         setError('Failed to load analytics stats')
@@ -100,7 +117,7 @@ export default function AnalyticsPage() {
                   Total Judges
                 </div>
                 <div className="text-3xl font-bold">
-                  {stats?.judges.totalJudges ?? '—'}
+                  {stats?.totalJudges ?? '—'}
                 </div>
               </div>
 
@@ -110,7 +127,7 @@ export default function AnalyticsPage() {
                   Case Records
                 </div>
                 <div className="text-3xl font-bold">
-                  {stats?.cases.totalCases ? stats.cases.totalCases.toLocaleString() : '—'}
+                  {stats?.totalCases ? stats.totalCases.toLocaleString() : '—'}
                 </div>
               </div>
 
@@ -120,15 +137,59 @@ export default function AnalyticsPage() {
                   CA Courts
                 </div>
                 <div className="text-3xl font-bold">
-                  {stats?.courts.totalCourts ?? '—'}
+                  {stats?.totalCourts ?? '—'}
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 text-sm text-muted-foreground flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Last updated: {stats?.judges.lastUpdate ? new Date(stats.judges.lastUpdate).toLocaleString() : '—'}
+          <div className="mt-6 text-sm text-muted-foreground flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Last sync: {stats?.lastSyncTime ? new Date(stats.lastSyncTime).toLocaleString() : '—'}
+          </div>
+
+          <div className="mt-8 border-t border-border pt-6">
+            <h3 className="text-xl font-semibold text-foreground">Operational metrics (last 24h)</h3>
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-lg border border-border bg-background p-4">
+                <div className="text-sm text-muted-foreground">Sync success</div>
+                <div className="mt-2 text-2xl font-semibold">
+                  {stats ? formatPercent(stats.syncSuccessRate) : '—'}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  Retry attempts: {stats ? stats.retryCount.toLocaleString() : '—'}
+                </div>
+              </div>
+              <div className="rounded-lg border border-border bg-background p-4">
+                <div className="text-sm text-muted-foreground">Pending jobs</div>
+                <div className="mt-2 text-2xl font-semibold">
+                  {stats ? stats.pendingSync.toLocaleString() : '—'}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  Active users: {stats ? stats.activeUsers.toLocaleString() : '—'}
+                </div>
+              </div>
+              <div className="rounded-lg border border-border bg-background p-4">
+                <div className="text-sm text-muted-foreground">Cache hit ratio</div>
+                <div className="mt-2 text-2xl font-semibold">
+                  {stats ? formatPercent(stats.cacheHitRatio) : '—'}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  Lookup volume: {stats?.searchVolume ? stats.searchVolume.toLocaleString() : '—'}
+                </div>
+              </div>
+              <div className="rounded-lg border border-border bg-background p-4">
+                <div className="text-sm text-muted-foreground">Latency (p50 / p95)</div>
+                <div className="mt-2 text-2xl font-semibold">
+                  {stats ? formatLatency(stats.latencyP50) : '—'}
+                  <span className="text-sm text-muted-foreground"> / {stats ? formatLatency(stats.latencyP95) : '—'}</span>
+                </div>
+              </div>
             </div>
+            <p className="mt-4 text-xs text-muted-foreground">
+              Need more context? Review our <Link href="/docs/methodology" className="text-[color:hsl(var(--accent))] underline-offset-4 hover:text-[color:hsl(var(--text-1))]">methodology</Link>{' '}
+              and <Link href="/docs/governance" className="text-[color:hsl(var(--accent))] underline-offset-4 hover:text-[color:hsl(var(--text-1))]">governance</Link> guides.
+            </p>
+          </div>
 
           {/* Freshness table */}
           <div className="mt-8">

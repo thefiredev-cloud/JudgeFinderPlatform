@@ -18,8 +18,27 @@ import {
   Triangle
 } from 'lucide-react'
 
+type ProfileIssueStatus = 'new' | 'researching' | 'resolved' | 'dismissed'
+
+interface ProfileIssueSummary {
+  id: string
+  judge_slug: string
+  court_id: string | null
+  issue_type: string
+  status: ProfileIssueStatus
+  reporter_email: string | null
+  created_at: string
+}
+
+interface IssueCount {
+  status: ProfileIssueStatus
+  count: number
+}
+
 interface AdminDashboardProps {
   status: SyncStatusResponse | null
+  profileIssues: ProfileIssueSummary[]
+  profileIssueCounts: IssueCount[]
 }
 
 type ActionType = 'queue-decisions' | 'cancel-decisions' | 'restart-queue'
@@ -71,6 +90,16 @@ function formatRelative(dateString: string | null | undefined) {
   return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`
 }
 
+function maskEmail(email: string | null): string {
+  if (!email) return '—'
+  const [user, domain] = email.split('@')
+  if (!domain) return email
+  if (user.length <= 2) {
+    return `${user[0] ?? ''}***@${domain}`
+  }
+  return `${user.slice(0, 2)}***@${domain}`
+}
+
 function healthPill(status: SyncStatusResponse['health']['status']) {
   switch (status) {
     case 'healthy':
@@ -106,7 +135,34 @@ function healthPill(status: SyncStatusResponse['health']['status']) {
   }
 }
 
-export default function AdminDashboard({ status }: AdminDashboardProps) {
+const ISSUE_STATUS_META: Record<ProfileIssueStatus, { label: string; className: string }> = {
+  new: {
+    label: 'New',
+    className: 'border-[rgba(110,168,254,0.45)] bg-[rgba(110,168,254,0.14)] text-[color:hsl(var(--accent))]',
+  },
+  researching: {
+    label: 'Researching',
+    className: 'border-[rgba(251,211,141,0.45)] bg-[rgba(251,211,141,0.2)] text-[color:hsl(var(--warn))]',
+  },
+  resolved: {
+    label: 'Resolved',
+    className: 'border-[rgba(103,232,169,0.4)] bg-[rgba(103,232,169,0.14)] text-[color:hsl(var(--pos))]',
+  },
+  dismissed: {
+    label: 'Dismissed',
+    className: 'border-border/60 bg-[hsl(var(--bg-1))] text-[color:hsl(var(--text-3))]',
+  },
+}
+
+const ISSUE_TYPE_LABELS: Record<string, string> = {
+  data_accuracy: 'Data accuracy or coverage',
+  bias_context: 'Bias context clarification',
+  assignment_change: 'Assignment change',
+  ads_or_policy: 'Advertising or policy',
+  other: 'Other',
+}
+
+export default function AdminDashboard({ status, profileIssues, profileIssueCounts }: AdminDashboardProps) {
   const router = useRouter()
   const [pendingAction, setPendingAction] = useState<ActionType | null>(null)
   const [feedback, setFeedback] = useState<Feedback | null>(null)
@@ -358,6 +414,63 @@ export default function AdminDashboard({ status }: AdminDashboardProps) {
                 <tr>
                   <td className="px-6 py-4 text-center text-gray-500" colSpan={5}>
                     No recent sync jobs recorded.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+      </div>
+    </div>
+
+      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div className="flex flex-col gap-3 border-b border-gray-200 px-6 py-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">Corrections queue</h2>
+            <p className="text-xs text-gray-500">Public data issues flagged for review.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {profileIssueCounts.map(({ status, count }) => (
+              <span
+                key={status}
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${ISSUE_STATUS_META[status].className}`}
+              >
+                {ISSUE_STATUS_META[status].label}
+                <span className="text-gray-800">{count.toLocaleString()}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Judge</th>
+                <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Court</th>
+                <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Issue</th>
+                <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Status</th>
+                <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Reported</th>
+                <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Contact</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 bg-white">
+              {profileIssues.map((issue) => (
+                <tr key={issue.id}>
+                  <td className="px-6 py-3 text-gray-900">{issue.judge_slug}</td>
+                  <td className="px-6 py-3 text-gray-600">{issue.court_id || '—'}</td>
+                  <td className="px-6 py-3 text-gray-600">{ISSUE_TYPE_LABELS[issue.issue_type] || issue.issue_type}</td>
+                  <td className="px-6 py-3">
+                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${ISSUE_STATUS_META[issue.status].className}`}>
+                      {ISSUE_STATUS_META[issue.status].label}
+                    </span>
+                  </td>
+                  <td className="px-6 py-3 text-gray-600">{formatRelative(issue.created_at)}</td>
+                  <td className="px-6 py-3 text-gray-600">{maskEmail(issue.reporter_email)}</td>
+                </tr>
+              ))}
+              {profileIssues.length === 0 && (
+                <tr>
+                  <td className="px-6 py-5 text-center text-sm text-gray-500" colSpan={6}>
+                    No open issues. Incoming corrections will appear here.
                   </td>
                 </tr>
               )}

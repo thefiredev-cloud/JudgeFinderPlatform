@@ -86,11 +86,13 @@ export function JudgeProfile({ judge }: JudgeProfileProps) {
       label: 'Total rulings parsed',
       value: judge.total_cases > 0 ? judge.total_cases.toLocaleString() : '—',
       helper: 'Across all available case types',
+      dataType: 'record' as const,
     },
     {
       label: 'Reversal rate',
       value: judge.reversal_rate > 0 ? `${(judge.reversal_rate * 100).toFixed(1)}%` : '—',
       helper: 'Share of reviewed decisions reversed on appeal',
+      dataType: 'record' as const,
     },
     {
       label: 'Average days to decision',
@@ -99,11 +101,13 @@ export function JudgeProfile({ judge }: JudgeProfileProps) {
           ? `${judge.average_decision_time}`
           : '—',
       helper: 'Median elapsed time from filing to decision',
+      dataType: 'record' as const,
     },
     {
       label: 'Education highlight',
       value: educationSummary || 'Pending data enrichment',
       helper: 'Sourced from CourtListener public records',
+      dataType: 'record' as const,
     },
   ]
 
@@ -143,6 +147,7 @@ export function JudgeProfile({ judge }: JudgeProfileProps) {
 
       <div id="overview" className="grid gap-4 scroll-mt-32 md:grid-cols-2 xl:grid-cols-4">
         {metricTiles.map((tile) => {
+          const dataBadge = tile.dataType === 'record' ? 'Court record' : 'AI estimate'
           const longValue = typeof tile.value === 'string' && tile.value.length > 18
           const valueClass = longValue
             ? 'mt-3 text-lg font-semibold text-[color:hsl(var(--text-1))] leading-relaxed break-words'
@@ -161,6 +166,11 @@ export function JudgeProfile({ judge }: JudgeProfileProps) {
               </div>
               <div className="mt-3 h-[38px] w-full rounded-full bg-[rgba(124,135,152,0.14)]">
                 <div className="h-full w-1/2 rounded-full bg-[rgba(110,168,254,0.22)] transition-all duration-500 group-hover:w-[62%]" />
+              </div>
+              <div className="mt-3 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[color:hsl(var(--text-3))]">
+                <span className="rounded-full border border-border/60 bg-[hsl(var(--bg-1))] px-2 py-1 text-[color:hsl(var(--text-2))]">
+                  {dataBadge}
+                </span>
               </div>
               <p className="mt-3 text-xs text-[color:hsl(var(--text-3))] leading-relaxed">{tile.helper}</p>
             </article>
@@ -181,12 +191,35 @@ export function JudgeProfile({ judge }: JudgeProfileProps) {
           Data coverage expands nightly with automated syncs; key slices (motions, appeals, parties) are staged
           below for deeper review.
         </p>
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[color:hsl(var(--text-3))]">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-[hsl(var(--bg-1))] px-3 py-1 font-semibold uppercase tracking-[0.2em]">
+            Court record
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-[hsl(var(--bg-1))] px-3 py-1 font-semibold uppercase tracking-[0.2em] text-[color:hsl(var(--accent))]">
+            AI estimate
+          </span>
+          <Link
+            href="/docs/methodology"
+            className="inline-flex items-center gap-1 rounded-full border border-transparent px-3 py-1.5 font-medium text-[color:hsl(var(--accent))] transition-colors hover:border-[rgba(110,168,254,0.5)] hover:text-[color:hsl(var(--text-1))]"
+          >
+            Methodology &amp; limitations
+          </Link>
+        </div>
         {educationSummary && (
           <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-border/50 bg-[hsl(var(--bg-1))] px-4 py-2 text-xs text-[color:hsl(var(--text-2))]">
             <GraduationCap className="h-4 w-4" aria-hidden />
             {educationSummary}
           </p>
         )}
+        <button
+          type="button"
+          className="mt-4 inline-flex items-center gap-2 rounded-full border border-border/60 bg-[hsl(var(--bg-1))] px-4 py-2 text-xs font-semibold text-[color:hsl(var(--text-2))] transition-colors hover:border-[rgba(110,168,254,0.45)] hover:text-[color:hsl(var(--text-1))]"
+          onClick={() => {
+            document.dispatchEvent(new CustomEvent('open-report-profile-issue'))
+          }}
+        >
+          Report data issue
+        </button>
       </aside>
     </section>
   )

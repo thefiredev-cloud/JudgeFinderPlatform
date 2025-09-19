@@ -7,6 +7,7 @@ import { AdvertiserSlots } from '@/components/judges/AdvertiserSlots'
 import { JudgeFAQ } from '@/components/judges/JudgeFAQ'
 import AnalyticsSliders from '@/components/judges/AnalyticsSliders'
 import { BookmarkButton } from '@/components/judges/BookmarkButton'
+import { ReportProfileIssueDialog } from '@/components/judges/ReportProfileIssueDialog'
 import { SEOBreadcrumbs } from '@/components/seo/SEOBreadcrumbs'
 import { RelatedJudges } from '@/components/seo/RelatedJudges'
 import { RelatedContent } from '@/components/seo/RelatedContent'
@@ -312,6 +313,8 @@ export default async function JudgePage({ params }: JudgePageProps) {
           </div>
         </div>
       </div>
+
+      <ReportProfileIssueDialog judgeSlug={canonicalSlug} courtId={judge.court_id} />
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Calendar, FileText, ExternalLink, Gavel, TrendingUp, AlertCircle } from 'lucide-react'
 import { useJudgeFilterParams } from '@/hooks/useJudgeFilters'
+import Link from 'next/link'
 
 interface RecentDecisionsProps {
   judgeId: string
@@ -229,6 +230,17 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
               Showing {visibleCount} of {decisions.length} records
             </div>
           )}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[color:hsl(var(--text-3))]">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-[hsl(var(--bg-2))] px-3 py-1 font-semibold uppercase tracking-[0.2em]">
+            Court record
+          </span>
+          <Link
+            href="/docs/methodology"
+            className="inline-flex items-center gap-1 rounded-full border border-transparent px-3 py-1.5 font-medium text-[color:hsl(var(--accent))] transition-colors hover:border-[rgba(110,168,254,0.45)] hover:text-[color:hsl(var(--text-1))]"
+          >
+            How we source filings
+          </Link>
         </div>
       </div>
 

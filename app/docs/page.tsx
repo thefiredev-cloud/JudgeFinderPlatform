@@ -1,78 +1,64 @@
-import { Book, Code, Database, Shield } from 'lucide-react'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 
-export default function DocsPage() {
+export const metadata: Metadata = {
+  title: 'Transparency Docs | JudgeFinder',
+  description: 'Explore methodology, governance, changelog, and advertising policies that power JudgeFinder transparency.',
+  alternates: {
+    canonical: '/docs',
+  },
+}
+
+const docLinks = [
+  {
+    title: 'Methodology & data standards',
+    description: 'Learn how we collect court data, normalize outcomes, and calculate confidence scores.',
+    href: '/docs/methodology',
+  },
+  {
+    title: 'Governance, ethics & redress',
+    description: 'Review bias mitigation safeguards, prohibited uses, and how to request corrections.',
+    href: '/docs/governance',
+  },
+  {
+    title: 'Product changelog',
+    description: 'Track releases, data corrections, and schema updates across the platform.',
+    href: '/docs/changelog',
+  },
+  {
+    title: 'Advertising policy',
+    description: 'Understand how we verify sponsors, label ads, and keep analytics independent.',
+    href: '/docs/ads-policy',
+  },
+]
+
+export default function DocsIndexPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-3xl font-bold text-gray-900">Documentation</h1>
-          <p className="mt-2 text-gray-600">Everything you need to know about using JudgeFinder.io</p>
-        </div>
-      </div>
+    <div className="bg-background">
+      <div className="mx-auto w-full max-w-4xl px-4 py-12">
+        <header className="mb-10 space-y-3">
+          <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Transparency center</p>
+          <h1 className="text-3xl font-semibold text-foreground sm:text-4xl">JudgeFinder documentation</h1>
+          <p className="text-base text-muted-foreground sm:text-lg">
+            Each guide explains how we source data, uphold governance standards, and communicate changes so that advocates,
+            litigants, and journalists can trust the platform.
+          </p>
+        </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <Book className="h-8 w-8 text-blue-600 mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Getting Started</h2>
-            <p className="text-gray-600 mb-4">Learn the basics of searching and analyzing judicial data</p>
-            <Link href="/help" className="text-blue-600 hover:text-blue-700 font-medium">Read more →</Link>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow p-6">
-            <Code className="h-8 w-8 text-blue-600 mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">API Reference</h2>
-            <p className="text-gray-600 mb-4">Integrate JudgeFinder data into your applications</p>
-            <div className="flex flex-col gap-2">
-              <Link href="/api/openapi" className="text-blue-600 hover:text-blue-700 font-medium">OpenAPI (JSON) →</Link>
-              <div className="text-sm text-gray-600">
-                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto">
-                  curl -s https://your-site/api/stats/judges | jq
-                </div>
-                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
-                  curl -s https://your-site/api/stats/courts | jq
-                </div>
-                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
-                  curl -s https://your-site/api/stats/cases | jq
-                </div>
-                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
-                  curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/judges/search?q=smith" | jq
-                </div>
-                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
-                  {`curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/judges/\${JUDGE_ID}" | jq`}
-                </div>
-                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
-                  {`curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/judges/export?per_page=1000" > judges.csv`}
-                </div>
-                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
-                  {`curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/judges/\${JUDGE_ID}/analytics/motions?since=2024-01-01&format=csv" > motions.csv`}
-                </div>
-                <div className="font-mono bg-gray-100 rounded p-2 overflow-x-auto mt-2">
-                  {`curl -s -H "x-api-key: $API_KEY" "https://your-site/api/v1/analytics/time_to_ruling?judge_id=\${JUDGE_ID}&format=csv" > ttr.csv`}
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow p-6">
-            <Database className="h-8 w-8 text-blue-600 mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Architecture</h2>
-            <p className="text-gray-600 mb-4">Understand the system design and data flows</p>
-            <Link href="/docs/ARCHITECTURE" className="text-blue-600 hover:text-blue-700 font-medium">Read architecture →</Link>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow p-6">
-            <Shield className="h-8 w-8 text-blue-600 mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Operations</h2>
-            <p className="text-gray-600 mb-4">Deployments, runbooks, and environment setup</p>
-            <div className="flex gap-4">
-              <Link href="/docs/RUNBOOKS" className="text-blue-600 hover:text-blue-700 font-medium">Runbooks →</Link>
-              <Link href="/docs/NETLIFY_ENV_SETUP" className="text-blue-600 hover:text-blue-700 font-medium">Netlify Setup →</Link>
-              <Link href="/evaluation" className="text-blue-600 hover:text-blue-700 font-medium">Evaluation →</Link>
-              <Link href="/trust" className="text-blue-600 hover:text-blue-700 font-medium">Trust →</Link>
-            </div>
-          </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {docLinks.map((doc) => (
+            <Link
+              key={doc.href}
+              href={doc.href}
+              className="block rounded-2xl border border-border bg-card/90 p-6 shadow-sm transition-colors hover:border-[rgba(110,168,254,0.45)]"
+            >
+              <h2 className="text-xl font-semibold text-foreground">{doc.title}</h2>
+              <p className="mt-2 text-sm text-muted-foreground">{doc.description}</p>
+              <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[color:hsl(var(--accent))]">
+                Read guide →
+              </span>
+            </Link>
+          ))}
         </div>
       </div>
     </div>

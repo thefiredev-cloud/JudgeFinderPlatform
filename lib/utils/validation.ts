@@ -30,7 +30,9 @@ export const judgeSearchParamsSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   page: z.coerce.number().int().min(1).default(1),
   jurisdiction: z.string().optional(),
-  court_id: z.string().uuid('Invalid court ID format').optional()
+  court_id: z.string().uuid('Invalid court ID format').optional(),
+  only_with_decisions: z.coerce.boolean().optional(),
+  recent_years: z.coerce.number().int().min(1).max(10).optional()
 })
 
 export const judgeBySlugParamsSchema = z.object({

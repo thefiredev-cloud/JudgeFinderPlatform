@@ -40,9 +40,19 @@ export async function GET(request: NextRequest) {
       return validation.response
     }
     
-    const { q, limit = 20, page = 1, jurisdiction, court_id } = validation.data
+    const { 
+      q, 
+      limit = 20, 
+      page = 1, 
+      jurisdiction, 
+      court_id,
+      only_with_decisions,
+      recent_years
+    } = validation.data
     const sanitizedQuery = q ? sanitizeSearchQuery(q) : ''
     const includeDecisions = searchParams.get('include_decisions') !== 'false' // Default to true
+    const onlyWithDecisions = only_with_decisions ?? false
+    const recentYears = recent_years ?? 3
     
     logger.apiRequest('GET', '/api/judges/list', {
       query: sanitizedQuery,
@@ -50,7 +60,9 @@ export async function GET(request: NextRequest) {
       page,
       jurisdiction,
       court_id,
-      includeDecisions
+      includeDecisions,
+      onlyWithDecisions,
+      recentYears
     })
 
     // Check for required environment variables
@@ -109,6 +121,39 @@ export async function GET(request: NextRequest) {
       queryBuilder = queryBuilder.eq('court_id', court_id)
     }
 
+    let decisionJudgeIds: string[] | null = null
+
+    if (onlyWithDecisions) {
+      try {
+        decisionJudgeIds = await fetchJudgeIdsWithRecentDecisions(supabase, recentYears)
+      } catch (error) {
+        logger.error('Failed to fetch judges with recent decisions', { error })
+        return NextResponse.json({
+          judges: [],
+          total_count: 0,
+          page,
+          per_page: limit,
+          has_more: false,
+          error: 'Unable to fetch judges with recent decisions at this time'
+        }, { status: 500 })
+      }
+
+      if (!decisionJudgeIds || decisionJudgeIds.length === 0) {
+        const emptyResult = {
+          judges: [],
+          total_count: 0,
+          page,
+          per_page: limit,
+          has_more: false,
+          rate_limit_remaining: remaining
+        }
+
+        return NextResponse.json(emptyResult)
+      }
+
+      queryBuilder = queryBuilder.in('id', decisionJudgeIds)
+    }
+
     // Execute judges query
     const { data: judgesData, error: judgesError, count } = await queryBuilder
 
@@ -161,7 +206,7 @@ export async function GET(request: NextRequest) {
     // Fetch decision summaries in parallel if requested
     if (includeDecisions && judges.length > 0) {
       try {
-        const decisionSummaries = await fetchDecisionSummaries(supabase, judges.map(j => j.id))
+        const decisionSummaries = await fetchDecisionSummaries(supabase, judges.map(j => j.id), recentYears)
         
         // Merge decision summaries with judges
         judgesWithDecisions = judges.map(judge => ({
@@ -207,7 +252,9 @@ export async function GET(request: NextRequest) {
       totalCount,
       hasQuery: !!sanitizedQuery.trim(),
       hasCourtFilter: !!court_id,
-      includedDecisions: includeDecisions
+      includedDecisions: includeDecisions,
+      onlyWithDecisions,
+      recentYears
     })
     
     return response
@@ -223,6 +270,40 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+/**
+ * Fetch judge IDs that have recent decisions within the provided window.
+ */
+async function fetchJudgeIdsWithRecentDecisions(
+  supabase: any,
+  yearsBack: number
+): Promise<string[]> {
+  const years = Math.min(Math.max(yearsBack, 1), 10)
+  const currentYear = new Date().getFullYear()
+  const startYear = currentYear - years + 1
+
+  const { data, error } = await supabase
+    .from('cases')
+    .select('judge_id', { distinct: true })
+    .not('judge_id', 'is', null)
+    .not('decision_date', 'is', null)
+    .gte('decision_date', `${startYear}-01-01`)
+    .lte('decision_date', `${currentYear}-12-31`)
+    .limit(10000)
+
+  if (error) {
+    throw new Error(`Failed to fetch judges with decisions: ${error.message}`)
+  }
+
+  const uniqueJudgeIds = new Set<string>()
+  data?.forEach(record => {
+    if (record.judge_id) {
+      uniqueJudgeIds.add(record.judge_id)
+    }
+  })
+
+  return Array.from(uniqueJudgeIds)
 }
 
 /**

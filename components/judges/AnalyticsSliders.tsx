@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { Clock, Database } from 'lucide-react'
 import { cn } from '@/lib/utils/index'
 import { useJudgeFilterParams } from '@/hooks/useJudgeFilters'
+import { InfoTooltip } from '@/components/ui/InfoTooltip'
+import { MetricProvenance } from '@/components/judges/MetricProvenance'
+import { getQualityTier, isBelowSampleThreshold } from '@/lib/analytics/config'
 
 interface CaseAnalytics {
   civil_plaintiff_favor: number
@@ -70,9 +73,11 @@ interface SliderProps {
   description: string
   confidence: number
   sampleSize: number
+  tooltip: string
+  lastUpdated?: string | null
 }
 
-function ConfidenceIndicator({ confidence, sampleSize }: { confidence: number, sampleSize: number }) {
+function ConfidenceIndicator({ confidence }: { confidence: number }) {
   const getConfidenceColor = (conf: number) => {
     if (conf >= 85) return 'text-[color:hsl(var(--pos))] bg-[rgba(103,232,169,0.14)]'
     if (conf >= 75) return 'text-[color:hsl(var(--accent))] bg-[rgba(110,168,254,0.18)]'
@@ -95,24 +100,27 @@ function ConfidenceIndicator({ confidence, sampleSize }: { confidence: number, s
           getConfidenceColor(confidence),
         )}
       >
-        {getConfidenceLabel(confidence)} ({confidence}%)
-      </span>
-      <span className="text-[color:hsl(var(--text-3))]">
-        {sampleSize} cases
+        {getConfidenceLabel(confidence)} confidence · {confidence}%
       </span>
     </div>
   )
 }
 
-function AnalyticsSlider({ label, value, leftLabel, rightLabel, color, description, confidence, sampleSize }: SliderProps) {
+function AnalyticsSlider({ label, value, leftLabel, rightLabel, color, description, confidence, sampleSize, tooltip, lastUpdated }: SliderProps) {
   const isLowConfidence = confidence < 70
+  const belowThreshold = isBelowSampleThreshold(sampleSize)
+  const quality = getQualityTier(sampleSize, confidence)
 
   return (
     <div className={cn('rounded-2xl border border-border bg-[hsl(var(--bg-2))] p-6 transition-colors', isLowConfidence && 'opacity-80')}>
-      <div className="mb-3 flex items-start justify-between">
-        <div>
-          <h3 className="mb-1 font-semibold text-[color:hsl(var(--text-1))]">{label}</h3>
-          <ConfidenceIndicator confidence={confidence} sampleSize={sampleSize} />
+      <div className="mb-3 flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-[color:hsl(var(--text-1))]">{label}</h3>
+            <InfoTooltip content={<p>{tooltip}</p>} label={`${label} methodology`} />
+          </div>
+          <p className="mt-2 text-xs text-[color:hsl(var(--text-3))]">{description}</p>
+          <ConfidenceIndicator confidence={confidence} />
         </div>
         <span
           className={cn(
@@ -124,45 +132,51 @@ function AnalyticsSlider({ label, value, leftLabel, rightLabel, color, descripti
         </span>
       </div>
 
-      <div className="mb-4">
-        <div className="mb-2 flex justify-between text-sm text-[color:hsl(var(--text-3))]">
-          <span>{leftLabel}</span>
-          <span>{rightLabel}</span>
+      {belowThreshold ? (
+        <div className="mt-4 rounded-xl border border-dashed border-[rgba(251,211,141,0.45)] bg-[rgba(251,211,141,0.1)] p-4 text-xs text-[color:hsl(var(--warn))]">
+          Not enough recent decisions to display this estimate yet. Request a data refresh or check back after the next sync.
         </div>
+      ) : (
+        <div className="mt-4">
+          <div className="mb-2 flex justify-between text-sm text-[color:hsl(var(--text-3))]">
+            <span>{leftLabel}</span>
+            <span>{rightLabel}</span>
+          </div>
 
-        <div className="relative h-3.5 overflow-hidden rounded-full bg-[hsl(var(--bg-1))]">
-          <div
-            className={cn(
-              'absolute left-0 top-0 h-full rounded-full transition-all duration-500',
-              isLowConfidence && 'opacity-70',
-              value < 30
-                ? 'bg-[rgba(252,165,165,0.8)]'
-                : value < 45
-                ? 'bg-[rgba(251,211,141,0.8)]'
-                : value < 55
-                ? 'bg-[rgba(110,168,254,0.9)]'
-                : value < 70
-                ? 'bg-[rgba(103,232,169,0.9)]'
-                : 'bg-[color:hsl(var(--accent))]'
+          <div className="relative h-3.5 overflow-hidden rounded-full bg-[hsl(var(--bg-1))]">
+            <div
+              className={cn(
+                'absolute left-0 top-0 h-full rounded-full transition-all duration-500',
+                isLowConfidence && 'opacity-70',
+                value < 30
+                  ? 'bg-[rgba(252,165,165,0.8)]'
+                  : value < 45
+                  ? 'bg-[rgba(251,211,141,0.8)]'
+                  : value < 55
+                  ? 'bg-[rgba(110,168,254,0.9)]'
+                  : value < 70
+                  ? 'bg-[rgba(103,232,169,0.9)]'
+                  : 'bg-[color:hsl(var(--accent))]'
+              )}
+              style={{ width: `${value}%` }}
+            />
+            <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 transform bg-[rgba(180,187,198,0.35)]" />
+            {isLowConfidence && (
+              <div className="absolute inset-0 flex items-center justify-center bg-[rgba(124,135,152,0.18)]">
+                <span className="text-xs font-medium text-[color:hsl(var(--text-3))]">Limited data</span>
+              </div>
             )}
-            style={{ width: `${value}%` }}
-          />
-          <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 transform bg-[rgba(180,187,198,0.35)]" />
-          {isLowConfidence && (
-            <div className="absolute inset-0 flex items-center justify-center bg-[rgba(124,135,152,0.18)]">
-              <span className="text-xs font-medium text-[color:hsl(var(--text-3))]">Limited data</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <p className="text-sm text-[color:hsl(var(--text-2))]">{description}</p>
-
-      {isLowConfidence && (
-        <div className="mt-3 rounded border border-[rgba(251,211,141,0.4)] bg-[rgba(251,211,141,0.12)] p-2 text-xs text-[color:hsl(var(--warn))]">
-          ⚠️ Limited data available for this analysis
+          </div>
         </div>
       )}
+
+      <MetricProvenance
+        source="CourtListener + verified filings"
+        lastUpdated={lastUpdated}
+        n={sampleSize}
+        quality={quality}
+        className="mt-5"
+      />
     </div>
   )
 }
@@ -342,106 +356,129 @@ export default function AnalyticsSliders({ judgeId, judgeName }: AnalyticsSlider
 
   const sliders = [
     {
-      label: 'Civil Cases',
-      value: analytics.civil_plaintiff_favor,
-      leftLabel: 'Defendant Favor',
-      rightLabel: 'Plaintiff Favor',
+      label: 'Civil cases',
+      value: analytics.civil_plaintiff_favor ?? 0,
+      leftLabel: 'Defendant favor',
+      rightLabel: 'Plaintiff favor',
       color: 'border border-[rgba(110,168,254,0.4)] bg-[rgba(110,168,254,0.18)] text-[color:hsl(var(--accent))]',
-      description: 'In civil litigation, how often does this judge rule in favor of plaintiffs vs defendants?',
-      confidence: analytics.confidence_civil,
-      sampleSize: analytics.sample_size_civil
+      description: 'Share of civil rulings that favor plaintiffs versus defendants.',
+      tooltip: 'Based on contested civil rulings captured in the past 36 months; sealed or confidential matters are excluded.',
+      confidence: analytics.confidence_civil ?? 0,
+      sampleSize: analytics.sample_size_civil ?? 0,
+      lastUpdated: resolvedLastUpdated,
     },
     {
-      label: 'Child Custody',
-      value: analytics.family_custody_mother,
-      leftLabel: 'Father Custody',
-      rightLabel: 'Mother Custody',
+      label: 'Child custody',
+      value: analytics.family_custody_mother ?? 0,
+      leftLabel: 'Father custody',
+      rightLabel: 'Mother custody',
       color: 'border border-[rgba(110,168,254,0.4)] bg-[rgba(110,168,254,0.18)] text-[color:hsl(var(--accent))]',
-      description: 'In custody disputes, what is the pattern of custody awards between parents?',
-      confidence: analytics.confidence_custody,
-      sampleSize: analytics.sample_size_custody
+      description: 'Relative share of custody awards between parents in family cases.',
+      tooltip: 'Counts cases where the order names mother or father; guardianships and other caregivers are grouped separately.',
+      confidence: analytics.confidence_custody ?? 0,
+      sampleSize: analytics.sample_size_custody ?? 0,
+      lastUpdated: resolvedLastUpdated,
     },
     {
-      label: 'Alimony Decisions',
-      value: analytics.family_alimony_favorable,
-      leftLabel: 'Rarely Awards',
-      rightLabel: 'Frequently Awards',
+      label: 'Alimony decisions',
+      value: analytics.family_alimony_favorable ?? 0,
+      leftLabel: 'Rarely awards',
+      rightLabel: 'Frequently awards',
       color: 'border border-[rgba(110,168,254,0.4)] bg-[rgba(110,168,254,0.18)] text-[color:hsl(var(--accent))]',
-      description: 'How likely is this judge to award alimony or spousal support in divorce proceedings?',
-      confidence: analytics.confidence_alimony,
-      sampleSize: analytics.sample_size_alimony
+      description: 'Tendency to award spousal support in divorce matters.',
+      tooltip: 'Uses final divorce and support orders with explicit alimony outcomes; temporary stipulations are omitted.',
+      confidence: analytics.confidence_alimony ?? 0,
+      sampleSize: analytics.sample_size_alimony ?? 0,
+      lastUpdated: resolvedLastUpdated,
     },
     {
-      label: 'Contract Enforcement',
-      value: analytics.contract_enforcement_rate,
-      leftLabel: 'Dismisses Claims',
-      rightLabel: 'Enforces Contracts',
+      label: 'Contract enforcement',
+      value: analytics.contract_enforcement_rate ?? 0,
+      leftLabel: 'Dismisses claims',
+      rightLabel: 'Enforces contracts',
       color: 'border border-[rgba(103,232,169,0.35)] bg-[rgba(103,232,169,0.14)] text-[color:hsl(var(--pos))]',
-      description: 'In contract disputes, how likely is this judge to enforce contract terms vs dismiss claims?',
-      confidence: analytics.confidence_contracts,
-      sampleSize: analytics.sample_size_contracts
+      description: 'Likelihood that contract disputes result in enforcement rather than dismissal.',
+      tooltip: 'Looks at contract claims with a recorded disposition; settlements rely on court minutes or docket outcomes.',
+      confidence: analytics.confidence_contracts ?? 0,
+      sampleSize: analytics.sample_size_contracts ?? 0,
+      lastUpdated: resolvedLastUpdated,
     },
     {
-      label: 'Criminal Sentencing',
-      value: analytics.criminal_sentencing_severity,
+      label: 'Criminal sentencing',
+      value: analytics.criminal_sentencing_severity ?? 0,
       leftLabel: 'Lenient',
       rightLabel: 'Strict',
       color: 'border border-[rgba(252,165,165,0.4)] bg-[rgba(252,165,165,0.2)] text-[color:hsl(var(--neg))]',
-      description: 'What is the typical severity of criminal sentences imposed by this judge?',
-      confidence: analytics.confidence_sentencing,
-      sampleSize: analytics.sample_size_sentencing
+      description: 'Relative severity of imposed sentences compared with similar cases.',
+      tooltip: 'Aggregates felony and misdemeanor sentencing ranges; missing duration values are excluded from the average.',
+      confidence: analytics.confidence_sentencing ?? 0,
+      sampleSize: analytics.sample_size_sentencing ?? 0,
+      lastUpdated: resolvedLastUpdated,
     },
     {
-      label: 'Plea Deal Acceptance',
-      value: analytics.criminal_plea_acceptance,
-      leftLabel: 'Rarely Accepts',
-      rightLabel: 'Often Accepts',
+      label: 'Plea deal acceptance',
+      value: analytics.criminal_plea_acceptance ?? 0,
+      leftLabel: 'Rarely accepts',
+      rightLabel: 'Often accepts',
       color: 'border border-[rgba(251,211,141,0.35)] bg-[rgba(251,211,141,0.18)] text-[color:hsl(var(--warn))]',
-      description: 'How receptive is this judge to plea bargain agreements in criminal cases?',
-      confidence: analytics.confidence_plea,
-      sampleSize: analytics.sample_size_plea
+      description: 'Frequency of pleas accepted on the record.',
+      tooltip: 'Measures pleas accepted during recorded hearings; withdrawn or rejected plea offers are excluded.',
+      confidence: analytics.confidence_plea ?? 0,
+      sampleSize: analytics.sample_size_plea ?? 0,
+      lastUpdated: resolvedLastUpdated,
     },
     {
-      label: 'Bail/Pretrial Release',
-      value: analytics.bail_release_rate || 50,
-      leftLabel: 'Denies Release',
-      rightLabel: 'Grants Release',
+      label: 'Bail & release',
+      value: analytics.bail_release_rate ?? 0,
+      leftLabel: 'Denies release',
+      rightLabel: 'Grants release',
       color: 'border border-[rgba(110,168,254,0.4)] bg-[rgba(110,168,254,0.18)] text-[color:hsl(var(--accent))]',
-      description: 'How often does this judge grant bail or pretrial release in criminal cases?',
-      confidence: analytics.confidence_bail || 60,
-      sampleSize: analytics.sample_size_bail || 0
+      description: 'How often bail or supervised release is granted for pretrial defendants.',
+      tooltip: 'Draws from arraignment minutes with explicit release decisions; cases lacking bail entries are omitted.',
+      confidence: analytics.confidence_bail ?? 0,
+      sampleSize: analytics.sample_size_bail ?? 0,
+      lastUpdated: resolvedLastUpdated,
     },
     {
-      label: 'Appeal Reversal Rate',
-      value: analytics.appeal_reversal_rate || 15,
-      leftLabel: 'Rarely Reversed',
-      rightLabel: 'Often Reversed',
+      label: 'Appeal reversals',
+      value: analytics.appeal_reversal_rate ?? 0,
+      leftLabel: 'Rarely reversed',
+      rightLabel: 'Often reversed',
       color: 'border border-[rgba(110,168,254,0.4)] bg-[rgba(110,168,254,0.18)] text-[color:hsl(var(--accent))]',
-      description: 'What percentage of this judge\'s decisions are overturned on appeal?',
-      confidence: analytics.confidence_reversal || 60,
-      sampleSize: analytics.sample_size_reversal || 0
+      description: 'Share of this judge’s rulings that are overturned on appeal.',
+      tooltip: 'Includes California appellate decisions linked to the judge; partial remands count as reversals.',
+      confidence: analytics.confidence_reversal ?? 0,
+      sampleSize: analytics.sample_size_reversal ?? 0,
+      lastUpdated: resolvedLastUpdated,
     },
     {
-      label: 'Settlement Encouragement',
-      value: analytics.settlement_encouragement_rate || 60,
-      leftLabel: 'Trial Focused',
-      rightLabel: 'Settlement Focused',
+      label: 'Settlement encouragement',
+      value: analytics.settlement_encouragement_rate ?? 0,
+      leftLabel: 'Trial focused',
+      rightLabel: 'Settlement focused',
       color: 'border border-[rgba(110,168,254,0.4)] bg-[rgba(110,168,254,0.18)] text-[color:hsl(var(--accent))]',
-      description: 'Does this judge encourage parties to settle or proceed to trial?',
-      confidence: analytics.confidence_settlement || 60,
-      sampleSize: analytics.sample_size_settlement || 0
+      description: 'Tendency to push litigants toward negotiated outcomes.',
+      tooltip: 'Derived from case notes referencing settlement conferences, mediations, and judge-facilitated agreements.',
+      confidence: analytics.confidence_settlement ?? 0,
+      sampleSize: analytics.sample_size_settlement ?? 0,
+      lastUpdated: resolvedLastUpdated,
     },
     {
-      label: 'Motion Grant Rate',
-      value: analytics.motion_grant_rate || 45,
-      leftLabel: 'Rarely Grants',
-      rightLabel: 'Often Grants',
+      label: 'Motion grant rate',
+      value: analytics.motion_grant_rate ?? 0,
+      leftLabel: 'Rarely grants',
+      rightLabel: 'Often grants',
       color: 'border border-[rgba(251,211,141,0.35)] bg-[rgba(251,211,141,0.18)] text-[color:hsl(var(--warn))]',
-      description: 'How receptive is this judge to procedural motions and requests?',
-      confidence: analytics.confidence_motion || 60,
-      sampleSize: analytics.sample_size_motion || 0
-    }
+      description: 'Approval rate for substantive motions (summary judgment, suppression, etc.).',
+      tooltip: 'Uses motions with explicit granted/denied outcomes; tentative rulings without final orders are excluded.',
+      confidence: analytics.confidence_motion ?? 0,
+      sampleSize: analytics.sample_size_motion ?? 0,
+      lastUpdated: resolvedLastUpdated,
+    },
   ]
+
+  const normalizedQuality = (analytics.analysis_quality || '').toLowerCase()
+  const showLowQualityBanner = normalizedQuality.includes('low') || normalizedQuality.includes('limited')
 
   const summaryTone =
     analytics.overall_confidence >= 80
@@ -499,6 +536,14 @@ export default function AnalyticsSliders({ judgeId, judgeName }: AnalyticsSlider
             <div className="text-xs text-[color:hsl(var(--text-3))]">
               <span className="font-medium text-[color:hsl(var(--text-2))]">Last refresh:</span> {lastUpdatedAbsolute}
             </div>
+            <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[color:hsl(var(--text-3))]">
+              <span className="inline-flex items-center rounded-full border border-[rgba(110,168,254,0.45)] bg-[rgba(110,168,254,0.14)] px-3 py-1 text-[color:hsl(var(--accent))]">
+                AI estimate
+              </span>
+              <span className="inline-flex items-center rounded-full border border-border/60 bg-[hsl(var(--bg-1))] px-3 py-1">
+                Court record denominator
+              </span>
+            </div>
           </div>
           <div className="text-right">
             <div className={cn('text-3xl font-bold', summaryValueClass)}>{analytics.overall_confidence}%</div>
@@ -508,6 +553,28 @@ export default function AnalyticsSliders({ judgeId, judgeName }: AnalyticsSlider
           </div>
         </div>
       </div>
+
+      {showLowQualityBanner && (
+        <div className="rounded-2xl border border-[rgba(251,211,141,0.45)] bg-[rgba(251,211,141,0.12)] p-5 text-sm text-[color:hsl(var(--warn))]">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h3 className="text-base font-semibold text-[color:hsl(var(--warn))]">Limited evidence</h3>
+              <p className="text-xs text-[color:hsl(var(--text-3))]">
+                Current analytics rely on small sample sizes. Request a data refresh so we can ingest more recent filings.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-full border border-border bg-[hsl(var(--bg-1))] px-4 py-2 text-xs font-semibold text-[color:hsl(var(--text-1))] transition-colors hover:border-primary hover:text-primary"
+              onClick={() => {
+                document.dispatchEvent(new CustomEvent('open-report-profile-issue'))
+              }}
+            >
+              Request data update
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         {sliders.map((slider, index) => (

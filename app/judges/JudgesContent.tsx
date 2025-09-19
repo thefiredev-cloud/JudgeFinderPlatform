@@ -14,6 +14,19 @@ import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { TypewriterText } from '@/components/ui/TypewriterText'
 import { ScrollIndicator } from '@/components/ui/ScrollIndicator'
 
+const RECENT_JUDGE_YEARS = 3
+const RECENT_YEAR_OPTIONS = [
+  { value: 1, label: 'Last 12 months' },
+  { value: 3, label: 'Last 3 years' },
+  { value: 5, label: 'Last 5 years' }
+]
+
+const RECENT_YEAR_CHIPS = [
+  { value: 1, label: '12m' },
+  { value: 3, label: '3y' },
+  { value: 5, label: '5y' }
+]
+
 interface JudgeWithDecisions extends Judge {
   decision_summary?: JudgeDecisionSummary
 }
@@ -27,6 +40,9 @@ interface JudgesResponse {
 }
 
 export default function JudgesContent() {
+  const currentYear = new Date().getFullYear()
+  const [recentYearsFilter, setRecentYearsFilter] = useState(RECENT_JUDGE_YEARS)
+  const recentDecisionsStartYear = currentYear - (recentYearsFilter - 1)
   const { scrollYProgress } = useScroll()
   const y = useTransform(scrollYProgress, [0, 1], [0, -50])
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.3])
@@ -76,6 +92,10 @@ export default function JudgesContent() {
       
       if (debouncedSearchQuery.trim()) params.append('q', debouncedSearchQuery)
       if (selectedJurisdiction) params.append('jurisdiction', selectedJurisdiction)
+      if (onlyWithDecisions) {
+        params.append('only_with_decisions', 'true')
+        params.append('recent_years', recentYearsFilter.toString())
+      }
 
       const response = await fetch(`/api/judges/list?${params}`)
       if (!response.ok) throw new Error('Failed to fetch judges')
@@ -97,7 +117,7 @@ export default function JudgesContent() {
       setLoading(false)
       setInitialLoad(false)
     }
-  }, [debouncedSearchQuery, selectedJurisdiction])
+  }, [debouncedSearchQuery, selectedJurisdiction, onlyWithDecisions, recentYearsFilter])
 
   // Filter judges based on decisions toggle
   const filteredJudges = onlyWithDecisions 
@@ -151,8 +171,15 @@ export default function JudgesContent() {
       .slice(0, 3)
       .map(yc => `${yc.year}: ${yc.count}`)
       .join(' | ')
+    const windowLabel = recentYearsFilter === 1
+      ? `${currentYear}`
+      : `${recentDecisionsStartYear}-${currentYear}`
 
-    return recentYears || 'No recent decisions'
+    if (recentYears) {
+      return `Recent decisions (${windowLabel}) • ${recentYears}`
+    }
+
+    return `Recent decisions (${windowLabel}) • ${summary.total_recent}`
   }
 
   const getCourtAndStateDisplay = (judge: Judge) => {
@@ -466,17 +493,64 @@ export default function JudgesContent() {
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-all duration-200"
               />
               <span className="ml-2 text-sm text-gray-700">
-                Show only judges with recent decisions (2023-2025)
+                Show only judges with recent decisions ({recentDecisionsStartYear}-{currentYear})
               </span>
             </motion.label>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                href="/judges/advanced-search"
-                className="inline-flex items-center px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-enterprise-primary to-enterprise-deep rounded-lg hover:from-enterprise-accent hover:to-enterprise-primary transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                <Search className="w-4 h-4 mr-2" />
-                Advanced Search
-              </Link>
+            <motion.div className="flex items-center gap-4">
+              <AnimatePresence>
+                {onlyWithDecisions && (
+                  <motion.div
+                    key="recent-window"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center gap-4"
+                  >
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Decision window</label>
+                      <select
+                        value={recentYearsFilter}
+                        onChange={(e) => setRecentYearsFilter(Number(e.target.value))}
+                        className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      >
+                        {RECENT_YEAR_OPTIONS.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="hidden md:flex items-center gap-2">
+                      {RECENT_YEAR_CHIPS.map(option => {
+                        const isActive = recentYearsFilter === option.value
+                        return (
+                          <motion.button
+                            key={option.value}
+                            type="button"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setRecentYearsFilter(option.value)}
+                            className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all duration-200 ${isActive ? 'bg-blue-600 text-white border-blue-600 shadow' : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50'}`}
+                            aria-pressed={isActive}
+                          >
+                            {option.label}
+                          </motion.button>
+                        )
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link
+                  href="/judges/advanced-search"
+                  className="inline-flex items-center px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-enterprise-primary to-enterprise-deep rounded-lg hover:from-enterprise-accent hover:to-enterprise-primary transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  Advanced Search
+                </Link>
+              </motion.div>
             </motion.div>
           </motion.div>
           
@@ -509,7 +583,9 @@ export default function JudgesContent() {
                       exit={{ opacity: 0 }}
                     >
                       {onlyWithDecisions ? (
-                        `Found ${filteredJudges.length} judges with recent decisions (${totalCount} total in database)`
+                        hasMore
+                          ? `Showing ${filteredJudges.length} of ${totalCount} judges with decisions since ${recentDecisionsStartYear}. Load more to discover additional judges.`
+                          : `Showing ${filteredJudges.length} judges with decisions since ${recentDecisionsStartYear} (of ${totalCount} total).`
                       ) : (
                         `Found ${totalCount} judges matching your criteria`
                       )}
@@ -525,7 +601,7 @@ export default function JudgesContent() {
                     exit={{ opacity: 0, x: 20 }}
                     className="text-sm text-blue-700 font-medium"
                   >
-                    Showing {onlyWithDecisions ? filteredJudges.length : judges.length} of {onlyWithDecisions ? filteredJudges.length : totalCount}
+                    Showing {onlyWithDecisions ? filteredJudges.length : judges.length} of {totalCount}
                   </motion.div>
                 )}
               </AnimatePresence>
