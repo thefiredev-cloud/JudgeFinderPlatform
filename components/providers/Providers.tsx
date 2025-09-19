@@ -32,8 +32,9 @@ export function Providers({ children }: { children: ReactNode }) {
   const content = (
     <ThemeProvider
       attribute="class"
-      defaultTheme="light"
-      enableSystem
+      defaultTheme="dark"
+      enableSystem={false}
+      forcedTheme="dark"
       disableTransitionOnChange
     >
       {children}

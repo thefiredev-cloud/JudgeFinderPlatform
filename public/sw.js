@@ -1,11 +1,9 @@
 // Service Worker for JudgeFinder PWA
-const CACHE_NAME = 'judgefinder-v1';
+const CACHE_NAME = 'judgefinder-v2';
 const urlsToCache = [
-  '/',
-  '/judges',
-  '/courts',
-  '/compare',
-  '/analytics'
+  // Only cache immutable static assets. Avoid caching HTML routes to prevent stale chunks.
+  '/manifest.json',
+  '/favicon.svg',
 ];
 
 // Install event - cache essential resources
@@ -28,6 +26,11 @@ self.addEventListener('install', event => {
 self.addEventListener('fetch', event => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // Always use network for navigations (HTML pages) to avoid serving stale HTML that references old chunks
+  if (event.request.mode === 'navigate') {
     return;
   }
 
@@ -74,8 +77,8 @@ self.addEventListener('fetch', event => {
       })
       .catch(error => {
         console.error('Fetch failed:', error);
-        // Return a custom offline page if available
-        return caches.match('/offline.html');
+        // Let the browser handle the error instead of serving stale content
+        return Response.error();
       })
   );
 });
