@@ -21,3 +21,9 @@
 
 [functions]
   node_bundler = "esbuild"
+
+[[redirects]]
+  from = "https://www.judgefinder.io/*"
+  to = "https://judgefinder.io/:splat"
+  status = 301
+  force = true

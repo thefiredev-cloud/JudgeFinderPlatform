@@ -5,6 +5,7 @@
  */
 
 import { parseJudgeName, createCanonicalSlug } from '@/lib/utils/slug'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
 import type { Judge } from '@/types'
 
 interface SEOMetadata {
@@ -24,7 +25,7 @@ interface SEOMetadata {
 export function generateJudgeMetadata(
   judge: Judge, 
   params: { slug: string },
-  baseUrl: string = 'https://judgefinder.io'
+  baseUrl: string = getBaseUrl()
 ): SEOMetadata {
   const safeName = judge.name || 'Unknown Judge'
   const safeCourtName = judge.court_name || 'Unknown Court'

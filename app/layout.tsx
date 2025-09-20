@@ -6,17 +6,20 @@ import BottomNavigation from '@/components/ui/BottomNavigation'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary'
 import { Metadata } from 'next'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
+
+const BASE_URL = getBaseUrl()
 
 export const metadata: Metadata = {
   // Ensure absolute URLs for Open Graph/Twitter images
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://judgefinder.io'),
+  metadataBase: new URL(BASE_URL),
   title: 'JudgeFinder.io - Find Information About Your Judge',
   description: 'Find information about your assigned judge. Understand what to expect in your court appearance with simple, clear insights.',
   keywords: 'find judge, court appearance, judge information, California judges, court preparation',
   openGraph: {
     title: 'JudgeFinder.io - Find Your Judge',
     description: 'Get information about your assigned judge',
-    url: 'https://judgefinder.io',
+    url: BASE_URL,
     siteName: 'JudgeFinder.io',
     images: [
       {
@@ -29,7 +32,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   alternates: {
-    canonical: 'https://judgefinder.io',
+    canonical: BASE_URL,
   },
   twitter: {
     card: 'summary_large_image',

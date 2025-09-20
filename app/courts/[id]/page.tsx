@@ -13,6 +13,7 @@ import {
   normalizeCourtIdentifier,
   resolveCourtSlug 
 } from '@/lib/utils/slug'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
 import type { Court } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -148,7 +149,7 @@ async function getCourt(id: string): Promise<Court | null> {
 // Get initial judges data for the court (first few for initial render)
 async function getInitialJudges(courtId: string): Promise<{ judges: JudgeWithPosition[], totalCount: number }> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005'}/api/courts/${courtId}/judges?limit=5&page=1`, {
+    const response = await fetch(`/api/courts/${courtId}/judges?limit=5&page=1`, {
       cache: 'force-cache',
       next: { revalidate: 1800 } // 30 minutes
     })
@@ -182,6 +183,7 @@ export default async function CourtPage({ params }: { params: Params }) {
   // Ensure court is properly serialized before using
   const serializedCourt = JSON.parse(JSON.stringify(court))
   const preferredCourtSlug = resolveCourtSlug(serializedCourt) || serializedCourt.id
+  const baseUrl = getBaseUrl()
   const { judges: initialJudges, totalCount } = await getInitialJudges(serializedCourt.id)
 
   return (
@@ -195,10 +197,10 @@ export default async function CourtPage({ params }: { params: Params }) {
             {
               '@context': 'https://schema.org',
               '@type': 'GovernmentOffice',
-              '@id': `https://judgefinder.io/courts/${preferredCourtSlug}#court`,
+              '@id': `${baseUrl}/courts/${preferredCourtSlug}#court`,
               name: serializedCourt.name,
               description: `${serializedCourt.name} is a ${serializedCourt.type} court serving ${serializedCourt.jurisdiction}. Research judges, view analytics, and find legal representation.`,
-              url: `https://judgefinder.io/courts/${preferredCourtSlug}`,
+              url: `${baseUrl}/courts/${preferredCourtSlug}`,
               telephone: serializedCourt.phone,
               sameAs: serializedCourt.website ? [serializedCourt.website] : undefined,
               address: serializedCourt.address ? {
@@ -219,25 +221,25 @@ export default async function CourtPage({ params }: { params: Params }) {
               parentOrganization: {
                 '@type': 'GovernmentOrganization',
                 name: `${serializedCourt.jurisdiction} Judicial System`,
-                url: `https://judgefinder.io/jurisdictions#${serializedCourt.jurisdiction.toLowerCase()}`
+                url: `${baseUrl}/jurisdictions#${serializedCourt.jurisdiction.toLowerCase()}`
               },
               employee: initialJudges.slice(0, 5).map((judge: JudgeWithPosition) => ({
                 '@type': 'Person',
-                '@id': `https://judgefinder.io/judges/${judge.name.toLowerCase().replace(/\s+/g, '-').replace(/[.,]/g, '')}#judge`,
+                '@id': `${baseUrl}/judges/${judge.name.toLowerCase().replace(/\s+/g, '-').replace(/[.,]/g, '')}#judge`,
                 name: judge.name,
                 jobTitle: judge.position_type || 'Judge',
-                url: `https://judgefinder.io/judges/${judge.name.toLowerCase().replace(/\s+/g, '-').replace(/[.,]/g, '')}`
+                url: `${baseUrl}/judges/${judge.name.toLowerCase().replace(/\s+/g, '-').replace(/[.,]/g, '')}`
               }))
             },
             // Local Business Schema for better local SEO
             {
               '@context': 'https://schema.org',
               '@type': 'LocalBusiness',
-              '@id': `https://judgefinder.io/courts/${preferredCourtSlug}#localbusiness`,
+              '@id': `${baseUrl}/courts/${preferredCourtSlug}#localbusiness`,
               name: serializedCourt.name,
               description: `Official information and analytics for ${serializedCourt.name} in ${serializedCourt.jurisdiction}`,
               telephone: serializedCourt.phone,
-              url: serializedCourt.website || `https://judgefinder.io/courts/${preferredCourtSlug}`,
+              url: serializedCourt.website || `${baseUrl}/courts/${preferredCourtSlug}`,
               address: serializedCourt.address ? {
                 '@type': 'PostalAddress',
                 streetAddress: serializedCourt.address,
@@ -255,21 +257,21 @@ export default async function CourtPage({ params }: { params: Params }) {
             {
               '@context': 'https://schema.org',
               '@type': 'WebPage',
-              '@id': `https://judgefinder.io/courts/${preferredCourtSlug}`,
+              '@id': `${baseUrl}/courts/${preferredCourtSlug}`,
               name: `${serializedCourt.name} - Court Information | JudgeFinder`,
               description: `Complete information about ${serializedCourt.name} including judges, contact details, and legal services. Find attorneys practicing in this ${serializedCourt.type} court.`,
-              url: `https://judgefinder.io/courts/${preferredCourtSlug}`,
+              url: `${baseUrl}/courts/${preferredCourtSlug}`,
               isPartOf: {
                 '@type': 'WebSite',
-                '@id': 'https://judgefinder.io#website',
+                '@id': `${baseUrl}#website`,
                 name: 'JudgeFinder',
-                url: 'https://judgefinder.io'
+                url: baseUrl
               },
               about: {
-                '@id': `https://judgefinder.io/courts/${preferredCourtSlug}#court`
+                '@id': `${baseUrl}/courts/${preferredCourtSlug}#court`
               },
               mainEntity: {
-                '@id': `https://judgefinder.io/courts/${preferredCourtSlug}#court`
+                '@id': `${baseUrl}/courts/${preferredCourtSlug}#court`
               }
             }
           ]),
@@ -498,7 +500,7 @@ export async function generateMetadata({ params }: { params: Params }) {
   const description = `Complete information about ${court.name} in ${court.jurisdiction}. Find judges, contact information, court procedures, and experienced attorneys practicing in this ${court.type} court. Essential resource for legal professionals.`
   
   const metadataCourtSlug = resolveCourtSlug(court) || court.id
-  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://judgefinder.io').replace(/\/$/, '')
+  const baseUrl = getBaseUrl()
   const canonicalUrl = `${baseUrl}/courts/${metadataCourtSlug}`
 
   return {
