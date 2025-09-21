@@ -136,7 +136,7 @@ export default function AnalyticsPage() {
                   Total Judges
                 </div>
                 <div className="text-3xl font-bold">
-                  {stats?.totalJudges !== null ? stats.totalJudges.toLocaleString() : '—'}
+                  {stats && stats.totalJudges !== null ? stats.totalJudges.toLocaleString() : '—'}
                 </div>
               </div>
 
@@ -146,7 +146,7 @@ export default function AnalyticsPage() {
                   Case Records
                 </div>
                 <div className="text-3xl font-bold">
-                  {stats?.totalCases !== null ? stats.totalCases.toLocaleString() : '—'}
+                  {stats && stats.totalCases !== null ? stats.totalCases.toLocaleString() : '—'}
                 </div>
               </div>
 
@@ -156,14 +156,14 @@ export default function AnalyticsPage() {
                   CA Courts
                 </div>
                 <div className="text-3xl font-bold">
-                  {stats?.totalCourts !== null ? stats.totalCourts.toLocaleString() : '—'}
+                  {stats && stats.totalCourts !== null ? stats.totalCourts.toLocaleString() : '—'}
                 </div>
               </div>
             </div>
 
           <div className="mt-6 text-sm text-muted-foreground flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            Last sync: {stats?.lastSyncTime ? new Date(stats.lastSyncTime).toLocaleString() : '—'}
+            Last sync: {stats && stats.lastSyncTime ? new Date(stats.lastSyncTime).toLocaleString() : '—'}
           </div>
 
           <div className="mt-8 border-t border-border pt-6">
@@ -193,7 +193,7 @@ export default function AnalyticsPage() {
                   {stats ? formatPercent(stats.cacheHitRatio) : '—'}
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  Lookup volume: {stats?.searchVolume ? stats.searchVolume.toLocaleString() : '—'}
+                  Lookup volume: {stats && typeof stats.searchVolume === 'number' ? stats.searchVolume.toLocaleString() : '—'}
                 </div>
               </div>
               <div className="rounded-lg border border-border bg-background p-4">
