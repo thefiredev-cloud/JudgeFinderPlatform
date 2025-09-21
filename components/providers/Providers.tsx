@@ -48,8 +48,7 @@ export function Providers({ children }: { children: ReactNode }) {
         publishableKey={clerkPublishableKey}
         signInUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL || '/sign-in'}
         signUpUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL || '/sign-up'}
-        signInFallbackRedirectUrl="/dashboard"
-        signUpFallbackRedirectUrl="/welcome"
+        // Use new redirect props (fallbackRedirectUrl/forceRedirectUrl are handled at SignIn/SignUp usage sites)
       >
         {content}
       </ClerkProvider>
