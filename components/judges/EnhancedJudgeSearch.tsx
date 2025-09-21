@@ -141,6 +141,10 @@ export function EnhancedJudgeSearch() {
     return 'text-red-400'
   }
 
+  const totalCountDisplay = typeof searchResults?.total_count === 'number'
+    ? searchResults.total_count.toLocaleString()
+    : 'statewide'
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
       <div className="container mx-auto px-4 py-8">
@@ -150,7 +154,7 @@ export function EnhancedJudgeSearch() {
             Find the Right Judge for Your Case
           </h1>
           <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-            Search through {searchResults?.total_count || '1,810'} California judges with advanced filtering 
+            Search through {totalCountDisplay} California judges with advanced filtering 
             by case type, experience, settlement rates, and judicial patterns.
           </p>
         </div>
@@ -197,7 +201,7 @@ export function EnhancedJudgeSearch() {
         {searchResults && (
           <div className="mb-6 flex justify-between items-center">
             <div className="text-gray-300">
-              Showing {searchResults.judges.length} of {searchResults.total_count} judges
+              Showing {searchResults.judges.length} of {totalCountDisplay} judges
               {searchResults.search_took_ms && (
                 <span className="text-gray-500 ml-2">
                   ({searchResults.search_took_ms}ms)

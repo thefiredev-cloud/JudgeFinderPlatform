@@ -410,9 +410,9 @@ export default async function CourtPage({ params }: { params: Params }) {
                     <div className="rounded-lg bg-gradient-to-br from-green-500/10 to-green-500/20 p-4 text-center border border-green-500/20">
                       <Users className="h-8 w-8 text-green-500 mx-auto mb-2" />
                       <p className="text-3xl font-bold text-foreground">
-                        2,500+
+                        —
                       </p>
-                      <p className="text-sm text-muted-foreground">Monthly Searches</p>
+                      <p className="text-sm text-muted-foreground">Usage metrics coming soon</p>
                     </div>
                     <div className="rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-500/20 p-4 text-center border border-purple-500/20">
                       <Award className="h-8 w-8 text-purple-500 mx-auto mb-2" />

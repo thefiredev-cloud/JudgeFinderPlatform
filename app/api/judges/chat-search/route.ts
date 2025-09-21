@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
         suggestions: [
           'Try searching with just the last name',
           'Check the spelling of the judge\'s name',
-          'Browse our full directory of 1,810 California judges'
+          'Browse our statewide directory of California judges'
         ]
       })
     }

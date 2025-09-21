@@ -56,15 +56,15 @@ export default function Page() {
             <div className="space-y-4 text-left">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <span className="text-gray-300">1,810+ California judges</span>
+                <span className="text-gray-300">Statewide California judge directory</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span className="text-gray-300">300,000+ case records</span>
+                <span className="text-gray-300">Extensive case history research</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                <span className="text-gray-300">909 courts covered</span>
+                <span className="text-gray-300">Court coverage across California</span>
               </div>
             </div>
           </div>

@@ -7,14 +7,14 @@ import { BarChart3, ArrowLeft, Clock, Database, RefreshCcw } from 'lucide-react'
 export const dynamic = 'force-dynamic'
 
 type DashboardStats = {
-  totalJudges: number
-  totalCourts: number
-  totalCases: number
+  totalJudges: number | null
+  totalCourts: number | null
+  totalCases: number | null
   pendingSync: number
   lastSyncTime: string | null
   systemHealth: 'healthy' | 'warning' | 'error'
-  activeUsers: number
-  searchVolume: number
+  activeUsers: number | null
+  searchVolume: number | null
   syncSuccessRate: number
   retryCount: number
   cacheHitRatio: number
@@ -58,14 +58,14 @@ export default function AnalyticsPage() {
         ])
 
         const combined: DashboardStats = {
-          totalJudges: Number(judges?.totalJudges) || 0,
-          totalCourts: Number(courts?.totalCourts) || 0,
-          totalCases: Number(cases?.totalCases) || 0,
+          totalJudges: typeof judges?.totalJudges === 'number' ? judges.totalJudges : null,
+          totalCourts: typeof courts?.totalCourts === 'number' ? courts.totalCourts : null,
+          totalCases: typeof cases?.totalCases === 'number' ? cases.totalCases : null,
           pendingSync: 0,
           lastSyncTime: cases?.lastUpdate || null,
           systemHealth: 'healthy',
-          activeUsers: Number(platform?.activeUsers) || 0,
-          searchVolume: Number(platform?.monthlySearchesRaw) || 0,
+          activeUsers: typeof platform?.activeUsers === 'number' ? platform.activeUsers : null,
+          searchVolume: typeof platform?.monthlySearchesRaw === 'number' ? platform.monthlySearchesRaw : null,
           syncSuccessRate: 0,
           retryCount: 0,
           cacheHitRatio: 0,
@@ -136,7 +136,7 @@ export default function AnalyticsPage() {
                   Total Judges
                 </div>
                 <div className="text-3xl font-bold">
-                  {stats?.totalJudges ?? '—'}
+                  {stats && stats.totalJudges !== null ? stats.totalJudges.toLocaleString() : '—'}
                 </div>
               </div>
 
@@ -146,7 +146,7 @@ export default function AnalyticsPage() {
                   Case Records
                 </div>
                 <div className="text-3xl font-bold">
-                  {stats?.totalCases ? stats.totalCases.toLocaleString() : '—'}
+                  {stats && stats.totalCases !== null ? stats.totalCases.toLocaleString() : '—'}
                 </div>
               </div>
 
@@ -156,14 +156,14 @@ export default function AnalyticsPage() {
                   CA Courts
                 </div>
                 <div className="text-3xl font-bold">
-                  {stats?.totalCourts ?? '—'}
+                  {stats && stats.totalCourts !== null ? stats.totalCourts.toLocaleString() : '—'}
                 </div>
               </div>
             </div>
 
           <div className="mt-6 text-sm text-muted-foreground flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            Last sync: {stats?.lastSyncTime ? new Date(stats.lastSyncTime).toLocaleString() : '—'}
+            Last sync: {stats && stats.lastSyncTime ? new Date(stats.lastSyncTime).toLocaleString() : '—'}
           </div>
 
           <div className="mt-8 border-t border-border pt-6">
@@ -184,7 +184,7 @@ export default function AnalyticsPage() {
                   {stats ? stats.pendingSync.toLocaleString() : '—'}
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  Active users: {stats ? stats.activeUsers.toLocaleString() : '—'}
+                  Active users: {stats && typeof stats.activeUsers === 'number' ? stats.activeUsers.toLocaleString() : '—'}
                 </div>
               </div>
               <div className="rounded-lg border border-border bg-background p-4">
@@ -193,7 +193,7 @@ export default function AnalyticsPage() {
                   {stats ? formatPercent(stats.cacheHitRatio) : '—'}
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  Lookup volume: {stats?.searchVolume ? stats.searchVolume.toLocaleString() : '—'}
+                  Lookup volume: {stats && typeof stats.searchVolume === 'number' ? stats.searchVolume.toLocaleString() : '—'}
                 </div>
               </div>
               <div className="rounded-lg border border-border bg-background p-4">

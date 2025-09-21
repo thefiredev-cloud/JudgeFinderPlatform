@@ -1,11 +1,14 @@
 'use client'
 
+import { getBaseUrl } from '@/lib/utils/baseUrl'
+
 interface StructuredDataProps {
   type: 'website' | 'judge' | 'court' | 'organization'
   data: any
 }
 
 export function StructuredData({ type, data }: StructuredDataProps) {
+  const baseUrl = getBaseUrl()
   const getStructuredData = () => {
     const baseData = {
       '@context': 'https://schema.org',
@@ -18,20 +21,20 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           '@type': 'WebSite',
           name: 'JudgeFinder Platform',
           alternateName: 'JudgeFinder.io',
-          url: 'https://judgefinder.io',
+          url: baseUrl,
           description: 'Free judicial transparency and bias detection tool for citizens, attorneys, and litigants researching judicial patterns across California.',
           potentialAction: {
             '@type': 'SearchAction',
             target: {
               '@type': 'EntryPoint',
-              urlTemplate: 'https://judgefinder.io/search?q={search_term_string}'
+              urlTemplate: `${baseUrl}/search?q={search_term_string}`
             },
             'query-input': 'required name=search_term_string'
           },
           publisher: {
             '@type': 'Organization',
             name: 'JudgeFinder Platform',
-            url: 'https://judgefinder.io'
+            url: baseUrl
           }
         }
 
@@ -40,7 +43,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           ...baseData,
           '@type': 'Organization',
           name: 'JudgeFinder Platform',
-          url: 'https://judgefinder.io',
+          url: baseUrl,
           description: 'Free judicial transparency and bias detection tool providing access to comprehensive California judicial data.',
           foundingDate: '2025',
           knowsAbout: [
@@ -66,16 +69,16 @@ export function StructuredData({ type, data }: StructuredDataProps) {
         return {
           ...baseData,
           '@type': 'Person',
-          '@id': `https://judgefinder.io/judges/${data.slug}`,
+          '@id': `${baseUrl}/judges/${data.slug}`,
           name: data.name,
           jobTitle: 'Judge',
           worksFor: {
             '@type': 'GovernmentOrganization',
             name: data.court_name,
-            '@id': `https://judgefinder.io/courts/${data.court_slug}`
+            '@id': `${baseUrl}/courts/${data.court_slug}`
           },
           knowsAbout: data.specialties || [],
-          url: `https://judgefinder.io/judges/${data.slug}`,
+          url: `${baseUrl}/judges/${data.slug}`,
           sameAs: data.external_links || []
         }
 
@@ -83,10 +86,10 @@ export function StructuredData({ type, data }: StructuredDataProps) {
         return {
           ...baseData,
           '@type': 'GovernmentOrganization',
-          '@id': `https://judgefinder.io/courts/${data.slug}`,
+          '@id': `${baseUrl}/courts/${data.slug}`,
           name: data.name,
           description: `${data.type} serving ${data.jurisdiction} jurisdiction`,
-          url: `https://judgefinder.io/courts/${data.slug}`,
+          url: `${baseUrl}/courts/${data.slug}`,
           address: {
             '@type': 'PostalAddress',
             addressRegion: data.jurisdiction
@@ -99,7 +102,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
             '@type': 'Person',
             name: judge.name,
             jobTitle: 'Judge',
-            url: `https://judgefinder.io/judges/${judge.slug}`
+            url: `${baseUrl}/judges/${judge.slug}`
           })) || []
         }
 

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import CountyCourtsPage, { jurisdictionMap } from './ClientPage'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,7 +13,7 @@ type GenerateParams = { params: Promise<Params> }
 export async function generateMetadata({ params }: GenerateParams): Promise<Metadata> {
   const { county } = await params
   const jurisdictionInfo = jurisdictionMap[county]
-  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://judgefinder.io').replace(/\/$/, '')
+  const baseUrl = getBaseUrl()
   const canonicalUrl = `${baseUrl}/jurisdictions/${county}`
 
   if (!jurisdictionInfo) {

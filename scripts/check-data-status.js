@@ -139,16 +139,26 @@ async function checkDataStatus() {
     }
     
     // Expected targets
-    console.log(`\n${colors.cyan}${colors.bright}🎯 Target Goals${colors.reset}`)
-    console.log(`   CA Judges: ${caJudgeCount || 0} / 1,810`)
-    console.log(`   CA Courts: ${caCourts || 0} / 909`)
-    
-    const judgeProgress = Math.round(((caJudgeCount || 0) / 1810) * 100)
-    const courtProgress = Math.round(((caCourts || 0) / 909) * 100)
-    
-    console.log(`\n${colors.bright}Progress:${colors.reset}`)
-    console.log(`   Judges: ${getProgressBar(judgeProgress)} ${judgeProgress}%`)
-    console.log(`   Courts: ${getProgressBar(courtProgress)} ${courtProgress}%`)
+    const targetJudges = Number(process.env.TARGET_CA_JUDGES)
+    const targetCourts = Number(process.env.TARGET_CA_COURTS)
+
+    if (Number.isFinite(targetJudges) || Number.isFinite(targetCourts)) {
+      console.log(`\n${colors.cyan}${colors.bright}🎯 Optional Targets${colors.reset}`)
+
+      if (Number.isFinite(targetJudges)) {
+        const judgeProgress = Math.min(100, Math.round(((caJudgeCount || 0) / targetJudges) * 100))
+        console.log(`   Judges: ${getProgressBar(judgeProgress)} ${judgeProgress}% (${caJudgeCount || 0}/${targetJudges})`)
+      } else {
+        console.log('   Judges: (set TARGET_CA_JUDGES to track progress)')
+      }
+
+      if (Number.isFinite(targetCourts)) {
+        const courtProgress = Math.min(100, Math.round(((caCourts || 0) / targetCourts) * 100))
+        console.log(`   Courts: ${getProgressBar(courtProgress)} ${courtProgress}% (${caCourts || 0}/${targetCourts})`)
+      } else {
+        console.log('   Courts: (set TARGET_CA_COURTS to track progress)')
+      }
+    }
     
   } catch (error) {
     console.error(`${colors.red}❌ Error checking data status:${colors.reset}`, error.message)

@@ -79,7 +79,7 @@ export default async function Image() {
             textAlign: 'center',
           }}
         >
-          1,810+ California Judges • AI-Powered Analytics • Free Access
+          Statewide Judge Coverage • AI-Powered Analytics • Free Access
         </div>
       </div>
     ),

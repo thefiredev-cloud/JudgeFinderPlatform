@@ -17,12 +17,12 @@ interface TileData {
 }
 
 const topRowTiles: TileData[] = [
-  { id: '1', title: '1,810', stat: 'CA Judges Analyzed', icon: Scale, gradient: 'from-blue-500 to-blue-600' },
-  { id: '2', title: '300,204+', stat: 'Court Cases Processed', icon: FileText, gradient: 'from-purple-500 to-purple-600' },
-  { id: '3', title: '50+', stat: 'Data Points Per Judge', icon: Database, gradient: 'from-green-500 to-green-600' },
+  { id: '1', title: 'Statewide', stat: 'Judge Coverage', icon: Scale, gradient: 'from-blue-500 to-blue-600' },
+  { id: '2', title: 'Expanding', stat: 'Case Insights', icon: FileText, gradient: 'from-purple-500 to-purple-600' },
+  { id: '3', title: 'In-Depth', stat: 'Data Points Per Profile', icon: Database, gradient: 'from-green-500 to-green-600' },
   { id: '4', title: 'Real-Time', stat: 'Bias Detection', icon: Activity, gradient: 'from-orange-500 to-orange-600' },
   { id: '5', title: 'ML-Powered', stat: 'Pattern Analysis', icon: Brain, gradient: 'from-pink-500 to-pink-600' },
-  { id: '6', title: '104', stat: 'CA Courts Covered', icon: Shield, gradient: 'from-indigo-500 to-indigo-600' },
+  { id: '6', title: 'Comprehensive', stat: 'Court Coverage', icon: Shield, gradient: 'from-indigo-500 to-indigo-600' },
   { id: '7', title: '5-Metric', stat: 'Bias Scoring System', icon: BarChart3, gradient: 'from-red-500 to-red-600' },
   { id: '8', title: 'Daily', stat: 'Data Synchronization', icon: Zap, gradient: 'from-teal-500 to-teal-600' },
 ]

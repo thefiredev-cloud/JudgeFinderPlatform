@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
 
 export async function GET() {
-  return NextResponse.redirect(new URL('/sign-up', process.env.NEXT_PUBLIC_SITE_URL || 'https://judgefinder.io'))
+  return NextResponse.redirect(new URL('/sign-up', getBaseUrl()))
 }
-
 

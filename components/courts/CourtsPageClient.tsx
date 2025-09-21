@@ -105,10 +105,10 @@ export function CourtsPageClient({ initialCourts, initialJurisdiction = 'CA' }: 
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.3])
   
   const [stats, setStats] = useState([
-    { icon: Building, value: 852, label: "Total Courts", color: "text-primary", suffix: "" },
-    { icon: Gavel, value: 0, label: "Superior/Municipal/Federal", color: "text-enterprise-accent", isText: true, text: "Loading...", suffix: "" },
-    { icon: MapPin, value: 58, label: "Counties Covered", color: "text-enterprise-deep", suffix: "" },
-    { icon: Users, value: 15, label: "Avg Judges per Court", color: "text-enterprise-light", suffix: "" }
+    { icon: Building, value: 0, label: "Total Courts", color: "text-primary", suffix: "", isText: true, text: '—' },
+    { icon: Gavel, value: 0, label: "Court Types", color: "text-enterprise-accent", isText: true, text: 'Loading...', suffix: "" },
+    { icon: MapPin, value: 0, label: "Counties Covered", color: "text-enterprise-deep", isText: true, text: '—', suffix: "" },
+    { icon: Users, value: 0, label: "Avg Judges per Court", color: "text-enterprise-light", isText: true, text: '—', suffix: "" }
   ])
 
   // Fetch court-specific stats
@@ -119,10 +119,42 @@ export function CourtsPageClient({ initialCourts, initialJurisdiction = 'CA' }: 
         if (response.ok) {
           const data = await response.json()
           setStats([
-            { icon: Building, value: data.totalCourts, label: "Total Courts", color: "text-primary", suffix: "" },
-            { icon: Gavel, value: 0, label: "Court Types", color: "text-enterprise-accent", isText: true, text: data.courtTypeDisplay, suffix: "" },
-            { icon: MapPin, value: data.countiesCovered, label: "Counties Covered", color: "text-enterprise-deep", suffix: "" },
-            { icon: Users, value: data.avgJudgesPerCourt, label: "Avg Judges per Court", color: "text-enterprise-light", suffix: "" }
+            {
+              icon: Building,
+              value: typeof data.totalCourts === 'number' ? data.totalCourts : 0,
+              label: "Total Courts",
+              color: "text-primary",
+              suffix: "",
+              isText: typeof data.totalCourts === 'number' ? false : true,
+              text: typeof data.totalCourts === 'number' ? undefined : '—'
+            },
+            {
+              icon: Gavel,
+              value: 0,
+              label: "Court Types",
+              color: "text-enterprise-accent",
+              isText: true,
+              text: typeof data.courtTypeDisplay === 'string' ? data.courtTypeDisplay : '—',
+              suffix: ""
+            },
+            {
+              icon: MapPin,
+              value: typeof data.countiesCovered === 'number' ? data.countiesCovered : 0,
+              label: "Counties Covered",
+              color: "text-enterprise-deep",
+              suffix: "",
+              isText: typeof data.countiesCovered === 'number' ? false : true,
+              text: typeof data.countiesCovered === 'number' ? data.countiesCovered.toString() : (data.countiesDisplay || '—')
+            },
+            {
+              icon: Users,
+              value: typeof data.avgJudgesPerCourt === 'number' ? data.avgJudgesPerCourt : 0,
+              label: "Avg Judges per Court",
+              color: "text-enterprise-light",
+              suffix: "",
+              isText: typeof data.avgJudgesPerCourt === 'number' ? false : true,
+              text: typeof data.avgJudgesPerCourt === 'number' ? undefined : '—'
+            }
           ])
         }
       } catch (error) {
@@ -205,7 +237,7 @@ export function CourtsPageClient({ initialCourts, initialJurisdiction = 'CA' }: 
                   <stat.icon className={`w-8 h-8 ${stat.color} mx-auto mb-2`} />
                   <div className={`text-3xl font-bold ${stat.color}`}>
                     {stat.isText ? (
-                      <span className="text-lg">{stat.text}</span>
+                      <span className="text-lg">{stat.text ?? '—'}</span>
                     ) : (
                       <>
                         <AnimatedCounter end={stat.value} />

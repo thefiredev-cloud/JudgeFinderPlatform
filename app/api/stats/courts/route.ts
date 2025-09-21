@@ -42,15 +42,6 @@ export async function GET(request: Request) {
     }, {}) || {}
 
     // Get counties covered (unique jurisdictions)
-    const { data: counties, error: countiesError } = await supabase
-      .from('courts')
-      .select('jurisdiction')
-      .eq('jurisdiction', 'CA')
-
-    if (countiesError) {
-      console.error('Error fetching counties:', countiesError)
-    }
-
     // Get average judges per court
     const { data: judgeData, error: judgeError } = await supabase
       .from('courts')
@@ -63,25 +54,26 @@ export async function GET(request: Request) {
     }
 
     const totalJudgeCount = judgeData?.reduce((sum, court) => sum + (court.judge_count || 0), 0) || 0
-    const courtsWithJudges = judgeData?.length || 1
-    const avgJudgesPerCourt = Math.round(totalJudgeCount / courtsWithJudges)
+    const courtsWithJudges = judgeData?.filter(court => typeof court.judge_count === 'number' && court.judge_count > 0).length || 0
+    const avgJudgesPerCourt = courtsWithJudges > 0 ? Math.round(totalJudgeCount / courtsWithJudges) : null
 
     // Format court types for display
     const mainCourtTypes = {
-      superior: typeBreakdown['Superior'] || 0,
-      municipal: typeBreakdown['Municipal'] || 0,
-      federal: typeBreakdown['Federal'] || typeBreakdown['federal'] || 0,
+      state: (typeBreakdown['state'] || 0) + (typeBreakdown['State'] || 0),
+      local: (typeBreakdown['local'] || 0) + (typeBreakdown['Local'] || 0) + (typeBreakdown['municipal'] || 0) + (typeBreakdown['Municipal'] || 0),
+      federal: (typeBreakdown['federal'] || 0) + (typeBreakdown['Federal'] || 0),
       other: Object.entries(typeBreakdown)
-        .filter(([key]) => !['Superior', 'Municipal', 'Federal', 'federal'].includes(key))
+        .filter(([key]) => !['state', 'State', 'local', 'Local', 'municipal', 'Municipal', 'federal', 'Federal'].includes(key))
         .reduce((sum, [, count]) => sum + count, 0)
     }
 
     const stats = {
-      totalCourts: totalCourts || 104, // Fallback to CA courts
+      totalCourts: typeof totalCourts === 'number' ? totalCourts : null,
       courtTypes: mainCourtTypes,
-      courtTypeDisplay: `${mainCourtTypes.superior} Superior / ${mainCourtTypes.municipal} Municipal / ${mainCourtTypes.federal} Federal`,
-      countiesCovered: 58, // California has 58 counties
-      avgJudgesPerCourt: avgJudgesPerCourt || 15,
+      courtTypeDisplay: `${mainCourtTypes.state} State / ${mainCourtTypes.local} Local / ${mainCourtTypes.federal} Federal`,
+      countiesCovered: null,
+      countiesDisplay: 'County coverage in progress',
+      avgJudgesPerCourt: avgJudgesPerCourt,
       timestamp: new Date().toISOString()
     }
 
@@ -96,17 +88,18 @@ export async function GET(request: Request) {
     
     // Return fallback data
     return NextResponse.json({
-      totalCourts: 104,
+      totalCourts: null,
       courtTypes: {
-        superior: 58,
-        municipal: 0,
-        federal: 4,
-        other: 42
+        state: 0,
+        local: 0,
+        federal: 0,
+        other: 0
       },
-      courtTypeDisplay: "58 Superior / 0 Municipal / 4 Federal",
-      countiesCovered: 58,
-      avgJudgesPerCourt: 15,
-      error: 'Using cached data',
+      courtTypeDisplay: 'Data unavailable',
+      countiesCovered: null,
+      countiesDisplay: 'County coverage unavailable',
+      avgJudgesPerCourt: null,
+      error: 'Unable to load court stats',
       timestamp: new Date().toISOString()
     })
   }

@@ -1,4 +1,5 @@
 import type { Judge } from '@/types'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
 
 interface JudgeStructuredDataProps {
   judge: Judge
@@ -17,7 +18,7 @@ export function JudgeStructuredData({
 }: JudgeStructuredDataProps) {
   const currentYear = new Date().getFullYear()
   const nameWithoutTitle = safeName.replace(/^(judge|justice|the honorable)\s+/i, '').trim()
-  const baseUrl = process.env.NODE_ENV === 'production' ? 'https://judgefinder.io' : 'http://localhost:3005'
+  const baseUrl = getBaseUrl()
   
   const structuredData = [
     // Enhanced Judge Person Schema - Comprehensive Profile

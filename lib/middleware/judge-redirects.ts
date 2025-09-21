@@ -7,6 +7,7 @@ import {
   isValidSlugVariation,
   getSlugRedirectTarget 
 } from '@/lib/utils/slug'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
 
 // Common judge name patterns that should redirect to canonical URLs
 const JUDGE_NAME_PATTERNS = [
@@ -171,13 +172,13 @@ export function handleJudgeRedirects(request: NextRequest): NextResponse | null 
 }
 
 // Generate canonical URL for a judge
-export function getCanonicalJudgeUrl(judgeName: string, baseUrl: string = 'https://judgefinder.io'): string {
+export function getCanonicalJudgeUrl(judgeName: string, baseUrl: string = getBaseUrl()): string {
   const canonicalSlug = createCanonicalSlug(judgeName)
   return `${baseUrl}/judges/${canonicalSlug}`
 }
 
 // SEO-optimized canonical URL with judge title variations  
-export function generateJudgeUrlVariations(judgeName: string, baseUrl: string = 'https://judgefinder.io'): string[] {
+export function generateJudgeUrlVariations(judgeName: string, baseUrl: string = getBaseUrl()): string[] {
   const baseName = judgeName.replace(/^(judge|justice|the honorable)\s+/i, '')
   const canonicalSlug = createCanonicalSlug(baseName)
   
@@ -207,7 +208,7 @@ export function isCanonicalJudgeUrl(currentSlug: string, judgeName: string): boo
 }
 
 // Get redirect URL if current slug is not canonical
-export function getCanonicalRedirectUrl(currentSlug: string, judgeName: string, baseUrl: string = 'https://judgefinder.io'): string | null {
+export function getCanonicalRedirectUrl(currentSlug: string, judgeName: string, baseUrl: string = getBaseUrl()): string | null {
   if (isCanonicalJudgeUrl(currentSlug, judgeName)) {
     return null
   }

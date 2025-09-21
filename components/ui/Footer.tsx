@@ -100,7 +100,7 @@ export function Footer() {
         {/* SEO Description */}
         <div className="text-center py-3 border-t border-border/50">
           <p className="text-xs text-muted-foreground mb-2">
-            JudgeFinder.io - Research 1,810+ California judges with AI-powered analytics and bias detection
+            JudgeFinder.io - Research California judges with AI-powered analytics and bias detection
           </p>
           <p className="text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} JudgeFinder. Free judicial transparency for California citizens.

@@ -27,8 +27,8 @@ Important guidelines:
 - Focus on factual information from the JudgeFinder database
 
 Available data:
-- 1,810 California judges with bias analytics
-- 909 courts across California
+- Statewide California judge directory with bias analytics
+- Court coverage across jurisdictions
 - AI-powered bias detection metrics
 - Case history and judicial patterns
 - Court jurisdictions and assignments`
@@ -200,9 +200,9 @@ async function getRelevantContext(query: string): Promise<ChatMessage[]> {
       context.push({
         role: 'system',
         content: `Platform statistics:
-- Total judges: 1,810 California judges
-- Total courts: 909 courts across California
-- Total cases analyzed: 300,204+ cases
+- Total judges: statewide California coverage
+- Total courts: comprehensive jurisdiction coverage
+- Total cases analyzed: expanding case library
 - AI bias metrics: 5 key indicators (Consistency, Decision Speed, Settlement Preference, Risk Tolerance, Predictability)
 - Coverage: All California jurisdictions`
       })

@@ -1,18 +1,21 @@
 import { Metadata } from 'next'
 import HomePageClient from '@/components/home/HomePageClient'
 import { HomepageFAQ } from '@/components/seo/HomepageFAQ'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
+
+const BASE_URL = getBaseUrl()
 
 // Server-side metadata generation for SEO
 export const metadata: Metadata = {
-  title: 'JudgeFinder.io - Find California Judge Information & Court Analytics | Free Legal Research',
-  description: 'Research 1,810+ California judges instantly. Get AI-powered judicial analytics, bias detection, ruling patterns, and case outcomes. Free access to comprehensive court data for attorneys, litigants, and citizens. Search judges by name, court, or jurisdiction.',
-  keywords: 'california judges, find my judge, court appearance preparation, judicial analytics, judge bias detection, california courts, legal research, judge profiles, court analytics, judicial transparency, california superior court judges, judge ruling patterns, legal intelligence, court preparation, find judge information, california judicial directory, court case research, judge decision history, legal transparency platform, free judge lookup',
+  title: 'JudgeFinder.io - California Judicial Transparency Platform | Free Legal Research',
+  description: 'Research California judges instantly with AI-powered analytics, bias detection, ruling patterns, and case outcomes. Free access to comprehensive court data for attorneys, litigants, and citizens.',
+  keywords: 'california judges, find my judge, court appearance preparation, judicial analytics, judge bias detection, california courts, legal research, judge profiles, court analytics, judicial transparency, california superior court judges, judge ruling patterns, legal intelligence, court preparation, judge information, california judicial directory, court case research, judge decision history, legal transparency platform, free judge lookup',
   
   openGraph: {
-    title: 'JudgeFinder.io - California\'s #1 Judicial Analytics Platform',
-    description: 'Instant access to 1,810+ California judge profiles with AI-powered analytics. Research ruling patterns, bias indicators, and case outcomes. 100% free for attorneys and citizens.',
+    title: 'JudgeFinder.io - California Judicial Analytics Platform',
+    description: 'Instant access to California judge profiles with AI-powered analytics. Research ruling patterns, bias indicators, and case outcomes. 100% free for attorneys and citizens.',
     type: 'website',
-    url: 'https://judgefinder.io',
+    url: BASE_URL,
     siteName: 'JudgeFinder.io',
     images: [
       {
@@ -28,7 +31,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Find Your California Judge - Free Judicial Analytics',
-    description: 'Research 1,810+ CA judges with AI-powered analytics. Ruling patterns, bias detection, case outcomes. 100% free access.',
+    description: 'Research California judges with AI-powered analytics. Ruling patterns, bias detection, case outcomes. 100% free access.',
     images: ['/twitter-image'],
     creator: '@judgefinder',
     site: '@judgefinder',
@@ -47,7 +50,7 @@ export const metadata: Metadata = {
   },
   
   alternates: {
-    canonical: 'https://judgefinder.io',
+    canonical: BASE_URL,
   },
   
   other: {
@@ -68,18 +71,18 @@ function generateHomepageStructuredData() {
     '@graph': [
       {
         '@type': 'WebSite',
-        '@id': 'https://judgefinder.io/#website',
-        url: 'https://judgefinder.io',
+        '@id': `${BASE_URL}/#website`,
+        url: BASE_URL,
         name: 'JudgeFinder.io',
-        description: 'California\'s most comprehensive judicial analytics and transparency platform',
+        description: 'California\'s judicial analytics and transparency platform',
         publisher: {
-          '@id': 'https://judgefinder.io/#organization'
+          '@id': `${BASE_URL}/#organization`
         },
         potentialAction: {
           '@type': 'SearchAction',
           target: {
             '@type': 'EntryPoint',
-            urlTemplate: 'https://judgefinder.io/judges?q={search_term_string}'
+            urlTemplate: `${BASE_URL}/judges?q={search_term_string}`
           },
           'query-input': 'required name=search_term_string'
         },
@@ -87,12 +90,12 @@ function generateHomepageStructuredData() {
       },
       {
         '@type': 'Organization',
-        '@id': 'https://judgefinder.io/#organization',
+        '@id': `${BASE_URL}/#organization`,
         name: 'JudgeFinder',
-        url: 'https://judgefinder.io',
+        url: BASE_URL,
         logo: {
           '@type': 'ImageObject',
-          url: 'https://judgefinder.io/logo.png',
+          url: `${BASE_URL}/logo.png`,
           width: 600,
           height: 60
         },
@@ -111,7 +114,7 @@ function generateHomepageStructuredData() {
       {
         '@type': 'WebApplication',
         name: 'JudgeFinder Legal Research Platform',
-        url: 'https://judgefinder.io',
+        url: BASE_URL,
         applicationCategory: 'Legal Research',
         operatingSystem: 'Web Browser',
         offers: {
@@ -120,18 +123,11 @@ function generateHomepageStructuredData() {
           priceCurrency: 'USD',
           description: 'Free access to judicial analytics and court data'
         },
-        aggregateRating: {
-          '@type': 'AggregateRating',
-          ratingValue: '4.8',
-          reviewCount: '2847',
-          bestRating: '5',
-          worstRating: '1'
-        },
         featureList: [
-          '1,810+ California Judge Profiles',
+          'Comprehensive California Judge Profiles',
           'AI-Powered Bias Detection',
           'Real-time Case Analytics',
-          '300,000+ Court Decisions',
+          'Extensive Court Decision Library',
           'Ruling Pattern Analysis',
           'Free Anonymous Access'
         ]
@@ -140,7 +136,7 @@ function generateHomepageStructuredData() {
         '@type': 'Service',
         name: 'Judicial Analytics Service',
         provider: {
-          '@id': 'https://judgefinder.io/#organization'
+          '@id': `${BASE_URL}/#organization`
         },
         serviceType: 'Legal Research and Analytics',
         areaServed: {
@@ -184,13 +180,13 @@ function generateHomepageStructuredData() {
       },
       {
         '@type': 'BreadcrumbList',
-        '@id': 'https://judgefinder.io/#breadcrumb',
+        '@id': `${BASE_URL}/#breadcrumb`,
         itemListElement: [
           {
             '@type': 'ListItem',
             position: 1,
             name: 'Home',
-            item: 'https://judgefinder.io'
+            item: BASE_URL
           }
         ]
       }

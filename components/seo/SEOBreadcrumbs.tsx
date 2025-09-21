@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ChevronRight, Home } from 'lucide-react'
 
 import { resolveCourtSlug } from '@/lib/utils/slug'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
 
 interface BreadcrumbItem {
   label: string
@@ -18,6 +19,7 @@ interface SEOBreadcrumbsProps {
 }
 
 export function SEOBreadcrumbs({ items, judgeName, jurisdiction }: SEOBreadcrumbsProps) {
+  const baseUrl = getBaseUrl()
   return (
     <nav aria-label="Breadcrumb" className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 py-3">
       <div className="mx-auto max-w-7xl px-4">
@@ -68,13 +70,13 @@ export function SEOBreadcrumbs({ items, judgeName, jurisdiction }: SEOBreadcrumb
                 '@type': 'ListItem',
                 'position': 1,
                 'name': 'Home',
-                'item': 'https://judgefinder.io'
+                'item': baseUrl
               },
               ...items.map((item, index) => ({
                 '@type': 'ListItem',
                 'position': index + 2,
                 'name': item.label,
-                'item': `https://judgefinder.io${item.href}`
+                'item': `${baseUrl}${item.href}`
               }))
             ]
           })

@@ -1,11 +1,12 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { CourtsPageClient } from '@/components/courts/CourtsPageClient'
 import type { Metadata } from 'next'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
 
 // Force dynamic rendering since we need to query the database with cookies
 export const dynamic = 'force-dynamic'
 
-const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://judgefinder.io').replace(/\/$/, '')
+const BASE_URL = getBaseUrl()
 
 interface Court {
   id: string
@@ -24,12 +25,12 @@ export const metadata: Metadata = {
   description: 'Browse courts and judges. Search by type, jurisdiction, and name. Find contact information and assigned judges for comprehensive legal research.',
   keywords: 'courts directory, federal courts, state courts, legal research, court information, California courts',
   alternates: {
-    canonical: `${APP_URL}/courts`,
+    canonical: `${BASE_URL}/courts`,
   },
   openGraph: {
     title: 'Courts Directory | JudgeFinder',
     description: 'Explore courts by jurisdiction, view assigned judges, and access legal research tools.',
-    url: `${APP_URL}/courts`,
+    url: `${BASE_URL}/courts`,
     type: 'website',
     siteName: 'JudgeFinder',
   },

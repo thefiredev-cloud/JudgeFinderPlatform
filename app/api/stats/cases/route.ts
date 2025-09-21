@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     const lastUpdate = latestDecision?.[0]?.date_filed || new Date().toISOString()
 
     return NextResponse.json({
-      totalCases: totalCases || 300000,
+      totalCases: typeof totalCases === 'number' ? totalCases : null,
       lastUpdate,
       rate_limit_remaining: remaining
     }, {
@@ -48,8 +48,7 @@ export async function GET(request: Request) {
     })
   } catch (e) {
     console.error('Cases stats error:', e)
-    return NextResponse.json({ totalCases: 300000, lastUpdate: new Date().toISOString(), error: 'fallback' })
+    return NextResponse.json({ totalCases: null, lastUpdate: new Date().toISOString(), error: 'Unable to load case stats' })
   }
 }
-
 

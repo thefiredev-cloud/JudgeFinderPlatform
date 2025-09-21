@@ -1,18 +1,19 @@
 import type { Metadata } from 'next'
 import JurisdictionsPage from './ClientPage'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
 
-const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://judgefinder.io').replace(/\/$/, '')
+const BASE_URL = getBaseUrl()
 
 export const metadata: Metadata = {
   title: 'Jurisdictions & Counties | JudgeFinder',
   description: 'Browse California jurisdictions and counties to find court locations, judge rosters, and legal analytics tailored to each region.',
   alternates: {
-    canonical: `${APP_URL}/jurisdictions`,
+    canonical: `${BASE_URL}/jurisdictions`,
   },
   openGraph: {
     title: 'Jurisdictions & Counties | JudgeFinder',
     description: 'Explore county-specific courts, judges, and legal resources across California.',
-    url: `${APP_URL}/jurisdictions`,
+    url: `${BASE_URL}/jurisdictions`,
     type: 'website',
     siteName: 'JudgeFinder',
   },
