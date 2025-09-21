@@ -61,10 +61,10 @@ export default function JudgesContent() {
   
   // State for judge-specific stats
   const [judgeStats, setJudgeStats] = useState({
-    totalJudges: 0,
-    analyticsCoverage: "85%",
-    avgExperience: "12 Years Experience",
-    updateFrequency: "Weekly Data Updates"
+    totalJudges: null as number | null,
+    analyticsCoverage: '—',
+    avgExperience: '—',
+    updateFrequency: 'Not yet tracked'
   })
 
   // Initialize search from URL on mount
@@ -143,10 +143,10 @@ export default function JudgesContent() {
         if (response.ok) {
           const data = await response.json()
           setJudgeStats({
-            totalJudges: data.totalJudges,
-            analyticsCoverage: data.analyticsCoverage,
-            avgExperience: data.avgExperienceDisplay,
-            updateFrequency: data.updateFrequency
+            totalJudges: typeof data.totalJudges === 'number' ? data.totalJudges : null,
+            analyticsCoverage: typeof data.analyticsCoverage === 'string' ? data.analyticsCoverage : '—',
+            avgExperience: typeof data.avgExperienceDisplay === 'string' ? data.avgExperienceDisplay : '—',
+            updateFrequency: typeof data.updateFrequency === 'string' ? data.updateFrequency : 'Not yet tracked'
           })
         }
       } catch (error) {
@@ -361,7 +361,15 @@ export default function JudgesContent() {
             transition={{ delay: 0.8, duration: 0.8 }}
           >
             {[
-              { icon: Gavel, value: judgeStats.totalJudges || totalCount, label: "Total Judges", color: "text-primary", suffix: "" },
+              {
+                icon: Gavel,
+                value: typeof judgeStats.totalJudges === 'number' ? judgeStats.totalJudges : totalCount,
+                label: "Total Judges",
+                color: "text-primary",
+                suffix: "",
+                isText: typeof judgeStats.totalJudges === 'number' ? false : totalCount === 0,
+                text: totalCount === 0 ? '—' : undefined
+              },
               { icon: Scale, value: 0, label: "Have Bias Analytics", color: "text-enterprise-accent", isText: true, text: judgeStats.analyticsCoverage, suffix: "" },
               { icon: MapPin, value: 0, label: "Avg Experience", color: "text-enterprise-deep", isText: true, text: judgeStats.avgExperience, suffix: "" },
               { icon: Users, value: 0, label: "Data Freshness", color: "text-enterprise-light", isText: true, text: judgeStats.updateFrequency, suffix: "" }
@@ -378,7 +386,7 @@ export default function JudgesContent() {
                   <stat.icon className={`w-8 h-8 ${stat.color} mx-auto mb-2`} />
                   <div className={`text-3xl font-bold ${stat.color}`}>
                     {stat.isText ? (
-                      <span className="text-lg">{stat.text}</span>
+                      <span className="text-lg">{stat.text ?? '—'}</span>
                     ) : (
                       <>
                         <AnimatedCounter end={stat.value} />

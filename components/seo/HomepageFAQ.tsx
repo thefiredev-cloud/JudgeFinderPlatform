@@ -8,7 +8,7 @@ import Link from 'next/link'
 const faqData = [
   {
     question: "What is JudgeFinder.io?",
-    answer: "JudgeFinder.io is California's most comprehensive judicial analytics platform, providing free access to profiles of 1,810+ judges with AI-powered bias detection, ruling patterns, and case outcome analysis. We help attorneys, litigants, and citizens research judges before court appearances."
+    answer: "JudgeFinder.io is California's most comprehensive judicial analytics platform, providing free access to statewide judge profiles with AI-powered bias detection, ruling patterns, and case outcome analysis. We help attorneys, litigants, and citizens research judges before court appearances."
   },
   {
     question: "How do I find information about my judge?",
@@ -24,7 +24,7 @@ const faqData = [
   },
   {
     question: "How accurate is the AI bias detection?",
-    answer: "Our AI bias detection system analyzes patterns across thousands of cases with 85-95% accuracy. We use advanced machine learning models to identify consistency patterns, decision speed, settlement preferences, and risk tolerance. All analytics are based on publicly available court records."
+    answer: "Our AI bias detection system analyzes patterns across thousands of cases with confidence scoring between 60-95% depending on data quality. We use advanced machine learning models to identify consistency patterns, decision speed, settlement preferences, and risk tolerance. All analytics are based on publicly available court records."
   },
   {
     question: "Can I compare multiple judges?",
@@ -40,7 +40,7 @@ const faqData = [
   },
   {
     question: "Which California courts are covered?",
-    answer: "We cover all California courts including Superior Courts, Courts of Appeal, and the Supreme Court. Our database includes judges from all 58 California counties with comprehensive coverage of 909+ court locations."
+    answer: "We cover courts across California including Superior Courts, Courts of Appeal, and the Supreme Court. Our database tracks judges across all counties with continuing expansion of court locations."
   },
   {
     question: "Can attorneys use this for case preparation?",

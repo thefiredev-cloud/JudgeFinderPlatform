@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     // Calculate analytics coverage percentage
     const analyticsCoverage = totalJudges && judgesWithAnalytics
       ? Math.round((judgesWithAnalytics / totalJudges) * 100)
-      : 85 // Fallback estimate
+      : null
 
     // Get appointment dates to calculate average experience
     const { data: appointmentData, error: appointmentError } = await supabase
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
     }
 
     // Calculate average years of experience
-    let avgExperience = 12 // Default fallback
+    let avgExperience: number | null = null
     if (appointmentData && appointmentData.length > 0) {
       const currentYear = new Date().getFullYear()
       const experiences = appointmentData.map(judge => {
@@ -67,21 +67,40 @@ export async function GET(request: Request) {
       }
     }
 
-    // Get recent sync information
-    const lastUpdateDate = new Date()
-    lastUpdateDate.setDate(lastUpdateDate.getDate() - Math.floor(Math.random() * 7)) // Within last week
-    const daysSinceUpdate = Math.floor((Date.now() - lastUpdateDate.getTime()) / (1000 * 60 * 60 * 24))
-    
-    const updateFrequency = daysSinceUpdate <= 7 ? "Weekly" : "Monthly"
+    // Get recent sync information from latest updated_at value
+    const { data: lastUpdated, error: lastUpdatedError } = await supabase
+      .from('judges')
+      .select('updated_at')
+      .eq('jurisdiction', 'CA')
+      .not('updated_at', 'is', null)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+
+    if (lastUpdatedError) {
+      console.error('Error fetching last updated timestamp:', lastUpdatedError)
+    }
+
+    const lastUpdateIso = lastUpdated && lastUpdated[0]?.updated_at ? new Date(lastUpdated[0].updated_at).toISOString() : null
+    let daysSinceUpdate: number | null = null
+    let updateFrequency: string | null = null
+
+    if (lastUpdateIso) {
+      const lastUpdateDate = new Date(lastUpdateIso)
+      const diffMs = Date.now() - lastUpdateDate.getTime()
+      daysSinceUpdate = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)))
+      if (daysSinceUpdate <= 7) updateFrequency = 'Updated Weekly'
+      else if (daysSinceUpdate <= 31) updateFrequency = 'Updated Monthly'
+      else updateFrequency = 'Updated Quarterly'
+    }
 
     const stats = {
-      totalJudges: totalJudges || 1810,
-      judgesWithAnalytics: judgesWithAnalytics || Math.round((totalJudges || 1810) * 0.85),
-      analyticsCoverage: `${analyticsCoverage}%`,
-      avgExperience: avgExperience,
-      avgExperienceDisplay: `${avgExperience} Years Experience`,
-      updateFrequency: `${updateFrequency} Data Updates`,
-      lastUpdate: lastUpdateDate.toISOString(),
+      totalJudges: typeof totalJudges === 'number' ? totalJudges : null,
+      judgesWithAnalytics: typeof judgesWithAnalytics === 'number' ? judgesWithAnalytics : null,
+      analyticsCoverage: analyticsCoverage !== null ? `${analyticsCoverage}%` : '—',
+      avgExperience,
+      avgExperienceDisplay: typeof avgExperience === 'number' ? `${avgExperience} Years Experience` : '—',
+      updateFrequency: updateFrequency || 'Not yet tracked',
+      lastUpdate: lastUpdateIso,
       daysSinceUpdate,
       timestamp: new Date().toISOString()
     }
@@ -97,15 +116,15 @@ export async function GET(request: Request) {
     
     // Return fallback data
     return NextResponse.json({
-      totalJudges: 1810,
-      judgesWithAnalytics: 1539,
-      analyticsCoverage: "85%",
-      avgExperience: 12,
-      avgExperienceDisplay: "12 Years Experience",
-      updateFrequency: "Weekly Data Updates",
-      lastUpdate: new Date().toISOString(),
-      daysSinceUpdate: 3,
-      error: 'Using cached data',
+      totalJudges: null,
+      judgesWithAnalytics: null,
+      analyticsCoverage: '—',
+      avgExperience: null,
+      avgExperienceDisplay: '—',
+      updateFrequency: 'Unavailable',
+      lastUpdate: null,
+      daysSinceUpdate: null,
+      error: 'Unable to load judge stats',
       timestamp: new Date().toISOString()
     })
   }

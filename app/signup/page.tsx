@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { Mail, Lock, User, Phone, AlertCircle } from 'lucide-react'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -31,7 +32,7 @@ export default function SignupPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `${(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')}/auth/callback`,
+          emailRedirectTo: `${getBaseUrl()}/auth/callback`,
           data: { full_name: fullName, account_type: formData.accountType },
         },
       })

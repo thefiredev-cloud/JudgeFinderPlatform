@@ -1,6 +1,8 @@
 // SEO Monitoring and Analytics Configuration
 // This file contains functions for tracking SEO performance and search rankings
 
+import { getBaseUrl } from '@/lib/utils/baseUrl'
+
 interface SEOMetrics {
   pageUrl: string
   judgeName: string
@@ -41,8 +43,9 @@ export async function trackJudgeSearchPerformance(judgeName: string, jurisdictio
       `attorneys before ${judgeName}`,
     ]
 
+    const baseUrl = getBaseUrl()
     const metrics: SEOMetrics = {
-      pageUrl: `https://judgefinder.io/judges/${judgeName.toLowerCase().replace(/\s+/g, '-')}`,
+      pageUrl: `${baseUrl}/judges/${judgeName.toLowerCase().replace(/\s+/g, '-')}`,
       judgeName,
       searchKeywords,
       timestamp: new Date().toISOString(),

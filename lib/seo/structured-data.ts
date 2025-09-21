@@ -5,6 +5,7 @@
 
 import type { Judge } from '@/types'
 import { createCanonicalSlug, resolveCourtSlug } from '@/lib/utils/slug'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
 
 /**
  * Generate comprehensive structured data for a judge profile
@@ -13,7 +14,7 @@ import { createCanonicalSlug, resolveCourtSlug } from '@/lib/utils/slug'
 export function generateJudgeStructuredData(
   judge: Judge,
   canonicalSlug: string,
-  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || 'https://judgefinder.io'
+  baseUrl: string = getBaseUrl()
 ): any[] {
   const safeName = judge.name || 'Unknown Judge'
   const safeCourtName = judge.court_name || 'Unknown Court'

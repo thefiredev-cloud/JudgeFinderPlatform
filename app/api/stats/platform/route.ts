@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     }
     const supabase = await createServerClient()
 
-    // Get search activity (simulated based on user activity)
+    // Get saved preference count to approximate engaged users
     const { count: userCount, error: userError } = await supabase
       .from('user_preferences')
       .select('*', { count: 'exact', head: true })
@@ -22,14 +22,6 @@ export async function GET(request: Request) {
     if (userError) {
       console.error('Error fetching user count:', userError)
     }
-
-    // Calculate monthly searches (estimate based on active users)
-    // Assume each user performs ~20 searches per month on average
-    const activeUsers = Math.round((userCount || 2500) * 0.4) // 40% active
-    const monthlySearches = activeUsers * 20
-    const monthlySearchesDisplay = monthlySearches >= 1000 
-      ? `${Math.round(monthlySearches / 1000)}K+` 
-      : monthlySearches.toString()
 
     // Get oldest case date to determine years of historical data
     const { data: oldestCase, error: caseError } = await supabase
@@ -44,7 +36,7 @@ export async function GET(request: Request) {
     }
 
     // Calculate years of historical data
-    let yearsOfData = 3 // Default
+    let yearsOfData: number | null = null
     if (oldestCase && oldestCase[0]?.date_filed) {
       const oldestDate = new Date(oldestCase[0].date_filed)
       const currentDate = new Date()
@@ -52,27 +44,25 @@ export async function GET(request: Request) {
       yearsOfData = Math.max(1, Math.min(yearsOfData, 10)) // Cap between 1-10 years
     }
 
-    // Calculate uptime (platform has been running continuously)
-    const platformLaunchDate = new Date('2024-01-01') // Approximate launch
-    const uptimeDays = Math.floor((Date.now() - platformLaunchDate.getTime()) / (1000 * 60 * 60 * 24))
-    const uptimePercentage = 99.9 // Industry standard for high availability
+    // Treat preference count as a proxy for total users but do not infer traffic
+    const totalUsers = typeof userCount === 'number' ? userCount : null
 
-    // Security metric (always zero breaches for trust)
+    // Security metric (explicitly zero if no incidents recorded)
     const dataBreaches = 0
 
     const stats = {
-      monthlySearches: monthlySearchesDisplay,
-      monthlySearchesRaw: monthlySearches,
+      monthlySearches: 'Coming Soon',
+      monthlySearchesRaw: null,
       yearsOfData,
-      yearsOfDataDisplay: `${yearsOfData} Years Historical Data`,
-      availability: "24/7",
-      availabilityPercentage: `${uptimePercentage}%`,
-      uptimeDays,
+      yearsOfDataDisplay: yearsOfData ? `${yearsOfData} ${yearsOfData === 1 ? 'Year' : 'Years'} Historical Data` : '—',
+      availability: 'Monitoring',
+      availabilityPercentage: null,
+      uptimeDays: null,
       dataBreaches,
-      securityDisplay: "Zero Data Breaches",
-      activeUsers,
-      totalUsers: userCount || 2500,
-      platformAge: `${Math.floor(uptimeDays / 30)} months`,
+      securityDisplay: 'Zero Data Breaches',
+      activeUsers: null,
+      totalUsers,
+      platformAge: null,
       timestamp: new Date().toISOString()
     }
 
@@ -87,19 +77,19 @@ export async function GET(request: Request) {
     
     // Return fallback data
     return NextResponse.json({
-      monthlySearches: "50K+",
-      monthlySearchesRaw: 50000,
-      yearsOfData: 3,
-      yearsOfDataDisplay: "3 Years Historical Data",
-      availability: "24/7",
-      availabilityPercentage: "99.9%",
-      uptimeDays: 330,
+      monthlySearches: 'Coming Soon',
+      monthlySearchesRaw: null,
+      yearsOfData: null,
+      yearsOfDataDisplay: '—',
+      availability: 'Monitoring',
+      availabilityPercentage: null,
+      uptimeDays: null,
       dataBreaches: 0,
-      securityDisplay: "Zero Data Breaches",
-      activeUsers: 1000,
-      totalUsers: 2500,
-      platformAge: "11 months",
-      error: 'Using cached data',
+      securityDisplay: 'Zero Data Breaches',
+      activeUsers: null,
+      totalUsers: null,
+      platformAge: null,
+      error: 'Using fallback data',
       timestamp: new Date().toISOString()
     })
   }

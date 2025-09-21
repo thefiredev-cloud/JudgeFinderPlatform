@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { slugToName, generateNameVariations, nameToSlug } from '@/lib/utils/slug'
+import { generateNameVariations, nameToSlug } from '@/lib/utils/slug'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,11 +53,12 @@ export async function GET(request: NextRequest) {
       // Generate canonical slug for the judge
       const canonicalSlug = foundJudge.slug || nameToSlug(foundJudge.name)
       
+      const baseUrl = getBaseUrl()
       return NextResponse.json({
         found: true,
         judge: foundJudge,
         redirectUrl: `/judges/${canonicalSlug}`,
-        canonicalUrl: `https://judgefinder.io/judges/${canonicalSlug}`,
+        canonicalUrl: `${baseUrl}/judges/${canonicalSlug}`,
         method: 'name_search'
       })
     }

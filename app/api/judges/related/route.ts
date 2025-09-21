@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // If still not enough, get any judges (shouldn't happen with 1,810 judges)
+    // If still not enough, get any judges (should rarely happen with statewide coverage)
     if (relatedJudges.length < limit) {
       const remainingLimit = limit - relatedJudges.length
       const existingIds = relatedJudges.map(j => j.id)

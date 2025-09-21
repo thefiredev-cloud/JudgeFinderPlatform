@@ -1,7 +1,6 @@
 /**
  * Case Redistribution Script
- * Redistributes 441,614 cases evenly across all 1,810 CA judges
- * Ensures every judge has cases for proper analytics
+ * Balances case assignments across all California judges to support analytics
  */
 
 const { createClient } = require('@supabase/supabase-js');
@@ -17,7 +16,6 @@ const CONFIG = {
   BATCH_SIZE: 500,
   UPDATE_BATCH: 100,
   MIN_CASES_PER_JUDGE: 200,  // Minimum cases for good analytics
-  TARGET_CASES_PER_JUDGE: 244, // 441,614 / 1,810 ≈ 244
   PROGRESS_INTERVAL: 5000
 };
 
@@ -35,13 +33,13 @@ const stats = {
  */
 async function redistributeCasesEvenly() {
   console.log('🔄 CASE REDISTRIBUTION SYSTEM');
-  console.log('=' . repeat(60));
-  console.log('Goal: Redistribute 441,614 cases evenly across all CA judges');
-  console.log('Target: ~244 cases per judge for optimal analytics\n');
+  console.log('='.repeat(60));
+  console.log('Goal: Balance case assignments across California judges');
   
   try {
     // Phase 1: Analyze current state
     const currentState = await analyzeCurrentDistribution();
+    console.log(`Target distribution: ${Math.floor(currentState.totalCases / Math.max(currentState.totalJudges || 1, 1))} cases per judge\n`);
     
     // Phase 2: Get all judges and cases
     const judges = await getAllJudges();

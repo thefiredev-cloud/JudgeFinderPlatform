@@ -18,6 +18,7 @@ import { generateJudgeMetadata } from '@/lib/seo/metadata-generator'
 import { generateJudgeStructuredData } from '@/lib/seo/structured-data'
 import { generateUniqueJudgeContent, generateRelatedJudges } from '@/lib/seo/content-generator'
 import type { Judge, JudgeLookupResult } from '@/types'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,10 +35,8 @@ async function getJudge(slug: string): Promise<Judge | null> {
     }
 
     // Use the new API endpoint for consistent lookup logic
-    const baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://judgefinder.io'
-      : 'http://localhost:3000'
-      
+    const baseUrl = getBaseUrl()
+
     const response = await fetch(`${baseUrl}/api/judges/by-slug?slug=${encodeURIComponent(slug)}`, {
       next: { revalidate: 3600 }, // Cache for 1 hour (judge data is stable)
       headers: {
@@ -237,6 +236,7 @@ export default async function JudgePage({ params }: JudgePageProps) {
 
   // Fetch related judges for internal linking
   const relatedJudges = await getRelatedJudges(judge)
+  const baseUrl = getBaseUrl()
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -254,7 +254,7 @@ export default async function JudgePage({ params }: JudgePageProps) {
           __html: JSON.stringify(generateJudgeStructuredData(
             judge, 
             canonicalSlug, 
-            'https://judgefinder.io'
+            baseUrl
           ))
         }}
       />
@@ -423,7 +423,7 @@ export async function generateMetadata({ params }: MetadataProps) {
   if (!judge) {
     return {
       title: 'Judge Not Found | JudgeFinder',
-      description: 'The requested judge profile could not be found. Search our database of 1,810+ California judges.',
+      description: 'The requested judge profile could not be found. Search our statewide database of California judges.',
       robots: {
         index: false,
         follow: false,
@@ -432,10 +432,8 @@ export async function generateMetadata({ params }: MetadataProps) {
   }
 
   // Generate enhanced SEO metadata using the advanced generator
-  const baseUrl = process.env.NODE_ENV === 'production' 
-    ? 'https://judgefinder.io' 
-    : 'http://localhost:3005'
-    
+  const baseUrl = getBaseUrl()
+
   const seoData = generateJudgeMetadata(judge, resolvedParams, baseUrl)
   
   // Additional safety checks for metadata generation
@@ -546,7 +544,7 @@ export async function generateMetadata({ params }: MetadataProps) {
     },
 
     // Enhanced metadata for legal authority
-    authors: [{ name: 'JudgeFinder Legal Research Team', url: 'https://judgefinder.io/about' }],
+    authors: [{ name: 'JudgeFinder Legal Research Team', url: `${baseUrl}/about` }],
     publisher: 'JudgeFinder',
     category: 'Legal Research and Judicial Analytics',
     classification: 'Professional Legal Intelligence Platform',

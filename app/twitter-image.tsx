@@ -80,12 +80,12 @@ export default async function Image() {
           }}
         >
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 36, fontWeight: 'bold' }}>1,810+</div>
-            <div style={{ fontSize: 18, opacity: 0.8 }}>Judges</div>
+            <div style={{ fontSize: 36, fontWeight: 'bold' }}>Statewide</div>
+            <div style={{ fontSize: 18, opacity: 0.8 }}>Judge Coverage</div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 36, fontWeight: 'bold' }}>300K+</div>
-            <div style={{ fontSize: 18, opacity: 0.8 }}>Cases</div>
+            <div style={{ fontSize: 36, fontWeight: 'bold' }}>Comprehensive</div>
+            <div style={{ fontSize: 18, opacity: 0.8 }}>Case Library</div>
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 36, fontWeight: 'bold' }}>AI</div>

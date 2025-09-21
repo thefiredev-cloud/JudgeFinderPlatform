@@ -84,6 +84,13 @@ function ParticleBackground() {
   )
 }
 
+type PlatformStats = {
+  monthlySearches: string
+  yearsOfData: number | null
+  availability: string
+  dataBreaches: number | null
+}
+
 export default function AboutPage() {
   const { scrollYProgress } = useScroll()
   const y = useTransform(scrollYProgress, [0, 1], [0, -50])
@@ -92,11 +99,11 @@ export default function AboutPage() {
   const [activeFeature, setActiveFeature] = useState<string | null>(null)
   
   // State for platform impact stats
-  const [platformStats, setPlatformStats] = useState({
-    monthlySearches: "50K+",
-    yearsOfData: 3,
-    availability: "24/7",
-    dataBreaches: 0
+  const [platformStats, setPlatformStats] = useState<PlatformStats>({
+    monthlySearches: 'Coming Soon',
+    yearsOfData: null,
+    availability: 'Monitoring',
+    dataBreaches: null
   })
   
   // Fetch platform impact stats
@@ -107,10 +114,10 @@ export default function AboutPage() {
         if (response.ok) {
           const data = await response.json()
           setPlatformStats({
-            monthlySearches: data.monthlySearches,
-            yearsOfData: data.yearsOfData,
-            availability: data.availability,
-            dataBreaches: data.dataBreaches
+            monthlySearches: typeof data.monthlySearches === 'string' ? data.monthlySearches : '—',
+            yearsOfData: typeof data.yearsOfData === 'number' ? data.yearsOfData : null,
+            availability: typeof data.availability === 'string' ? data.availability : '—',
+            dataBreaches: typeof data.dataBreaches === 'number' ? data.dataBreaches : null
           })
         }
       } catch (error) {
@@ -264,7 +271,13 @@ export default function AboutPage() {
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-primary">
-                <AnimatedCounter end={platformStats.yearsOfData} /> Years
+                {typeof platformStats.yearsOfData === 'number' ? (
+                  <>
+                    <AnimatedCounter end={platformStats.yearsOfData} /> Years
+                  </>
+                ) : (
+                  <span>—</span>
+                )}
               </div>
               <div className="text-sm text-muted-foreground mt-2">Historical Data</div>
             </div>
@@ -276,11 +289,23 @@ export default function AboutPage() {
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-primary">
-                <AnimatedCounter end={platformStats.dataBreaches} />
+                {typeof platformStats.dataBreaches === 'number' ? (
+                  <AnimatedCounter end={platformStats.dataBreaches} />
+                ) : (
+                  <span>—</span>
+                )}
               </div>
               <div className="text-sm text-muted-foreground mt-2">Data Breaches</div>
             </div>
           </motion.div>
+          <motion.p
+            className="mt-6 text-sm text-muted-foreground"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2, duration: 0.6 }}
+          >
+            Transparent usage analytics are in development. We'll publish validated metrics once tracking is fully live.
+          </motion.p>
         </motion.div>
         
         {/* Scroll indicator */}

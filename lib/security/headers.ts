@@ -72,8 +72,6 @@ export function generateCSP(config: SecurityConfig): string {
       "https://*.clerk.com",
       "wss://*.clerk.accounts.dev",
       "https://clerk.shared.lcl.dev",
-      "https://clerk.judgefinder.io",
-      "wss://clerk.judgefinder.io",
       "https://cdn.jsdelivr.net",
       "https://api.openai.com",
       "https://www.courtlistener.com",
@@ -88,7 +86,6 @@ export function generateCSP(config: SecurityConfig): string {
     'frame-src': [
       "https://*.clerk.accounts.dev",
       "https://*.clerk.com",
-      "https://clerk.judgefinder.io",
       "https://googleads.g.doubleclick.net",
       "https://www.google.com",
       "https://bid.g.doubleclick.net",
@@ -103,8 +100,7 @@ export function generateCSP(config: SecurityConfig): string {
     'form-action': [
       "'self'",
       "*.clerk.accounts.dev",
-      "*.clerk.com",
-      "clerk.judgefinder.io"
+      "*.clerk.com"
     ],
     'object-src': ["'none'"],
     ...(config.environment === 'production' ? {

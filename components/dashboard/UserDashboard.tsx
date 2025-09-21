@@ -174,7 +174,7 @@ export function UserDashboard({ user }: UserDashboardProps) {
             <UserIcon className="h-6 w-6 text-blue-400 mr-3" />
             <div>
               <p className="font-medium text-white group-hover:text-blue-400">Browse Judges</p>
-              <p className="text-sm text-gray-400">Explore 1,810+ California judges</p>
+              <p className="text-sm text-gray-400">Explore California judges statewide</p>
             </div>
           </Link>
 
@@ -185,7 +185,7 @@ export function UserDashboard({ user }: UserDashboardProps) {
             <BuildingIcon className="h-6 w-6 text-green-400 mr-3" />
             <div>
               <p className="font-medium text-white group-hover:text-green-400">Browse Courts</p>
-              <p className="text-sm text-gray-400">Search 909 courts statewide</p>
+              <p className="text-sm text-gray-400">Search courts across California</p>
             </div>
           </Link>
 

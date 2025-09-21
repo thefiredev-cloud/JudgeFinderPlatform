@@ -5,19 +5,20 @@ import { JudgeCardSkeleton, SearchSkeleton } from '@/components/ui/Skeleton'
 import { ParticleBackground } from '@/components/ui/ParticleBackground'
 import { TypewriterText } from '@/components/ui/TypewriterText'
 import { ScrollIndicator } from '@/components/ui/ScrollIndicator'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
 
-const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://judgefinder.io').replace(/\/$/, '')
+const BASE_URL = getBaseUrl()
 
 export const metadata: Metadata = {
   title: 'California Judges Directory | JudgeFinder',
   description: 'Search California judges with comprehensive profiles, judicial analytics, and comparison tools. Filter by court, jurisdiction, experience, and bias indicators.',
   alternates: {
-    canonical: `${APP_URL}/judges`,
+    canonical: `${BASE_URL}/judges`,
   },
   openGraph: {
     title: 'California Judges Directory | JudgeFinder',
     description: 'Explore detailed judge profiles, court assignments, and AI-powered analytics for California courts.',
-    url: `${APP_URL}/judges`,
+    url: `${BASE_URL}/judges`,
     type: 'website',
     siteName: 'JudgeFinder',
   },

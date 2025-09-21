@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { createCanonicalSlug } from '@/lib/utils/slug'
+import { getBaseUrl } from '@/lib/utils/baseUrl'
 import { SEOMonitoring } from '@/components/analytics/SEOMonitoring'
 import { SEOBreadcrumbs } from '@/components/seo/SEOBreadcrumbs'
 import { RelatedJudges } from '@/components/seo/RelatedJudges'
@@ -228,7 +229,7 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
   const safeJurisdiction = judge.jurisdiction || 'Unknown Jurisdiction'
   const nameWithoutTitle = safeName.replace(/^(judge|justice|the honorable)\s+/i, '').trim()
   
-  const baseUrl = process.env.NODE_ENV === 'production' ? 'https://judgefinder.io' : 'http://localhost:3005'
+  const baseUrl = getBaseUrl()
   const coordinates = getCoordinatesForJurisdiction(safeJurisdiction)
   
   return {
@@ -250,7 +251,7 @@ export async function generateMetadata({ params }: MetadataProps): Promise<Metad
       `attorney resources ${safeJurisdiction}`
     ].join(', '),
     
-    authors: [{ name: 'JudgeFinder Legal Research Team', url: 'https://judgefinder.io/about' }],
+    authors: [{ name: 'JudgeFinder Legal Research Team', url: `${baseUrl}/about` }],
     publisher: 'JudgeFinder',
     category: 'Legal Research and Judicial Analytics',
     classification: 'Professional Legal Intelligence Platform',
