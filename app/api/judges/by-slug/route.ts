@@ -190,13 +190,21 @@ async function lookupJudge(slug: string): Promise<JudgeLookupResult> {
 
     // Strategy 3: Name-based lookup using slug conversion (fallback)
     const primaryName = slugToName(slug)
-    const nameVariations = generateNameVariations(primaryName).slice(0, 3) // Limit for performance
+    const nameVariationsBase = generateNameVariations(primaryName)
+    // Add common title-prefixed variations for better matching
+    const titleVariations = [
+      `Hon. ${primaryName}`,
+      `Hon ${primaryName}`,
+      `Judge ${primaryName}`,
+      `Justice ${primaryName}`
+    ]
+    const nameVariations = [...new Set([...nameVariationsBase, ...titleVariations])].slice(0, 6) // small, effective set
 
     for (const nameVariation of nameVariations) {
       const { data: exactJudges, error: exactError } = await supabase
         .from('judges')
         .select('*')
-        .ilike('name', nameVariation)
+        .ilike('name', `%${nameVariation}%`)
         .limit(5)
 
       if (!exactError && exactJudges && exactJudges.length > 0) {
