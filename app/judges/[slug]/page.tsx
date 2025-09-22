@@ -17,7 +17,6 @@ import { SEOMonitoring } from '@/components/analytics/SEOMonitoring'
 import { isValidSlug, createCanonicalSlug, resolveCourtSlug } from '@/lib/utils/slug'
 import { generateJudgeMetadata } from '@/lib/seo/metadata-generator'
 import { generateJudgeStructuredData } from '@/lib/seo/structured-data'
-import { generateUniqueJudgeContent, generateRelatedJudges } from '@/lib/seo/content-generator'
 import type { Judge, JudgeLookupResult } from '@/types'
 import { getBaseUrl } from '@/lib/utils/baseUrl'
 
@@ -169,21 +168,30 @@ async function getJudgeFallback(slug: string): Promise<Judge | null> {
   }
 }
 
+type SlugParams = { slug: string }
+
+// Next.js currently passes params as a Promise that is also directly readable.
+// Use an intersection type so we stay compatible with both behaviors.
+type SlugParamsPromise = Promise<SlugParams> & SlugParams
+
 interface JudgePageProps {
-  params: { slug: string }
+  params: SlugParamsPromise
 }
 
 export default async function JudgePage({ params }: JudgePageProps) {
+  const resolvedParams = await params
+  const slug = resolvedParams.slug ?? params.slug
+
   // Add param validation
-  if (!params.slug || typeof params.slug !== 'string') {
-    console.error('Invalid slug parameter:', params.slug)
+  if (!slug || typeof slug !== 'string') {
+    console.error('Invalid slug parameter:', slug)
     notFound()
   }
 
-  const judge = await getJudge(params.slug)
+  const judge = await getJudge(slug)
 
   if (!judge) {
-    console.log(`Judge not found for slug: ${params.slug}`)
+    console.log(`Judge not found for slug: ${slug}`)
     notFound()
   }
 
@@ -195,8 +203,8 @@ export default async function JudgePage({ params }: JudgePageProps) {
 
   // Check if current URL is canonical and redirect if necessary
   const canonicalSlug = judge.slug || createCanonicalSlug(judge.name)
-  if (params.slug !== canonicalSlug) {
-    console.log(`Redirecting from non-canonical slug ${params.slug} to canonical ${canonicalSlug}`)
+  if (slug !== canonicalSlug) {
+    console.log(`Redirecting from non-canonical slug ${slug} to canonical ${canonicalSlug}`)
     redirect(`/judges/${canonicalSlug}`)
   }
 
@@ -230,12 +238,25 @@ export default async function JudgePage({ params }: JudgePageProps) {
     courtSlug = resolveCourtSlug({ name: judge.court_name })
   }
 
-  // Generate unique content for SEO and user experience
-  const uniqueContent = generateUniqueJudgeContent(judge)
+  const baseUrl = getBaseUrl()
+
+  // Precompute structured data JSON defensively so errors don't break the page render.
+  let structuredDataJson = '[]'
+
+  try {
+    structuredDataJson = JSON.stringify(
+      generateJudgeStructuredData(judge, canonicalSlug, baseUrl)
+    )
+  } catch (error) {
+    console.error('Failed to generate structured data JSON for judge', {
+      slug: canonicalSlug,
+      message: error instanceof Error ? error.message : error
+    })
+    structuredDataJson = '[]'
+  }
 
   // Fetch related judges for internal linking
   const relatedJudges = await getRelatedJudges(judge)
-  const baseUrl = getBaseUrl()
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -243,18 +264,14 @@ export default async function JudgePage({ params }: JudgePageProps) {
       <SEOMonitoring 
         judgeName={safeName}
         jurisdiction={safeJurisdiction}
-        slug={params.slug}
+        slug={slug}
       />
       
       {/* Enhanced Comprehensive Structured Data for Maximum SEO Dominance */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(generateJudgeStructuredData(
-            judge, 
-            canonicalSlug, 
-            baseUrl
-          ))
+          __html: structuredDataJson
         }}
       />
       
@@ -399,12 +416,15 @@ function getCoordinatesForJurisdiction(jurisdiction: string): string {
 }
 
 interface MetadataProps {
-  params: { slug: string }
+  params: SlugParamsPromise
 }
 
 export async function generateMetadata({ params }: MetadataProps) {
+  const resolvedParams = await params
+  const slug = resolvedParams.slug ?? params.slug
+
   // Validate params
-  if (!params.slug || typeof params.slug !== 'string') {
+  if (!slug || typeof slug !== 'string') {
     return {
       title: 'Invalid Request | JudgeFinder',
       description: 'The requested page is invalid. Please check the URL and try again.',
@@ -415,7 +435,7 @@ export async function generateMetadata({ params }: MetadataProps) {
     }
   }
 
-  const judge = await getJudge(params.slug)
+  const judge = await getJudge(slug)
   
   if (!judge) {
     return {
@@ -431,7 +451,7 @@ export async function generateMetadata({ params }: MetadataProps) {
   // Generate enhanced SEO metadata using the advanced generator
   const baseUrl = getBaseUrl()
 
-  const seoData = generateJudgeMetadata(judge, params, baseUrl)
+  const seoData = generateJudgeMetadata(judge, resolvedParams, baseUrl)
   
   // Additional safety checks for metadata generation
   const safeName = judge.name || 'Unknown Judge'
