@@ -90,21 +90,32 @@ function baseMiddleware(request: NextRequest) {
   // Basic CSP for essential services only
   const isDevelopment = process.env.NODE_ENV === 'development'
   
+  const reportEndpoint = `${request.nextUrl.origin}/api/security/csp-report`
+
   const csp = [
     "default-src 'self'",
     `script-src 'self' 'unsafe-inline' ${isDevelopment ? "'unsafe-eval'" : ""} *.supabase.co *.clerk.com *.clerk.accounts.dev https://www.googletagmanager.com https://www.google-analytics.com https://browser.sentry-cdn.com`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' blob: data: *.supabase.co https://img.clerk.com https://images.clerk.dev https://www.courtlistener.com",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' *.supabase.co wss://*.supabase.co *.clerk.com *.clerk.accounts.dev https://api.openai.com https://www.courtlistener.com https://www.google-analytics.com https://www.googletagmanager.com https://generativelanguage.googleapis.com https://o.sentry.io https://*.ingest.sentry.io",
+    "connect-src 'self' *.supabase.co wss://*.supabase.co *.clerk.com *.clerk.accounts.dev https://api.openai.com https://www.courtlistener.com https://www.google-analytics.com https://www.googletagmanager.com https://generativelanguage.googleapis.com https://o.sentry.io https://*.ingest.sentry.io https://*.sentry.io",
     "frame-src *.clerk.com *.clerk.accounts.dev",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self' *.clerk.com *.clerk.accounts.dev",
-    "object-src 'none'"
+    "object-src 'none'",
+    'report-to csp-endpoint'
   ].join('; ')
   
   response.headers.set('Content-Security-Policy', csp)
+  response.headers.set('Report-To', JSON.stringify({
+    group: 'csp-endpoint',
+    max_age: 10886400,
+    endpoints: [
+      { url: reportEndpoint }
+    ]
+  }))
+  response.headers.set('Reporting-Endpoints', `csp-endpoint="${reportEndpoint}"`)
   
   // Basic cache control
   const { pathname } = request.nextUrl

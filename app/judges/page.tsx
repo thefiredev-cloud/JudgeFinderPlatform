@@ -82,7 +82,8 @@ function JudgesLoading() {
 
 async function getInitialJudges() {
   try {
-    const response = await fetch(`/api/judges/list?limit=20&page=1&jurisdiction=CA&include_decisions=true`, {
+    const baseUrl = getBaseUrl()
+    const response = await fetch(`${baseUrl}/api/judges/list?limit=20&page=1&jurisdiction=CA&include_decisions=true`, {
       cache: 'force-cache',
       next: { revalidate: 600 }
     })
