@@ -138,29 +138,38 @@ async function getCourt(id: string): Promise<Court | null> {
 }
 
 
-// Get initial judges data for the court (first few for initial render)
+// Get initial judges data for the court (first few for initial render) without SSR self-fetch
 async function getInitialJudges(courtId: string): Promise<{ judges: JudgeWithPosition[], totalCount: number }> {
   try {
-    const baseUrl = getBaseUrl()
-    const response = await fetch(`${baseUrl}/api/courts/${courtId}/judges?limit=5&page=1`, {
-      cache: 'force-cache',
-      next: { revalidate: 1800 } // 30 minutes
-    })
-    
-    if (!response.ok) {
+    const supabase = await createServerClient()
+    const { data, error, count } = await supabase
+      .from('judges')
+      .select('*', { count: 'exact' })
+      .eq('court_id', courtId)
+      .order('name')
+      .limit(5)
+
+    if (error) {
       return { judges: [], totalCount: 0 }
     }
-    
-    const data = await response.json()
-    // Ensure judges data is properly serialized
-    const serializedJudges = JSON.parse(JSON.stringify(data.judges || []))
-    
+
+    const judges = (data || []).map((j: any) => ({
+      id: j.id,
+      name: j.name,
+      appointed_date: j.appointed_date ?? null,
+      position_type: 'Judge',
+      status: 'active',
+      courtlistener_id: j.courtlistener_id ?? null,
+    })) as JudgeWithPosition[]
+
+    // Ensure serialization safety
+    const serializedJudges = JSON.parse(JSON.stringify(judges)) as JudgeWithPosition[]
+
     return {
       judges: serializedJudges,
-      totalCount: data.total_count || 0
+      totalCount: count || judges.length
     }
-  } catch (error) {
-    console.error('Error fetching initial court judges:', error)
+  } catch {
     return { judges: [], totalCount: 0 }
   }
 }
