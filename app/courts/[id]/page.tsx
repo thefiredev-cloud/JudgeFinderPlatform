@@ -89,7 +89,17 @@ export default async function CourtPage({ params }: { params: Params }) {
   const court = await getCourt(id)
 
   if (!court) {
-    notFound()
+    // Render a minimal shell instead of throwing to avoid generic error page
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <SEOBreadcrumbs items={[{ label: 'Courts', href: '/courts' }, { label: 'Unknown Court', href: '/courts', current: true }]} />
+        <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+          <h1 className="text-3xl font-bold mb-2">Court Not Found</h1>
+          <p className="text-muted-foreground mb-6">We couldn't load this court profile. Please try again or browse all courts.</p>
+          <Link href="/courts" className="inline-block bg-primary text-primary-foreground px-4 py-2 rounded-lg">Back to Courts</Link>
+        </div>
+      </div>
+    )
   }
 
   // Ensure court is properly serialized before using
@@ -191,8 +201,10 @@ export default async function CourtPage({ params }: { params: Params }) {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-background text-foreground">
+  // Build page safely; if anything throws, show a minimal shell instead of a server error
+  try {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
       {/* Enhanced Structured Data */}
       <script
         type="application/ld+json"
@@ -398,8 +410,20 @@ export default async function CourtPage({ params }: { params: Params }) {
           </div>
         </div>
       </div>
-    </div>
-  )
+      </div>
+    )
+  } catch {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <SEOBreadcrumbs items={[{ label: 'Courts', href: '/courts' }, { label: serializedCourt.name || 'Court', href: '/courts', current: true }]} />
+        <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+          <h1 className="text-3xl font-bold mb-2">Court Page Unavailable</h1>
+          <p className="text-muted-foreground mb-6">There was a problem rendering this court. Please try again shortly.</p>
+          <Link href="/courts" className="inline-block bg-primary text-primary-foreground px-4 py-2 rounded-lg">Back to Courts</Link>
+        </div>
+      </div>
+    )
+  }
 }
 
 export async function generateMetadata({ params }: { params: Params }) {
