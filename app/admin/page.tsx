@@ -35,7 +35,8 @@ export default async function AdminPage() {
   const supabase = await createServiceRoleClient()
   const { data: issueRows } = await supabase
     .from('profile_issues')
-    .select('id, judge_slug, court_id, issue_type, status, reporter_email, created_at')
+    .select('id, judge_slug, court_id, issue_type, status, reporter_email, created_at, severity, priority, sla_due_at, last_status_change_at, breached_at')
+    .order('priority', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(10)
 
@@ -51,11 +52,20 @@ export default async function AdminPage() {
     })
   )
 
+  const overdueCount = (issueRows || []).reduce((total, issue) => {
+    if (!issue?.sla_due_at) return total
+    if (issue.status === 'resolved' || issue.status === 'dismissed') return total
+    const due = new Date(issue.sla_due_at)
+    if (Number.isNaN(due.getTime())) return total
+    return due.getTime() < Date.now() ? total + 1 : total
+  }, 0)
+
   return (
     <AdminDashboard
       status={status}
       profileIssues={issueRows || []}
       profileIssueCounts={profileIssueCounts}
+      overdueCount={overdueCount}
     />
   )
 }

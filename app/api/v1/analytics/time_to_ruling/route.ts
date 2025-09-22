@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { enforceRateLimit, getClientKey } from '@/lib/security/rate-limit'
 import { requireApiKeyIfEnabled } from '@/lib/security/api-auth'
+import { getQualityTier, MIN_SAMPLE_SIZE } from '@/lib/analytics/config'
 
 export const dynamic = 'force-dynamic'
 
@@ -69,13 +70,21 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const qualityTier = getQualityTier(n, med ? 80 : null)
+
     const payload = {
       judge_id: judgeId,
       data_window: { n, min: durations[0] ?? null, max: durations[n-1] ?? null },
       median_days: med,
       ci80: [p10, p90],
       survival_curve: points,
-      last_updated: new Date().toISOString()
+      last_updated: new Date().toISOString(),
+      quality: {
+        tier: qualityTier.toLowerCase(),
+        sample_size: n,
+        min_sample_size: MIN_SAMPLE_SIZE,
+        sufficient: n >= MIN_SAMPLE_SIZE
+      }
     }
 
     const format = searchParams.get('format')
@@ -102,5 +111,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-
-

@@ -20,7 +20,8 @@ import { chartTheme } from '@/lib/charts/theme'
 import { useJudgeFilterParams } from '@/hooks/useJudgeFilters'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { MetricProvenance } from '@/components/judges/MetricProvenance'
-import { getQualityTier, isBelowSampleThreshold } from '@/lib/analytics/config'
+import { QualityBadge } from '@/components/judges/QualityBadge'
+import { getQualityTier, isBelowSampleThreshold, shouldHideMetric, MIN_SAMPLE_SIZE } from '@/lib/analytics/config'
 
 interface BiasMetricBody {
   case_type_patterns: Array<{
@@ -255,9 +256,14 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
   const outcomeQuality = getQualityTier(outcomeSampleSize, 75)
   const temporalQuality = getQualityTier(temporalSampleSize, 70)
 
-  const insufficientCasePattern = isBelowSampleThreshold(casePatternSample)
-  const insufficientOutcomeData = isBelowSampleThreshold(outcomeSampleSize)
-  const insufficientTemporalData = isBelowSampleThreshold(temporalSampleSize)
+  const caseBelowThreshold = isBelowSampleThreshold(casePatternSample)
+  const outcomeBelowThreshold = isBelowSampleThreshold(outcomeSampleSize)
+  const temporalBelowThreshold = isBelowSampleThreshold(temporalSampleSize)
+
+  const caseHidden = shouldHideMetric(casePatternSample)
+  const outcomeHidden = shouldHideMetric(outcomeSampleSize)
+  const temporalHidden = shouldHideMetric(temporalSampleSize)
+  const hiddenSections = [caseHidden, outcomeHidden, temporalHidden].filter(Boolean).length
 
   const lastUpdated = judge.updated_at
 
@@ -281,14 +287,24 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
   return (
     <section className={containerClass}>
       <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          <Scale className="h-6 w-6 text-primary" />
-          <h3 className="text-xl font-semibold text-foreground">Judicial pattern analysis</h3>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="flex items-center gap-2">
+            <Scale className="h-6 w-6 text-primary" />
+            <h3 className="text-xl font-semibold text-foreground">Judicial pattern analysis</h3>
+          </span>
+          <QualityBadge level={caseQuality} />
         </div>
         <p className="text-sm text-muted-foreground break-words sm:min-w-0 sm:text-right sm:leading-relaxed">
           Powered by verified decisions and normalized case outcomes for {judge.name}.
         </p>
       </div>
+
+      {hiddenSections > 0 && (
+        <div className="mb-6 rounded-2xl border border-dashed border-[rgba(251,211,141,0.45)] bg-[rgba(251,211,141,0.12)] px-4 py-3 text-xs text-[color:hsl(var(--warn))]">
+          {hiddenSections} analytic section{hiddenSections === 1 ? '' : 's'} hidden — fewer than {MIN_SAMPLE_SIZE}{' '}
+          recent decisions. Metrics will reappear after the next successful sync.
+        </div>
+      )}
 
       {courtBaseline && (
         <div className="mb-6 flex flex-wrap items-center gap-3 text-xs text-[color:hsl(var(--text-3))]">
@@ -339,7 +355,7 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
           </div>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2" id="case-patterns">
             <div className="flex flex-col rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
-              {insufficientCasePattern ? (
+              {caseBelowThreshold ? (
                 <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/60 bg-[hsl(var(--bg-1))] p-6 text-sm text-muted-foreground">
                   Not enough categorized cases yet to chart case volumes.
                 </div>
@@ -389,7 +405,7 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
               )}
             </div>
             <div className="flex flex-col rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4">
-              {insufficientCasePattern ? (
+              {caseBelowThreshold ? (
                 <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/60 bg-[hsl(var(--bg-1))] p-6 text-sm text-muted-foreground">
                   Not enough settlement outcomes to calculate reliable rates.
                 </div>
@@ -482,7 +498,7 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <div className="flex flex-col rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4" id="outcomes">
-              {insufficientOutcomeData ? (
+              {outcomeBelowThreshold ? (
                 <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/60 bg-[hsl(var(--bg-1))] p-6 text-sm text-muted-foreground">
                   Outcome charts need more decided cases before they can render.
                 </div>
@@ -598,7 +614,7 @@ export function BiasPatternAnalysis({ judge }: BiasPatternAnalysisProps) {
           </div>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="flex flex-col rounded-xl border border-border bg-[hsl(var(--bg-2))] p-4 lg:col-span-2" id="temporal-trends">
-              {insufficientTemporalData ? (
+              {temporalBelowThreshold ? (
                 <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/60 bg-[hsl(var(--bg-1))] p-6 text-sm text-muted-foreground">
                   Temporal trends require more dated filings before a chart can be shown.
                 </div>

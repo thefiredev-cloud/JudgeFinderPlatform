@@ -22,6 +22,8 @@ import type { Judge } from '@/types'
 import { chartTheme } from '@/lib/charts/theme'
 import { cn } from '@/lib/utils/index'
 import { useJudgeFilterParams } from '@/hooks/useJudgeFilters'
+import { getQualityTier, shouldHideMetric, MIN_SAMPLE_SIZE } from '@/lib/analytics/config'
+import { QualityBadge } from '@/components/judges/QualityBadge'
 
 interface CaseOutcomeStats {
   overall_stats: {
@@ -162,6 +164,27 @@ export function CaseOutcomeStatistics({ judge }: CaseOutcomeStatisticsProps) {
     )
   }
 
+  const totalSample = outcomeStats.overall_stats?.total_cases ?? 0
+  const consistencyScore = outcomeStats.performance_metrics?.consistency_score ?? 70
+  const outcomeQuality = getQualityTier(totalSample, consistencyScore)
+  const hideOutcomes = shouldHideMetric(totalSample)
+
+  if (hideOutcomes) {
+    return (
+      <section className={cn(containerClass, 'text-sm text-muted-foreground')}>
+        <div className="mb-4 flex items-center gap-2">
+          <QualityBadge level={outcomeQuality} />
+          <span className="text-xs text-[color:hsl(var(--warn))]">Limited sample size</span>
+        </div>
+        <AlertTriangle className="mb-3 h-8 w-8 text-[color:hsl(var(--warn))]" />
+        <p className="leading-6">
+          We need at least {MIN_SAMPLE_SIZE} recent decisions with outcome classifications before rendering trend charts.
+          Once the sync backlog clears, this view will repopulate automatically.
+        </p>
+      </section>
+    )
+  }
+
   const speedToneClass =
     outcomeStats.performance_metrics.speed_ranking === 'Fast'
       ? 'text-[color:hsl(var(--pos))]'
@@ -172,9 +195,12 @@ export function CaseOutcomeStatistics({ judge }: CaseOutcomeStatisticsProps) {
   return (
     <section className={containerClass}>
       <header className="mb-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2 text-foreground">
-          <Target className="h-6 w-6 text-[color:hsl(var(--accent))]" aria-hidden />
-          <h3 className="text-xl font-semibold">Case outcome statistics</h3>
+        <div className="flex flex-wrap items-center gap-3 text-foreground">
+          <span className="flex items-center gap-2">
+            <Target className="h-6 w-6 text-[color:hsl(var(--accent))]" aria-hidden />
+            <h3 className="text-xl font-semibold">Case outcome statistics</h3>
+          </span>
+          <QualityBadge level={outcomeQuality} />
         </div>
         <p className="text-sm text-muted-foreground break-words sm:min-w-0 sm:text-right sm:leading-relaxed">
           Key performance signals generated from verified rulings.

@@ -7,6 +7,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { CourtListenerClient } from '@/lib/courtlistener/client'
 import { logger } from '@/lib/utils/logger'
 import { sleep } from '@/lib/utils/helpers'
+import { normalizeJurisdiction } from '@/lib/sync/normalization'
 
 interface JudgeSyncOptions {
   batchSize?: number
@@ -628,17 +629,10 @@ export class JudgeSyncManager {
   private extractJurisdiction(position: any): string {
     const courtJurisdiction: string | undefined = position.court?.jurisdiction
     if (courtJurisdiction) {
-      const upperJurisdiction = courtJurisdiction.toUpperCase()
-
-      if (['F', 'FS', 'MA', 'TR', 'TF'].includes(upperJurisdiction)) {
-        return 'US'
+      const normalized = normalizeJurisdiction(courtJurisdiction)
+      if (normalized) {
+        return normalized
       }
-
-      if (upperJurisdiction.length === 2) {
-        return upperJurisdiction
-      }
-
-      return upperJurisdiction
     }
 
     const courtName = position.court?.full_name || position.court?.name || ''

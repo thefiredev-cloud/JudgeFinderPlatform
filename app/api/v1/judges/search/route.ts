@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { enforceRateLimit, getClientKey } from '@/lib/security/rate-limit'
 import { requireApiKeyIfEnabled } from '@/lib/security/api-auth'
+import { getQualityTier, shouldHideMetric, MIN_SAMPLE_SIZE } from '@/lib/analytics/config'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,6 +45,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Search failed' }, { status: 500 })
     }
 
+    const judgeIds = (nameMatches || []).map((j: any) => j.id).filter(Boolean)
+    const analyticsMap = new Map<string, { analytics: any; created_at: string | null }>()
+
+    if (judgeIds.length > 0) {
+      const { data: analyticsRows } = await supabase
+        .from('judge_analytics_cache')
+        .select('judge_id, analytics, created_at')
+        .in('judge_id', judgeIds)
+
+      for (const row of analyticsRows || []) {
+        if (row.judge_id) {
+          analyticsMap.set(row.judge_id, { analytics: row.analytics, created_at: row.created_at })
+        }
+      }
+    }
+
+    const qualityLabel = (tier: ReturnType<typeof getQualityTier>) => tier.toLowerCase()
+
     // Simple confidence heuristic: longer match and exact starts increase confidence
     const scored = (nameMatches || []).map((j: any) => {
       const lower = j.name.toLowerCase()
@@ -56,13 +75,35 @@ export async function GET(request: NextRequest) {
       // Boost if alias appears in CourtListener aliases (when available)
       // We avoid a join here for perf; small heuristic if alias param present
       if (alias && alias.length >= 2 && lower.includes(alias.toLowerCase())) confidence += 0.05
+
+      const analyticsEntry = analyticsMap.get(j.id)
+      const analytics = analyticsEntry?.analytics || null
+      const sampleCivil = analytics?.sample_size_civil ?? null
+      const qualityTier = sampleCivil !== null
+        ? getQualityTier(sampleCivil, analytics?.confidence_civil ?? null)
+        : 'LOW'
+      const hideCivil = shouldHideMetric(sampleCivil)
+
       return {
         judge_id: j.id,
         full_name: j.name,
         court_id: j.court_id,
         court_name: j.court_name,
         canonical_id: j.id,
-        confidence: Math.min(0.99, Number(confidence.toFixed(2)))
+        confidence: Math.min(0.99, Number(confidence.toFixed(2))),
+        analytics: analytics
+          ? {
+              civil_plaintiff_favor: hideCivil ? null : analytics.civil_plaintiff_favor ?? null,
+              sample_size_civil: sampleCivil,
+              confidence_civil: analytics.confidence_civil ?? null,
+              overall_confidence: analytics.overall_confidence ?? null,
+              total_cases_analyzed: analytics.total_cases_analyzed ?? null,
+              quality: qualityLabel(qualityTier),
+              hidden: hideCivil,
+              generated_at: analytics.generated_at ?? analyticsEntry?.created_at ?? null,
+              min_sample_size: MIN_SAMPLE_SIZE
+            }
+          : null
       }
     })
 
@@ -75,4 +116,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-

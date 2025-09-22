@@ -6,7 +6,14 @@ import { cn } from '@/lib/utils/index'
 import { useJudgeFilterParams } from '@/hooks/useJudgeFilters'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { MetricProvenance } from '@/components/judges/MetricProvenance'
-import { getQualityTier, isBelowSampleThreshold } from '@/lib/analytics/config'
+import {
+  MIN_SAMPLE_SIZE,
+  getQualityTier,
+  isBelowSampleThreshold,
+  shouldHideMetric,
+  type QualityTier,
+} from '@/lib/analytics/config'
+import { QualityBadge } from '@/components/judges/QualityBadge'
 
 interface CaseAnalytics {
   civil_plaintiff_favor: number
@@ -75,6 +82,7 @@ interface SliderProps {
   sampleSize: number
   tooltip: string
   lastUpdated?: string | null
+  quality: QualityTier
 }
 
 function ConfidenceIndicator({ confidence }: { confidence: number }) {
@@ -106,10 +114,21 @@ function ConfidenceIndicator({ confidence }: { confidence: number }) {
   )
 }
 
-function AnalyticsSlider({ label, value, leftLabel, rightLabel, color, description, confidence, sampleSize, tooltip, lastUpdated }: SliderProps) {
+function AnalyticsSlider({
+  label,
+  value,
+  leftLabel,
+  rightLabel,
+  color,
+  description,
+  confidence,
+  sampleSize,
+  tooltip,
+  lastUpdated,
+  quality,
+}: SliderProps) {
   const isLowConfidence = confidence < 70
   const belowThreshold = isBelowSampleThreshold(sampleSize)
-  const quality = getQualityTier(sampleSize, confidence)
 
   return (
     <div className={cn('rounded-2xl border border-border bg-[hsl(var(--bg-2))] p-6 transition-colors', isLowConfidence && 'opacity-80')}>
@@ -120,7 +139,10 @@ function AnalyticsSlider({ label, value, leftLabel, rightLabel, color, descripti
             <InfoTooltip content={<p>{tooltip}</p>} label={`${label} methodology`} />
           </div>
           <p className="mt-2 text-xs text-[color:hsl(var(--text-3))]">{description}</p>
-          <ConfidenceIndicator confidence={confidence} />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <ConfidenceIndicator confidence={confidence} />
+            <QualityBadge level={quality} />
+          </div>
         </div>
         <span
           className={cn(
@@ -477,6 +499,27 @@ export default function AnalyticsSliders({ judgeId, judgeName }: AnalyticsSlider
     },
   ]
 
+  const sliderEntries = sliders.map((slider) => ({
+    ...slider,
+    quality: getQualityTier(slider.sampleSize, slider.confidence),
+    hidden: shouldHideMetric(slider.sampleSize),
+  }))
+
+  const visibleSliders = sliderEntries.filter((slider) => !slider.hidden)
+  const hiddenCount = sliderEntries.length - visibleSliders.length
+
+  if (visibleSliders.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-[hsl(var(--bg-2))] p-6 text-sm text-[color:hsl(var(--text-2))]">
+        <h3 className="mb-2 font-semibold text-[color:hsl(var(--text-1))]">Analytics withheld for now</h3>
+        <p>
+          We need at least {MIN_SAMPLE_SIZE} recent cases to display these analytics. Fresh data is queued and the
+          dashboard updates automatically once the sample size clears the threshold.
+        </p>
+      </div>
+    )
+  }
+
   const normalizedQuality = (analytics.analysis_quality || '').toLowerCase()
   const showLowQualityBanner = normalizedQuality.includes('low') || normalizedQuality.includes('limited')
 
@@ -576,9 +619,16 @@ export default function AnalyticsSliders({ judgeId, judgeName }: AnalyticsSlider
         </div>
       )}
 
+      {hiddenCount > 0 && (
+        <div className="rounded-2xl border border-dashed border-[rgba(251,211,141,0.45)] bg-[rgba(251,211,141,0.12)] px-4 py-3 text-xs text-[color:hsl(var(--warn))]">
+          {hiddenCount} metric{hiddenCount === 1 ? '' : 's'} hidden — fewer than {MIN_SAMPLE_SIZE} recent decisions. They
+          will repopulate automatically after the next sync.
+        </div>
+      )}
+
       <div className="grid gap-6 md:grid-cols-2">
-        {sliders.map((slider, index) => (
-          <AnalyticsSlider key={index} {...slider} />
+        {visibleSliders.map(({ hidden: _hidden, ...slider }) => (
+          <AnalyticsSlider key={slider.label} {...slider} />
         ))}
       </div>
 

@@ -88,7 +88,11 @@ export function ReportProfileIssueDialog({ judgeSlug, courtId }: ReportProfileIs
       if (!response.ok) {
         setError(payload?.error || 'Unable to submit issue right now. Please try again later.')
       } else {
-        setMessage('Thanks for letting us know — the transparency team will review within 5 business days.')
+        if (payload && typeof (payload as any).message === 'string') {
+          setMessage((payload as any).message)
+        } else {
+          setMessage('Thanks for letting us know — the transparency team will review within 5 business days.')
+        }
         setTimeout(() => {
           closeDialog()
         }, 2000)
