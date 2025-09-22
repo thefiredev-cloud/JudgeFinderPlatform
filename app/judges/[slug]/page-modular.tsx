@@ -106,7 +106,7 @@ export default async function JudgePage({ params }: JudgePageProps) {
   const safeJurisdiction = judge.jurisdiction || 'Unknown Jurisdiction'
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground">
       {/* SEO Monitoring and Analytics */}
       <SEOMonitoring 
         judgeName={safeName}
@@ -135,7 +135,7 @@ export default async function JudgePage({ params }: JudgePageProps) {
       <AttorneyDirectoryBanner jurisdiction={safeJurisdiction} />
 
       {/* SEO Breadcrumbs */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="border-b border-border bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <SEOBreadcrumbs 
             items={[

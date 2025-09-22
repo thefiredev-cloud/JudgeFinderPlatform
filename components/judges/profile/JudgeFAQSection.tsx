@@ -65,31 +65,31 @@ export function JudgeFAQSection({ judgeName, courtName, jurisdiction }: JudgeFAQ
   }
   
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <h3 className="text-2xl font-bold text-gray-900 mb-6">
+    <div className="rounded-lg border border-border bg-card shadow-sm p-6">
+      <h3 className="text-2xl font-bold text-foreground mb-6">
         Frequently Asked Questions about Judge {nameWithoutTitle}
       </h3>
       
       <div className="space-y-4">
         {faqItems.map((item, index) => (
-          <div key={index} className="border border-gray-200 rounded-lg">
+          <div key={index} className="border border-border/60 rounded-lg">
             <button
-              className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+              className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-accent/15 transition-colors"
               onClick={() => toggleItem(index)}
             >
-              <h4 className="font-semibold text-gray-900 pr-4">
+              <h4 className="font-semibold text-foreground pr-4">
                 {item.question}
               </h4>
               {openItems.has(index) ? (
-                <ChevronUpIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                <ChevronUpIcon className="h-5 w-5 text-muted-foreground/70 flex-shrink-0" />
               ) : (
-                <ChevronDownIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                <ChevronDownIcon className="h-5 w-5 text-muted-foreground/70 flex-shrink-0" />
               )}
             </button>
             
             {openItems.has(index) && (
               <div className="px-6 pb-4">
-                <p className="text-gray-700 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   {item.answer}
                 </p>
               </div>
@@ -98,8 +98,8 @@ export function JudgeFAQSection({ judgeName, courtName, jurisdiction }: JudgeFAQ
         ))}
       </div>
       
-      <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-        <p className="text-sm text-blue-800">
+      <div className="mt-8 p-4 rounded-lg border border-primary/30 bg-primary/10">
+        <p className="text-sm text-primary">
           <strong>Need more information?</strong> Our judicial research platform provides 
           comprehensive analytics and insights for legal professionals. Contact our research 
           team for specialized judicial intelligence and case strategy consulting.

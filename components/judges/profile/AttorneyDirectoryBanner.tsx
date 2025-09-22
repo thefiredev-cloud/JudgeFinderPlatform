@@ -42,7 +42,7 @@ export function AttorneyDirectoryBanner({ jurisdiction }: AttorneyDirectoryBanne
             
             <Link 
               href="/attorneys"
-              className="bg-white text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors"
+              className="px-6 py-2 rounded-lg font-medium bg-white/15 text-white border border-white/30 transition-colors hover:bg-white/25"
             >
               Browse Attorneys
             </Link>

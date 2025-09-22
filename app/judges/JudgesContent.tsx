@@ -670,7 +670,7 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
           
           <motion.div 
             whileHover={{ scale: 1.01 }}
-            className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 backdrop-blur-sm bg-white/95"
+            className="rounded-2xl border border-border ring-1 ring-border/60 p-8 backdrop-blur-sm bg-card/90 shadow-sm"
           >
           <motion.h2 
             initial={{ opacity: 0, x: -20 }}
@@ -685,18 +685,18 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <label className="block text-sm font-medium text-gray-700 mb-2">Search Judges</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">Search Judges</label>
               <motion.div 
                 whileHover={{ scale: 1.02 }}
                 className="relative"
               >
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
                 <input
                   type="text"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   placeholder="Search by judge name..."
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-400"
+                  className="w-full pl-10 pr-4 py-3 border border-input bg-background text-foreground placeholder:text-muted-foreground/70 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 hover:border-primary/50"
                 />
                 <AnimatePresence>
                   {isSearching && (
@@ -717,12 +717,12 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
             >
-              <label className="block text-sm font-medium text-gray-700 mb-2">Jurisdiction</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">Jurisdiction</label>
               <motion.select
                 whileHover={{ scale: 1.02 }}
                 value={selectedJurisdiction}
                 onChange={(e) => setSelectedJurisdiction(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-blue-400"
+                className="w-full px-4 py-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 hover:border-primary/50"
               >
                 {jurisdictionOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -748,9 +748,9 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                 type="checkbox"
                 checked={onlyWithDecisions}
                 onChange={(e) => setOnlyWithDecisions(e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-all duration-200"
+                className="h-4 w-4 text-primary focus:ring-primary border-input bg-background rounded transition-all duration-200"
               />
-              <span className="ml-2 text-sm text-gray-700">
+                <span className="ml-2 text-sm text-muted-foreground">
                 Show only judges with recent decisions ({recentDecisionsStartYear}-{currentYear})
               </span>
             </motion.label>
@@ -766,11 +766,11 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                     className="flex items-center gap-4"
                   >
                     <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">Decision window</label>
+                      <label className="block text-xs font-medium text-muted-foreground mb-1">Decision window</label>
                       <select
                         value={recentYearsFilter}
                         onChange={(e) => setRecentYearsFilter(Number(e.target.value))}
-                        className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        className="px-3 py-2 border border-input bg-background text-foreground rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
                       >
                         {RECENT_YEAR_OPTIONS.map(option => (
                           <option key={option.value} value={option.value}>
@@ -789,7 +789,7 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setRecentYearsFilter(option.value)}
-                            className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all duration-200 ${isActive ? 'bg-blue-600 text-white border-blue-600 shadow' : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50'}`}
+                            className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all duration-200 ${isActive ? 'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-muted text-muted-foreground border-input hover:bg-accent/20 hover:border-accent/40'}`}
                             aria-pressed={isActive}
                           >
                             {option.label}
@@ -859,10 +859,10 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.7 }}
-            className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200"
+            className="mt-6 p-4 rounded-lg border border-primary/30 bg-primary/5"
           >
             <div className="flex items-center justify-between">
-              <div className="text-sm font-medium text-blue-800">
+              <div className="text-sm font-medium text-primary">
                 <AnimatePresence mode="wait">
                   {loading ? (
                     <motion.div 
@@ -872,7 +872,7 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                       exit={{ opacity: 0 }}
                       className="flex items-center"
                     >
-                      <Loader2 className="h-4 w-4 animate-spin mr-2 text-blue-600" />
+                      <Loader2 className="h-4 w-4 animate-spin mr-2 text-primary" />
                       Loading judges...
                     </motion.div>
                   ) : fetchError ? (
@@ -914,7 +914,7 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className="text-sm text-blue-700 font-medium"
+                    className="text-sm text-primary font-medium"
                   >
                     Showing {onlyWithDecisions ? filteredJudges.length : judges.length} of {totalCount}
                   </motion.div>
@@ -1003,13 +1003,13 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", duration: 0.5 }}
               >
-                <Gavel className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <Gavel className="h-12 w-12 mx-auto text-muted-foreground/70 mb-4" />
               </motion.div>
               <motion.h3 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="text-lg font-medium text-gray-900 mb-2"
+                className="text-lg font-medium text-foreground mb-2"
               >
                 {onlyWithDecisions ? 'No judges with recent decisions found' : 'No judges found'}
               </motion.h3>
@@ -1017,7 +1017,7 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-gray-600"
+                className="text-muted-foreground"
               >
                 {onlyWithDecisions 
                   ? 'Try unchecking the filter to see all judges or adjusting your search criteria.'
@@ -1045,7 +1045,7 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                   >
                     <Link
                       href={`/judges/${generateJudgeSlug(judge)}`}
-                      className="block bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 group border border-gray-100 hover:border-blue-300 relative overflow-hidden"
+                      className="block rounded-xl border border-border/80 bg-card p-6 group relative overflow-hidden shadow-sm transition-all duration-300 hover:border-primary/40 hover:shadow-md"
                     >
                       {/* Gradient overlay on hover */}
                       <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-blue-800/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -1056,26 +1056,26 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                             whileHover={{ rotate: 15 }}
                             transition={{ type: "spring", stiffness: 300 }}
                           >
-                            <Gavel className="h-8 w-8 text-blue-600 group-hover:text-blue-700 transition-colors" />
+                            <Gavel className="h-8 w-8 text-primary group-hover:text-primary/80 transition-colors" />
                           </motion.div>
                           <span className="text-sm font-medium text-white bg-gradient-to-r from-enterprise-primary to-enterprise-deep px-3 py-1 rounded-full capitalize">
                             {judge.jurisdiction || 'Jurisdiction'}
                           </span>
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                        <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
                           {judge.name}
                         </h3>
-                        <div className="space-y-2 text-sm text-gray-600">
+                        <div className="space-y-2 text-sm text-muted-foreground">
                           <div className="flex items-center">
-                            <Scale className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
+                            <Scale className="h-4 w-4 mr-2 text-muted-foreground/70 flex-shrink-0" />
                             <span className="truncate">{getCourtAndStateDisplay(judge)}</span>
                           </div>
                           <div className="flex items-center">
-                            <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+                            <Calendar className="h-4 w-4 mr-2 text-muted-foreground/70" />
                             <span className="text-xs">{getRecentDecisionsDisplay(judge)}</span>
                           </div>
                           <motion.div 
-                            className="pt-3 flex items-center text-blue-600 font-medium"
+                            className="pt-3 flex items-center text-primary font-medium"
                             whileHover={{ x: 5 }}
                           >
                             <span className="text-sm">View profile</span>
