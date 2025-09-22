@@ -40,19 +40,15 @@ const SignUp = hasValidClerkKeys()
 interface CustomSignUpProps {
   fallbackRedirectUrl?: string
   forceRedirectUrl?: string
-  afterSignInUrl?: string  // Keep for backward compatibility
-  afterSignUpUrl?: string  // Keep for backward compatibility
 }
 
 export function CustomSignUp({ 
   fallbackRedirectUrl = '/dashboard', 
-  forceRedirectUrl = '/welcome',
-  afterSignInUrl,  // Deprecated
-  afterSignUpUrl   // Deprecated
+  forceRedirectUrl = '/welcome'
 }: CustomSignUpProps) {
-  // Use new props if available, fall back to old ones for compatibility
-  const redirectUrl = forceRedirectUrl || afterSignUpUrl || '/welcome'
-  const signInRedirect = fallbackRedirectUrl || afterSignInUrl || '/dashboard'
+  // Use new props only
+  const redirectUrl = forceRedirectUrl || '/welcome'
+  const signInRedirect = fallbackRedirectUrl || '/dashboard'
   const [email, setEmail] = useState('')
   const [userType, setUserType] = useState<'admin' | 'user' | null>(null)
   const [showSignUp, setShowSignUp] = useState(false)

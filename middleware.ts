@@ -123,6 +123,9 @@ function baseMiddleware(request: NextRequest) {
     response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
   } else if (pathname.includes('/_next/static/')) {
     response.headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+  } else if (pathname.startsWith('/judges') || pathname.startsWith('/courts')) {
+    // Never cache SSR HTML for dynamic pages that include asset hashes in output
+    response.headers.set('Cache-Control', 'no-store')
   }
   
   return response

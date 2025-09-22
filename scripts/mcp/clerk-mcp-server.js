@@ -4,6 +4,17 @@
 // Minimal MCP server over stdio implementing initialize, tools/list, tools/call for Clerk Admin API
 // Env: CLERK_SECRET_KEY (required), NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY (optional)
 
+// Ensure fetch is available in all Node runtimes
+try {
+  if (typeof fetch !== 'function') {
+    // Prefer undici which is supported in CommonJS
+    const { fetch: undiciFetch } = require('undici')
+    global.fetch = undiciFetch
+  }
+} catch (_) {
+  // If undici is not available, keep going; runtime may provide global fetch
+}
+
 const { stdin, stdout } = process
 
 const SERVER_INFO = { name: 'clerk-mcp-local', version: '0.1.0' }
