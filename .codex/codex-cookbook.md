@@ -20,6 +20,18 @@ This cookbook explains how to build, extend and integrate with the JudgeFinder P
 	•	Configurable document blending – The analytics API (`app/api/judges/[id]/analytics/route.ts`) merges statistical outcomes with AI summaries only when opinion text is available, increasing confidence scores while keeping transparency metrics consistent ￼.
 	•	Backfill tip – For heavy imports, queue decision jobs with `{ yearsBack: 10, maxDecisionsPerJudge: 200 }` via the sync queue (see `SyncQueueManager`) or trigger a manual run with the new options to rapidly expand the analyzable corpus ￼.
 
+### Bias Analysis UI & Baseline Metrics (2025 Q4)
+	•	`<BiasPatternAnalysis>` now powers the judicial analytics page. It fetches `/api/judges/{id}/bias-analysis` with any active filter params and renders four tabs (case patterns, outcomes, temporal trends, indicators) with Recharts visualizations.
+	•	Court baseline payloads (`metrics`, `sample_size`, `generated_at`) are optional. When present, the component shows a “Court average baseline” pill and highlights Δ values comparing the judge to the court-wide average.
+	•	Sample-size guards live in `lib/analytics/config.ts`. Tune `NEXT_PUBLIC_MIN_SAMPLE_SIZE`, `NEXT_PUBLIC_GOOD_SAMPLE_SIZE`, and `NEXT_PUBLIC_HIDE_SAMPLE_BELOW_MIN` to control when metrics downgrade quality badges or disappear entirely.
+	•	When fewer than `MIN_SAMPLE_SIZE` recent decisions are available, the UI surfaces a dashed warning banner and hides the corresponding chart until the next successful sync.
+	•	QA checklist: hit the API directly for several judges to confirm the new payload shape, then walk the UI (toggle tab filters, switch data series, and verify the hidden-section copy) before shipping.
+
+### Local Development & Testing
+	•	Run `npm test` to execute the default quality gate (ESLint + `tsc --noEmit`). This replaces the previously missing test script and should pass before every commit.
+	•	`npm run lint` and `npm run type-check` remain available when you want to run either stage independently.
+	•	For analytics work, keep `.env.local` aligned with the sample-size env vars above so the UI warning behaviour matches production.
+
 2 Project structure
 
 The repository uses Next.js’s App Router.  Important directories include:

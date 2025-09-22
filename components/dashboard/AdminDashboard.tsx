@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { queueSyncJob, cancelSyncJobs, restartSyncQueue } from '@/app/admin/actions'
+import { queueSyncJob, cancelSyncJobs, restartSyncQueue, transitionProfileIssue } from '@/app/admin/actions'
 import type { SyncStatusResponse } from '@/lib/admin/sync-status'
 import {
   AlertTriangle,
@@ -28,6 +28,11 @@ interface ProfileIssueSummary {
   status: ProfileIssueStatus
   reporter_email: string | null
   created_at: string
+  severity: 'high' | 'medium' | 'low'
+  priority: number
+  sla_due_at: string | null
+  last_status_change_at: string | null
+  breached_at: string | null
 }
 
 interface IssueCount {
@@ -39,6 +44,7 @@ interface AdminDashboardProps {
   status: SyncStatusResponse | null
   profileIssues: ProfileIssueSummary[]
   profileIssueCounts: IssueCount[]
+  overdueCount: number
 }
 
 type ActionType = 'queue-decisions' | 'cancel-decisions' | 'restart-queue'
@@ -98,6 +104,110 @@ function maskEmail(email: string | null): string {
     return `${user[0] ?? ''}***@${domain}`
   }
   return `${user.slice(0, 2)}***@${domain}`
+}
+
+function formatDuration(ms: number): string {
+  const absMs = Math.abs(ms)
+  const minutes = Math.round(absMs / 60000)
+  if (minutes < 60) return `${minutes} min`
+  const hours = Math.round(minutes / 60)
+  if (hours < 48) return `${hours} hr${hours === 1 ? '' : 's'}`
+  const days = Math.round(hours / 24)
+  return `${days} day${days === 1 ? '' : 's'}`
+}
+
+function formatSeverity(severity: string) {
+  switch (severity) {
+    case 'high':
+      return { label: 'High', className: 'bg-red-50 text-red-600 border border-red-200' }
+    case 'medium':
+      return { label: 'Medium', className: 'bg-amber-50 text-amber-600 border border-amber-200' }
+    default:
+      return { label: 'Low', className: 'bg-blue-50 text-blue-600 border border-blue-200' }
+  }
+}
+
+function isIssueOverdue(issue: ProfileIssueSummary) {
+  if (!issue.sla_due_at) return false
+  if (issue.status === 'resolved' || issue.status === 'dismissed') return false
+  const due = new Date(issue.sla_due_at)
+  if (Number.isNaN(due.getTime())) return false
+  return due.getTime() < Date.now()
+}
+
+function resolveSlaDescriptor(slaDue: string | null, status: ProfileIssueStatus) {
+  if (!slaDue) return { label: 'Not set', tone: 'muted' as const }
+  if (status === 'resolved' || status === 'dismissed') return { label: 'Closed', tone: 'muted' as const }
+
+  const due = new Date(slaDue)
+  if (Number.isNaN(due.getTime())) return { label: 'Invalid', tone: 'muted' as const }
+
+  const diff = due.getTime() - Date.now()
+  if (diff < 0) {
+    return { label: `Overdue by ${formatDuration(diff)}`, tone: 'critical' as const }
+  }
+  if (diff <= 24 * 60 * 60 * 1000) {
+    return { label: `Due in ${formatDuration(diff)}`, tone: 'warn' as const }
+  }
+  return { label: `Due in ${formatDuration(diff)}`, tone: 'ok' as const }
+}
+
+function toNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+    if (!Number.isNaN(parsed)) return parsed
+  }
+  return null
+}
+
+function extractMetricName(metric: Record<string, unknown>): string {
+  const candidates = ['metric_name', 'metric', 'name', 'key', 'label', 'title']
+  for (const key of candidates) {
+    const value = metric[key]
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value
+    }
+  }
+  return 'metric'
+}
+
+function extractMetricValue(metric: Record<string, unknown>): number | null {
+  const candidates = ['metric_value', 'value', 'count', 'total', 'amount', 'ratio', 'percentage']
+  for (const key of candidates) {
+    const extracted = toNumber(metric[key])
+    if (typeof extracted === 'number') {
+      return extracted
+    }
+  }
+  return null
+}
+
+function isRateLimitMetric(metric: Record<string, unknown>): boolean {
+  const name = extractMetricName(metric).toLowerCase()
+  return name.includes('rate_limit') || name.includes('rate limit') || name.includes('throttle')
+}
+
+function formatPercent(value: number | null, fallback = '—'): string {
+  if (typeof value !== 'number' || Number.isNaN(value)) return fallback
+  const normalized = value <= 1 ? value * 100 : value
+  return `${Math.min(100, Math.max(0, Math.round(normalized)))}%`
+}
+
+function deriveCircuitSeverity(external: {
+  courtlistener_failures_24h?: number
+  courtlistener_circuit_opens_24h?: number
+  courtlistener_circuit_shortcircuits_24h?: number
+}) {
+  const opens = external?.courtlistener_circuit_opens_24h ?? 0
+  const shortCircuits = external?.courtlistener_circuit_shortcircuits_24h ?? 0
+  if (shortCircuits > 0) {
+    return { tone: 'critical' as const, label: 'Short-circuiting', message: `${shortCircuits} short-circuit${shortCircuits === 1 ? '' : 's'} in 24h` }
+  }
+  if (opens > 0) {
+    return { tone: 'warn' as const, label: 'Circuit open', message: `${opens} open event${opens === 1 ? '' : 's'} in 24h` }
+  }
+  return { tone: 'good' as const, label: 'Stable', message: 'No circuit interrupts in 24h' }
 }
 
 function healthPill(status: SyncStatusResponse['health']['status']) {
@@ -162,11 +272,23 @@ const ISSUE_TYPE_LABELS: Record<string, string> = {
   other: 'Other',
 }
 
-export default function AdminDashboard({ status, profileIssues, profileIssueCounts }: AdminDashboardProps) {
+const ISSUE_FILTERS: Array<{ id: 'all' | 'overdue' | ProfileIssueStatus; label: string }> = [
+  { id: 'all', label: 'All' },
+  { id: 'overdue', label: 'Overdue' },
+  { id: 'new', label: 'New' },
+  { id: 'researching', label: 'Researching' },
+  { id: 'resolved', label: 'Resolved' },
+  { id: 'dismissed', label: 'Dismissed' },
+]
+
+export default function AdminDashboard({ status, profileIssues, profileIssueCounts, overdueCount }: AdminDashboardProps) {
   const router = useRouter()
   const [pendingAction, setPendingAction] = useState<ActionType | null>(null)
   const [feedback, setFeedback] = useState<Feedback | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [issueFilter, setIssueFilter] = useState<'all' | ProfileIssueStatus | 'overdue'>('all')
+  const [issuePendingId, setIssuePendingId] = useState<string | null>(null)
+  const [issueTransitionPending, startIssueTransition] = useTransition()
 
   const health = useMemo(() => healthPill(status?.health.status || 'caution'), [status?.health.status])
 
@@ -217,6 +339,30 @@ export default function AdminDashboard({ status, profileIssues, profileIssueCoun
     setPendingAction(null)
   }
 
+  const handleIssueTransition = (issueId: string, nextStatus: ProfileIssueStatus, actionLabel: string) => {
+    setIssuePendingId(issueId)
+    startIssueTransition(async () => {
+      try {
+        await transitionProfileIssue({ id: issueId, nextStatus })
+        setFeedback({ type: 'success', message: `Issue ${actionLabel.toLowerCase()}.` })
+      } catch (error) {
+        console.error(error)
+        setFeedback({ type: 'error', message: 'Failed to update issue. Check server logs for details.' })
+      } finally {
+        setIssuePendingId(null)
+        router.refresh()
+      }
+    })
+  }
+
+  const filteredIssues = useMemo(() => {
+    if (issueFilter === 'all') return profileIssues
+    if (issueFilter === 'overdue') {
+      return profileIssues.filter((issue) => isIssueOverdue(issue))
+    }
+    return profileIssues.filter((issue) => issue.status === issueFilter)
+  }, [profileIssues, issueFilter])
+
   if (!status) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
@@ -241,6 +387,52 @@ export default function AdminDashboard({ status, profileIssues, profileIssueCoun
     courtlistener_circuit_opens_24h: 0,
     courtlistener_circuit_shortcircuits_24h: 0
   }
+  const uptime = toNumber(status.health?.uptime)
+  const combinedMetrics: Record<string, unknown>[] = [
+    ...(Array.isArray(status.health?.metrics) ? status.health?.metrics : []),
+    ...(Array.isArray(status.sync_breakdown) ? status.sync_breakdown : []),
+  ]
+
+  const cacheMetric = combinedMetrics.find((metric) => {
+    const name = extractMetricName(metric as Record<string, unknown>).toLowerCase()
+    return name.includes('cache') && (name.includes('hit') || name.includes('ttl') || name.includes('efficiency'))
+  }) as Record<string, unknown> | undefined
+
+  const cacheHitValue = cacheMetric ? extractMetricValue(cacheMetric) : null
+  const cacheHitLabel = cacheHitValue === null ? '—' : formatPercent(cacheHitValue)
+
+  const rateLimitMetrics = combinedMetrics
+    .filter((metric): metric is Record<string, unknown> => Boolean(metric) && typeof metric === 'object')
+    .filter((metric) => isRateLimitMetric(metric))
+    .map((metric) => ({
+      name: extractMetricName(metric),
+      value: extractMetricValue(metric),
+      window: typeof metric.window === 'string' ? metric.window : undefined,
+    }))
+
+  const queueBreakdown = Array.isArray(status.queue?.status)
+    ? status.queue.status
+        .map((entry: any) => {
+          const labelCandidate =
+            entry?.job_type || entry?.type || entry?.entity_type || entry?.queue_name || entry?.queue || entry?.worker
+          const label = typeof labelCandidate === 'string' ? labelCandidate : null
+          return {
+            label: label || 'Queue',
+            pending: toNumber(entry?.pending) ?? 0,
+            running: toNumber(entry?.running) ?? 0,
+            failed: toNumber(entry?.failed) ?? 0,
+            succeeded: toNumber(entry?.succeeded ?? entry?.completed) ?? 0,
+          }
+        })
+        .filter((row) => row.label && (row.pending || row.running || row.failed || row.succeeded))
+    : []
+
+  const circuitSeverity = deriveCircuitSeverity(external)
+  const dailyFailedRuns = status.performance?.daily?.failed_runs ?? 0
+  const weeklyFailedRuns = status.performance?.weekly?.failed_runs ?? 0
+  const backlog = status.queue?.backlog ?? queueStats.pending + queueStats.running
+  const judgeFreshnessRelative = formatRelative(status.freshness?.judges?.last_sync)
+  const decisionFreshnessRelative = formatRelative(status.freshness?.decisions?.last_created)
 
   return (
     <div className="space-y-8">
@@ -282,44 +474,64 @@ export default function AdminDashboard({ status, profileIssues, profileIssueCoun
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Queue backlog</p>
-              <p className="mt-2 text-3xl font-semibold text-gray-900">{formatNumber(status.queue?.backlog)}</p>
+              <p className="text-sm font-medium text-gray-600">System uptime</p>
+              <p className="mt-2 text-3xl font-semibold text-gray-900">{formatPercent(uptime, '—')}</p>
             </div>
-            <Server className="h-10 w-10 text-blue-500" />
-          </div>
-          <p className="mt-3 text-xs text-gray-500">Pending + running jobs.</p>
-        </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Daily success rate</p>
-              <p className="mt-2 text-3xl font-semibold text-gray-900">{formatNumber(status.performance?.daily?.success_rate, '0')}%</p>
-            </div>
-            <BarChart3 className="h-10 w-10 text-purple-500" />
-          </div>
-          <p className="mt-3 text-xs text-gray-500">{formatNumber(status.performance?.daily?.failed_runs)} failures in the last 24h.</p>
-        </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">CourtListener incidents (24h)</p>
-              <p className="mt-2 text-3xl font-semibold text-gray-900">{formatNumber(external.courtlistener_failures_24h)}</p>
-            </div>
-            <AlertTriangle className="h-10 w-10 text-amber-500" />
+            <CheckCircle2 className="h-10 w-10 text-emerald-500" />
           </div>
           <p className="mt-3 text-xs text-gray-500">
-            Circuit opens: {formatNumber(external.courtlistener_circuit_opens_24h)} · Short-circuits: {formatNumber(external.courtlistener_circuit_shortcircuits_24h)}
+            {formatNumber(status.performance?.daily?.total_runs)} jobs today · {formatNumber(status.recent_logs?.length ?? 0)} recent runs tracked
           </p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Judge data freshness</p>
-              <p className="mt-2 text-3xl font-semibold text-gray-900">{formatRelative(status.freshness?.judges?.last_sync)}</p>
+              <p className="text-sm font-medium text-gray-600">Queue depth</p>
+              <p className="mt-2 text-3xl font-semibold text-gray-900">{formatNumber(backlog)}</p>
+            </div>
+            <Server className="h-10 w-10 text-blue-500" />
+          </div>
+          <p className="mt-3 text-xs text-gray-500">
+            Pending {formatNumber(queueStats.pending)} · Running {formatNumber(queueStats.running)}
+          </p>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">CourtListener circuit</p>
+              <p className={`mt-2 text-2xl font-semibold ${
+                circuitSeverity.tone === 'critical'
+                  ? 'text-red-600'
+                  : circuitSeverity.tone === 'warn'
+                  ? 'text-amber-600'
+                  : 'text-emerald-600'
+              }`}>{circuitSeverity.label}</p>
+            </div>
+            <AlertTriangle
+              className={`h-10 w-10 ${
+                circuitSeverity.tone === 'critical'
+                  ? 'text-red-500'
+                  : circuitSeverity.tone === 'warn'
+                  ? 'text-amber-500'
+                  : 'text-emerald-500'
+              }`}
+            />
+          </div>
+          <p className="mt-3 text-xs text-gray-500">
+            {circuitSeverity.message} · Failures {formatNumber(external.courtlistener_failures_24h)}
+          </p>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Cache efficiency</p>
+              <p className="mt-2 text-3xl font-semibold text-gray-900">{cacheHitLabel}</p>
             </div>
             <Clock className="h-10 w-10 text-teal-500" />
           </div>
-          <p className="mt-3 text-xs text-gray-500">Decisions updated {formatRelative(status.freshness?.decisions?.last_created)}.</p>
+          <p className="mt-3 text-xs text-gray-500">
+            Judges synced {judgeFreshnessRelative} · Decisions {decisionFreshnessRelative}
+          </p>
         </div>
       </div>
 
@@ -348,6 +560,30 @@ export default function AdminDashboard({ status, profileIssues, profileIssueCoun
                 <dd className="mt-1 text-xl font-semibold text-gray-900">{formatNumber(queueStats.failed)}</dd>
               </div>
             </dl>
+            {queueBreakdown.length > 0 && (
+              <div className="mt-4 overflow-hidden rounded-md border border-gray-200">
+                <table className="min-w-full divide-y divide-gray-200 text-xs">
+                  <thead className="bg-gray-50 text-gray-600">
+                    <tr>
+                      <th scope="col" className="px-3 py-2 text-left font-semibold">Queue</th>
+                      <th scope="col" className="px-3 py-2 text-right font-semibold">Pending</th>
+                      <th scope="col" className="px-3 py-2 text-right font-semibold">Running</th>
+                      <th scope="col" className="px-3 py-2 text-right font-semibold">Failed</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white text-gray-600">
+                    {queueBreakdown.map((row) => (
+                      <tr key={row.label}>
+                        <td className="px-3 py-2 font-medium text-gray-800">{row.label}</td>
+                        <td className="px-3 py-2 text-right">{formatNumber(row.pending)}</td>
+                        <td className="px-3 py-2 text-right">{formatNumber(row.running)}</td>
+                        <td className="px-3 py-2 text-right">{formatNumber(row.failed)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
 
@@ -360,12 +596,17 @@ export default function AdminDashboard({ status, profileIssues, profileIssueCoun
             <div className="rounded-md bg-gray-50 p-4">
               <p className="text-xs font-medium uppercase text-gray-500">Daily</p>
               <p className="mt-2 text-3xl font-semibold text-gray-900">{formatNumber(status.performance?.daily?.total_runs)}</p>
-              <p className="mt-1 text-sm text-gray-600">Avg duration {formatNumber(status.performance?.daily?.avg_duration_ms)} ms</p>
+              <p className="mt-1 text-sm text-gray-600">
+                Success {formatPercent(status.performance?.daily?.success_rate ?? null, '—')} · Failures {formatNumber(dailyFailedRuns)}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">Avg duration {formatNumber(status.performance?.daily?.avg_duration_ms)} ms</p>
             </div>
             <div className="rounded-md bg-gray-50 p-4">
               <p className="text-xs font-medium uppercase text-gray-500">Weekly</p>
               <p className="mt-2 text-3xl font-semibold text-gray-900">{formatNumber(status.performance?.weekly?.total_runs)}</p>
-              <p className="mt-1 text-sm text-gray-600">Failures {formatNumber(status.performance?.weekly?.failed_runs)}</p>
+              <p className="mt-1 text-sm text-gray-600">
+                Success {formatPercent(status.performance?.weekly?.success_rate ?? null, '—')} · Failures {formatNumber(weeklyFailedRuns)}
+              </p>
             </div>
           </div>
         </div>
@@ -420,6 +661,30 @@ export default function AdminDashboard({ status, profileIssues, profileIssueCoun
             </tbody>
           </table>
       </div>
+
+      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+          <h2 className="text-sm font-semibold text-gray-900">Rate limit counters</h2>
+          <Clock className="h-5 w-5 text-gray-400" />
+        </div>
+        <div className="px-6 py-5 text-sm text-gray-600">
+          {rateLimitMetrics.length === 0 ? (
+            <p className="text-xs text-gray-500">No active throttling signals from the last 24 hours.</p>
+          ) : (
+            <div className="space-y-3">
+              {rateLimitMetrics.map((metric) => (
+                <div key={metric.name} className="flex items-center justify-between rounded-md bg-gray-50 px-4 py-2">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">{metric.name}</p>
+                    {metric.window && <p className="text-xs text-gray-500">Window: {metric.window}</p>}
+                  </div>
+                  <span className="text-sm font-semibold text-gray-900">{formatNumber(metric.value, '—')}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
 
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -429,6 +694,12 @@ export default function AdminDashboard({ status, profileIssues, profileIssueCoun
             <p className="text-xs text-gray-500">Public data issues flagged for review.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            {overdueCount > 0 && (
+              <span className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+                Over SLA
+                <span className="text-gray-800">{overdueCount.toLocaleString()}</span>
+              </span>
+            )}
             {profileIssueCounts.map(({ status, count }) => (
               <span
                 key={status}
@@ -439,6 +710,22 @@ export default function AdminDashboard({ status, profileIssues, profileIssueCoun
               </span>
             ))}
           </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {ISSUE_FILTERS.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setIssueFilter(id)}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                  issueFilter === id
+                    ? 'border-blue-400 bg-blue-50 text-blue-700'
+                    : 'border-gray-200 bg-gray-100 text-gray-600 hover:border-gray-300 hover:text-gray-800'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 text-sm">
@@ -447,29 +734,115 @@ export default function AdminDashboard({ status, profileIssues, profileIssueCoun
                 <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Judge</th>
                 <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Court</th>
                 <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Issue</th>
+                <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Severity</th>
+                <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">SLA</th>
                 <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Status</th>
                 <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Reported</th>
                 <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Contact</th>
+                <th scope="col" className="px-6 py-3 text-left font-semibold text-gray-700">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
-              {profileIssues.map((issue) => (
-                <tr key={issue.id}>
-                  <td className="px-6 py-3 text-gray-900">{issue.judge_slug}</td>
-                  <td className="px-6 py-3 text-gray-600">{issue.court_id || '—'}</td>
-                  <td className="px-6 py-3 text-gray-600">{ISSUE_TYPE_LABELS[issue.issue_type] || issue.issue_type}</td>
-                  <td className="px-6 py-3">
-                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${ISSUE_STATUS_META[issue.status].className}`}>
-                      {ISSUE_STATUS_META[issue.status].label}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3 text-gray-600">{formatRelative(issue.created_at)}</td>
-                  <td className="px-6 py-3 text-gray-600">{maskEmail(issue.reporter_email)}</td>
-                </tr>
-              ))}
-              {profileIssues.length === 0 && (
+              {filteredIssues.map((issue) => {
+                const severityMeta = formatSeverity(issue.severity)
+                const slaInfo = resolveSlaDescriptor(issue.sla_due_at, issue.status)
+                const rowClass =
+                  slaInfo.tone === 'critical'
+                    ? 'bg-red-50'
+                    : slaInfo.tone === 'warn'
+                    ? 'bg-amber-50'
+                    : undefined
+
+                return (
+                  <tr key={issue.id} className={rowClass}>
+                    <td className="px-6 py-3 text-gray-900">{issue.judge_slug}</td>
+                    <td className="px-6 py-3 text-gray-600">{issue.court_id || '—'}</td>
+                    <td className="px-6 py-3 text-gray-600">{ISSUE_TYPE_LABELS[issue.issue_type] || issue.issue_type}</td>
+                    <td className="px-6 py-3">
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${severityMeta.className}`}>
+                        {severityMeta.label}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 text-sm">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+                          slaInfo.tone === 'critical'
+                            ? 'bg-red-100 text-red-700'
+                            : slaInfo.tone === 'warn'
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        {slaInfo.label}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3">
+                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${ISSUE_STATUS_META[issue.status].className}`}>
+                        {ISSUE_STATUS_META[issue.status].label}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 text-gray-600">{formatRelative(issue.created_at)}</td>
+                    <td className="px-6 py-3 text-gray-600">{maskEmail(issue.reporter_email)}</td>
+                    <td className="px-6 py-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {issue.status === 'new' && (
+                          <button
+                            type="button"
+                            onClick={() => handleIssueTransition(issue.id, 'researching', 'Acknowledged')}
+                            className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100 disabled:opacity-60"
+                            disabled={issueTransitionPending || issuePendingId === issue.id}
+                          >
+                            {issuePendingId === issue.id && issueTransitionPending ? 'Updating…' : 'Acknowledge'}
+                          </button>
+                        )}
+                        {(issue.status === 'new' || issue.status === 'researching') && (
+                          <button
+                            type="button"
+                            onClick={() => handleIssueTransition(issue.id, 'resolved', 'Resolved')}
+                            className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 disabled:opacity-60"
+                            disabled={issueTransitionPending || issuePendingId === issue.id}
+                          >
+                            {issuePendingId === issue.id && issueTransitionPending ? 'Updating…' : 'Resolve'}
+                          </button>
+                        )}
+                        {(issue.status === 'new' || issue.status === 'researching') && (
+                          <button
+                            type="button"
+                            onClick={() => handleIssueTransition(issue.id, 'dismissed', 'Dismissed')}
+                            className="rounded-full border border-gray-200 bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-200 disabled:opacity-60"
+                            disabled={issueTransitionPending || issuePendingId === issue.id}
+                          >
+                            {issuePendingId === issue.id && issueTransitionPending ? 'Updating…' : 'Dismiss'}
+                          </button>
+                        )}
+                        {(issue.status === 'resolved' || issue.status === 'dismissed') && (
+                          <button
+                            type="button"
+                            onClick={() => handleIssueTransition(issue.id, 'researching', 'Reopened')}
+                            className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-100 disabled:opacity-60"
+                            disabled={issueTransitionPending || issuePendingId === issue.id}
+                          >
+                            {issuePendingId === issue.id && issueTransitionPending ? 'Updating…' : 'Reopen'}
+                          </button>
+                        )}
+                        {issue.status === 'researching' && (
+                          <button
+                            type="button"
+                            onClick={() => handleIssueTransition(issue.id, 'new', 'Reset')}
+                            className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                            disabled={issueTransitionPending || issuePendingId === issue.id}
+                          >
+                            {issuePendingId === issue.id && issueTransitionPending ? 'Updating…' : 'Reset'}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+              {filteredIssues.length === 0 && (
                 <tr>
-                  <td className="px-6 py-5 text-center text-sm text-gray-500" colSpan={6}>
+                  <td className="px-6 py-5 text-center text-sm text-gray-500" colSpan={9}>
                     No open issues. Incoming corrections will appear here.
                   </td>
                 </tr>
