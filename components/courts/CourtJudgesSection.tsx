@@ -153,7 +153,7 @@ export default function CourtJudgesSection({ courtId, courtName, initialJudges =
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-card rounded-lg shadow p-6 border border-border">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
           <Gavel className="h-5 w-5 mr-2 text-blue-600" />
@@ -295,7 +295,7 @@ export default function CourtJudgesSection({ courtId, courtName, initialJudges =
             <Link
               key={judge.id}
               href={`/judges/${generateSlug(judge.name)}`}
-              className="block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm"
+              className="block p-4 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors hover:bg-accent/5 dark:hover:bg-white/5 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm"
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
