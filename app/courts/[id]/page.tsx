@@ -149,7 +149,8 @@ async function getCourt(id: string): Promise<Court | null> {
 // Get initial judges data for the court (first few for initial render)
 async function getInitialJudges(courtId: string): Promise<{ judges: JudgeWithPosition[], totalCount: number }> {
   try {
-    const response = await fetch(`/api/courts/${courtId}/judges?limit=5&page=1`, {
+    const baseUrl = getBaseUrl()
+    const response = await fetch(`${baseUrl}/api/courts/${courtId}/judges?limit=5&page=1`, {
       cache: 'force-cache',
       next: { revalidate: 1800 } // 30 minutes
     })
@@ -221,7 +222,9 @@ export default async function CourtPage({ params }: { params: Params }) {
               parentOrganization: {
                 '@type': 'GovernmentOrganization',
                 name: `${serializedCourt.jurisdiction} Judicial System`,
-                url: `${baseUrl}/jurisdictions#${serializedCourt.jurisdiction.toLowerCase()}`
+                url: serializedCourt.jurisdiction
+                  ? `${baseUrl}/jurisdictions#${serializedCourt.jurisdiction.toLowerCase()}`
+                  : `${baseUrl}/jurisdictions`
               },
               employee: initialJudges.slice(0, 5).map((judge: JudgeWithPosition) => ({
                 '@type': 'Person',
@@ -502,9 +505,12 @@ export async function generateMetadata({ params }: { params: Params }) {
   const metadataCourtSlug = resolveCourtSlug(court) || court.id
   const baseUrl = getBaseUrl()
   const canonicalUrl = `${baseUrl}/courts/${metadataCourtSlug}`
+  const typeLabel = court.type
+    ? court.type.charAt(0).toUpperCase() + court.type.slice(1)
+    : 'State'
 
   return {
-    title: `${court.name} - ${cityName} ${court.type.charAt(0).toUpperCase() + court.type.slice(1)} Court | JudgeFinder`,
+    title: `${court.name} - ${cityName} ${typeLabel} Court | JudgeFinder`,
     description: description,
     keywords: [
       court.name,
