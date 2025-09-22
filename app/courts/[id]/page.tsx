@@ -29,110 +29,20 @@ interface JudgeWithPosition {
   courtlistener_id: string | null
 }
 
-// Fetch court using improved lookup strategy for both IDs and slugs
+// Fetch court via API by slug to avoid SSR DB client issues
 async function getCourt(id: string): Promise<Court | null> {
   try {
-    const supabase = await createServerClient()
-    
-    // Decode the URL parameter in case it has URL encoding
+    const baseUrl = getBaseUrl()
     const decodedId = decodeURIComponent(id)
-    
-    // Determine if this looks like a slug or an ID
-    const { isSlug, isId } = isCourtIdentifier(decodedId)
-    
-    let court = null
-    
-    // Strategy 1: Try slug lookup first if it looks like a slug
-    if (isSlug) {
-      const { data: courtBySlug } = await supabase
-        .from('courts')
-        .select('*')
-        .eq('slug', decodedId)
-        .maybeSingle()
-      
-      if (courtBySlug) {
-        court = courtBySlug
-        // found by slug
-      }
-    }
-    
-    // Strategy 2: Try direct ID lookup if not found and looks like ID
-    if (!court && isId) {
-      const { data: courtById } = await supabase
-        .from('courts')
-        .select('*')
-        .eq('id', decodedId)
-        .maybeSingle()
-      
-      if (courtById) {
-        court = courtById
-        // found by id
-      }
-    }
-    
-    // Strategy 3: Generate slug from the identifier and try lookup
-    if (!court) {
-      const generatedSlug = generateCourtSlug(decodedId)
-      
-      if (generatedSlug && generatedSlug !== decodedId) {
-        const { data: courtByGeneratedSlug } = await supabase
-          .from('courts')
-          .select('*')
-          .eq('slug', generatedSlug)
-          .maybeSingle()
-        
-        if (courtByGeneratedSlug) {
-          court = courtByGeneratedSlug
-          // found by generated
-        }
-      }
-    }
-    
-    // Strategy 4: Try name-based lookup (legacy support)
-    if (!court) {
-      const nameFromSlug = courtSlugToName(decodedId)
-      const nameVariations = generateCourtNameVariations(nameFromSlug)
-      
-      for (const variation of nameVariations) {
-        const { data: courtByName } = await supabase
-          .from('courts')
-          .select('*')
-          .ilike('name', variation)
-          .maybeSingle()
-        
-        if (courtByName) {
-          court = courtByName
-          // found by name variation
-          break
-        }
-      }
-    }
-    
-    // Strategy 5: Partial name matching as last resort
-    if (!court) {
-      const nameFromSlug = courtSlugToName(decodedId)
-      
-      const { data: courtByPartialName } = await supabase
-        .from('courts')
-        .select('*')
-        .ilike('name', `%${nameFromSlug}%`)
-        .limit(1)
-        .maybeSingle()
-      
-      if (courtByPartialName) {
-        court = courtByPartialName
-        // found by partial
-      }
-    }
-
-    if (!court) {
-      return null
-    }
-
-    // Ensure the court object is properly serialized (convert to plain object)
-    // This prevents Next.js serialization errors when passing to client components
+    const { isSlug } = isCourtIdentifier(decodedId)
+    const slug = isSlug ? decodedId : generateCourtSlug(decodedId)
+    const res = await fetch(`${baseUrl}/api/courts/by-slug?slug=${encodeURIComponent(slug)}`, { cache: 'no-store' })
+    if (!res.ok) return null
+    const data = await res.json()
+    const court = data?.court as Court | undefined
+    if (!court) return null
     return JSON.parse(JSON.stringify(court)) as Court
-  } catch (error) {
+  } catch {
     return null
   }
 }
