@@ -39,7 +39,11 @@ interface JudgesResponse {
   has_more: boolean
 }
 
-export default function JudgesContent() {
+interface JudgesContentProps {
+  initialData?: JudgesResponse
+}
+
+export default function JudgesContent({ initialData }: JudgesContentProps) {
   const currentYear = new Date().getFullYear()
   const [recentYearsFilter, setRecentYearsFilter] = useState(RECENT_JUDGE_YEARS)
   const recentDecisionsStartYear = currentYear - (recentYearsFilter - 1)
@@ -51,12 +55,12 @@ export default function JudgesContent() {
   // Initialize search from URL parameter
   const [searchInput, setSearchInput] = useState('')
   const [selectedJurisdiction, setSelectedJurisdiction] = useState('CA')
-  const [judges, setJudges] = useState<JudgeWithDecisions[]>([])
-  const [loading, setLoading] = useState(true)
-  const [initialLoad, setInitialLoad] = useState(true)
-  const [totalCount, setTotalCount] = useState(0)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [hasMore, setHasMore] = useState(false)
+  const [judges, setJudges] = useState<JudgeWithDecisions[]>(initialData?.judges ?? [])
+  const [loading, setLoading] = useState(!initialData)
+  const [initialLoad, setInitialLoad] = useState(!initialData)
+  const [totalCount, setTotalCount] = useState(initialData?.total_count ?? 0)
+  const [currentPage, setCurrentPage] = useState(initialData?.page ?? 1)
+  const [hasMore, setHasMore] = useState(initialData?.has_more ?? false)
   const [onlyWithDecisions, setOnlyWithDecisions] = useState(false)
   
   // State for judge-specific stats
@@ -132,8 +136,12 @@ export default function JudgesContent() {
     : judges
 
   useEffect(() => {
-    fetchJudges(1, true)
-  }, [fetchJudges])
+    // If we have initial data from SSR, don't immediately refetch on mount.
+    // Refetch when user changes filters/search.
+    if (!initialData) {
+      fetchJudges(1, true)
+    }
+  }, [fetchJudges, initialData])
   
   // Fetch judge-specific stats
   useEffect(() => {
