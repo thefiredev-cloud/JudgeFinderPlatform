@@ -36,7 +36,6 @@ async function getCourt(id: string): Promise<Court | null> {
     
     // Decode the URL parameter in case it has URL encoding
     const decodedId = decodeURIComponent(id)
-    console.log(`Looking up court: ${id} → ${decodedId}`)
     
     // Determine if this looks like a slug or an ID
     const { isSlug, isId } = isCourtIdentifier(decodedId)
@@ -45,7 +44,6 @@ async function getCourt(id: string): Promise<Court | null> {
     
     // Strategy 1: Try slug lookup first if it looks like a slug
     if (isSlug) {
-      console.log('Attempting slug lookup...')
       const { data: courtBySlug } = await supabase
         .from('courts')
         .select('*')
@@ -54,13 +52,12 @@ async function getCourt(id: string): Promise<Court | null> {
       
       if (courtBySlug) {
         court = courtBySlug
-        console.log('Found by slug')
+        // found by slug
       }
     }
     
     // Strategy 2: Try direct ID lookup if not found and looks like ID
     if (!court && isId) {
-      console.log('Attempting ID lookup...')
       const { data: courtById } = await supabase
         .from('courts')
         .select('*')
@@ -69,13 +66,12 @@ async function getCourt(id: string): Promise<Court | null> {
       
       if (courtById) {
         court = courtById
-        console.log('Found by ID')
+        // found by id
       }
     }
     
     // Strategy 3: Generate slug from the identifier and try lookup
     if (!court) {
-      console.log('Attempting generated slug lookup...')
       const generatedSlug = generateCourtSlug(decodedId)
       
       if (generatedSlug && generatedSlug !== decodedId) {
@@ -87,14 +83,13 @@ async function getCourt(id: string): Promise<Court | null> {
         
         if (courtByGeneratedSlug) {
           court = courtByGeneratedSlug
-          console.log('Found by generated slug')
+          // found by generated
         }
       }
     }
     
     // Strategy 4: Try name-based lookup (legacy support)
     if (!court) {
-      console.log('Attempting name-based lookup...')
       const nameFromSlug = courtSlugToName(decodedId)
       const nameVariations = generateCourtNameVariations(nameFromSlug)
       
@@ -107,7 +102,7 @@ async function getCourt(id: string): Promise<Court | null> {
         
         if (courtByName) {
           court = courtByName
-          console.log(`Found by name variation: ${variation}`)
+          // found by name variation
           break
         }
       }
@@ -115,7 +110,6 @@ async function getCourt(id: string): Promise<Court | null> {
     
     // Strategy 5: Partial name matching as last resort
     if (!court) {
-      console.log('Attempting partial name matching...')
       const nameFromSlug = courtSlugToName(decodedId)
       
       const { data: courtByPartialName } = await supabase
@@ -127,12 +121,11 @@ async function getCourt(id: string): Promise<Court | null> {
       
       if (courtByPartialName) {
         court = courtByPartialName
-        console.log('Found by partial name match')
+        // found by partial
       }
     }
 
     if (!court) {
-      console.log(`Court not found for identifier: ${id} (decoded: ${decodedId})`)
       return null
     }
 
@@ -140,7 +133,6 @@ async function getCourt(id: string): Promise<Court | null> {
     // This prevents Next.js serialization errors when passing to client components
     return JSON.parse(JSON.stringify(court)) as Court
   } catch (error) {
-    console.error('Error fetching court:', error)
     return null
   }
 }
@@ -187,98 +179,105 @@ export default async function CourtPage({ params }: { params: Params }) {
   const baseUrl = getBaseUrl()
   const { judges: initialJudges, totalCount } = await getInitialJudges(serializedCourt.id)
 
+  // Safely build structured data to avoid server render errors
+  function buildStructuredData(): string {
+    try {
+      const employees = (initialJudges || []).slice(0, 5).map((judge: JudgeWithPosition) => ({
+        '@type': 'Person',
+        '@id': `${baseUrl}/judges/${(judge?.name || '').toLowerCase().replace(/\s+/g, '-').replace(/[.,]/g, '')}#judge`,
+        name: judge?.name || 'Unknown',
+        jobTitle: judge?.position_type || 'Judge',
+        url: `${baseUrl}/judges/${(judge?.name || '').toLowerCase().replace(/\s+/g, '-').replace(/[.,]/g, '')}`
+      }))
+
+      const typeLabel = (serializedCourt?.type || 'state')
+      const jurisdiction = serializedCourt?.jurisdiction || 'CA'
+      const address = serializedCourt?.address || undefined
+      const website = serializedCourt?.website || undefined
+
+      const data = [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'GovernmentOffice',
+          '@id': `${baseUrl}/courts/${preferredCourtSlug}#court`,
+          name: serializedCourt?.name,
+          description: `${serializedCourt?.name} is a ${typeLabel} court serving ${jurisdiction}. Research judges, view analytics, and find legal representation.`,
+          url: `${baseUrl}/courts/${preferredCourtSlug}`,
+          telephone: serializedCourt?.phone || undefined,
+          sameAs: website ? [website] : undefined,
+          address: address ? {
+            '@type': 'PostalAddress',
+            streetAddress: address,
+            addressRegion: jurisdiction,
+            addressCountry: 'US'
+          } : undefined,
+          areaServed: {
+            '@type': 'State',
+            name: jurisdiction
+          },
+          serviceType: [
+            'Legal Proceedings',
+            'Judicial Services',
+            'Court Administration'
+          ],
+          parentOrganization: {
+            '@type': 'GovernmentOrganization',
+            name: `${jurisdiction} Judicial System`,
+            url: jurisdiction ? `${baseUrl}/jurisdictions#${jurisdiction.toLowerCase()}` : `${baseUrl}/jurisdictions`
+          },
+          employee: employees
+        },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'LocalBusiness',
+          '@id': `${baseUrl}/courts/${preferredCourtSlug}#localbusiness`,
+          name: serializedCourt?.name,
+          description: `Official information and analytics for ${serializedCourt?.name} in ${jurisdiction}`,
+          telephone: serializedCourt?.phone || undefined,
+          url: website || `${baseUrl}/courts/${preferredCourtSlug}`,
+          address: address ? {
+            '@type': 'PostalAddress',
+            streetAddress: address,
+            addressRegion: jurisdiction,
+            addressCountry: 'US'
+          } : undefined,
+          openingHoursSpecification: {
+            '@type': 'OpeningHoursSpecification',
+            dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+            opens: '08:00',
+            closes: '17:00'
+          }
+        },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'WebPage',
+          '@id': `${baseUrl}/courts/${preferredCourtSlug}`,
+          name: `${serializedCourt?.name} - Court Information | JudgeFinder`,
+          description: `Complete information about ${serializedCourt?.name} including judges, contact details, and legal services. Find attorneys practicing in this ${typeLabel} court.`,
+          url: `${baseUrl}/courts/${preferredCourtSlug}`,
+          isPartOf: {
+            '@type': 'WebSite',
+            '@id': `${baseUrl}#website`,
+            name: 'JudgeFinder',
+            url: baseUrl
+          },
+          about: { '@id': `${baseUrl}/courts/${preferredCourtSlug}#court` },
+          mainEntity: { '@id': `${baseUrl}/courts/${preferredCourtSlug}#court` }
+        }
+      ]
+
+      return JSON.stringify(data)
+    } catch (e) {
+      return '[]'
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Enhanced Structured Data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
-            // Court Organization Schema
-            {
-              '@context': 'https://schema.org',
-              '@type': 'GovernmentOffice',
-              '@id': `${baseUrl}/courts/${preferredCourtSlug}#court`,
-              name: serializedCourt.name,
-              description: `${serializedCourt.name} is a ${serializedCourt.type} court serving ${serializedCourt.jurisdiction}. Research judges, view analytics, and find legal representation.`,
-              url: `${baseUrl}/courts/${preferredCourtSlug}`,
-              telephone: serializedCourt.phone,
-              sameAs: serializedCourt.website ? [serializedCourt.website] : undefined,
-              address: serializedCourt.address ? {
-                '@type': 'PostalAddress',
-                streetAddress: serializedCourt.address,
-                addressRegion: serializedCourt.jurisdiction,
-                addressCountry: 'US'
-              } : undefined,
-              areaServed: {
-                '@type': 'State',
-                name: serializedCourt.jurisdiction
-              },
-              serviceType: [
-                'Legal Proceedings',
-                'Judicial Services',
-                'Court Administration'
-              ],
-              parentOrganization: {
-                '@type': 'GovernmentOrganization',
-                name: `${serializedCourt.jurisdiction} Judicial System`,
-                url: serializedCourt.jurisdiction
-                  ? `${baseUrl}/jurisdictions#${serializedCourt.jurisdiction.toLowerCase()}`
-                  : `${baseUrl}/jurisdictions`
-              },
-              employee: initialJudges.slice(0, 5).map((judge: JudgeWithPosition) => ({
-                '@type': 'Person',
-                '@id': `${baseUrl}/judges/${judge.name.toLowerCase().replace(/\s+/g, '-').replace(/[.,]/g, '')}#judge`,
-                name: judge.name,
-                jobTitle: judge.position_type || 'Judge',
-                url: `${baseUrl}/judges/${judge.name.toLowerCase().replace(/\s+/g, '-').replace(/[.,]/g, '')}`
-              }))
-            },
-            // Local Business Schema for better local SEO
-            {
-              '@context': 'https://schema.org',
-              '@type': 'LocalBusiness',
-              '@id': `${baseUrl}/courts/${preferredCourtSlug}#localbusiness`,
-              name: serializedCourt.name,
-              description: `Official information and analytics for ${serializedCourt.name} in ${serializedCourt.jurisdiction}`,
-              telephone: serializedCourt.phone,
-              url: serializedCourt.website || `${baseUrl}/courts/${preferredCourtSlug}`,
-              address: serializedCourt.address ? {
-                '@type': 'PostalAddress',
-                streetAddress: serializedCourt.address,
-                addressRegion: serializedCourt.jurisdiction,
-                addressCountry: 'US'
-              } : undefined,
-              openingHoursSpecification: {
-                '@type': 'OpeningHoursSpecification',
-                dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-                opens: '08:00',
-                closes: '17:00'
-              }
-            },
-            // WebPage Schema
-            {
-              '@context': 'https://schema.org',
-              '@type': 'WebPage',
-              '@id': `${baseUrl}/courts/${preferredCourtSlug}`,
-              name: `${serializedCourt.name} - Court Information | JudgeFinder`,
-              description: `Complete information about ${serializedCourt.name} including judges, contact details, and legal services. Find attorneys practicing in this ${serializedCourt.type} court.`,
-              url: `${baseUrl}/courts/${preferredCourtSlug}`,
-              isPartOf: {
-                '@type': 'WebSite',
-                '@id': `${baseUrl}#website`,
-                name: 'JudgeFinder',
-                url: baseUrl
-              },
-              about: {
-                '@id': `${baseUrl}/courts/${preferredCourtSlug}#court`
-              },
-              mainEntity: {
-                '@id': `${baseUrl}/courts/${preferredCourtSlug}#court`
-              }
-            }
-          ]),
-        }}
+        dangerouslySetInnerHTML={{ __html: buildStructuredData() }}
       />
 
       <SEOBreadcrumbs
