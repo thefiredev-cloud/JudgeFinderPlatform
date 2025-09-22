@@ -19,6 +19,7 @@
     "import:wcab": "node scripts/import-wcab-judges.js",
     "analytics:generate": "node scripts/batch-generate-analytics.js",
     "bias:analyze": "node scripts/run-bias-analysis.js",
+    "audit:court-slugs": "npx ts-node scripts/audit-court-slugs.ts",
     "cron:daily": "node scripts/run-daily-sync.js",
     "cron:weekly": "node scripts/run-weekly-sync.js",
     "data:status": "node scripts/check-data-status.js",

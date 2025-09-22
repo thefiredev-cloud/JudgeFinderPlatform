@@ -570,10 +570,23 @@ export function isCourtIdentifier(identifier: string): { isSlug: boolean; isId: 
     return { isSlug: false, isId: false }
   }
 
-  const isSlug = isValidCourtSlug(identifier)
-  const isId = identifier.includes(',') || identifier.includes('.') || /[A-Z]/.test(identifier)
+  const trimmed = identifier.trim()
+  const lower = trimmed.toLowerCase()
 
-  return { isSlug, isId }
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  const numericRegex = /^\d+$/
+  const legacyHexRegex = /^[0-9a-f]{32}$/i
+
+  const isUuid = uuidRegex.test(trimmed)
+  const isNumericId = numericRegex.test(trimmed)
+  const isLegacyHexId = legacyHexRegex.test(trimmed) && trimmed === lower
+
+  const isSlugCandidate = isValidCourtSlug(trimmed) || isValidCourtSlug(lower)
+
+  return {
+    isSlug: isSlugCandidate && !isUuid && !isNumericId,
+    isId: isUuid || isNumericId || (!isSlugCandidate && isLegacyHexId)
+  }
 }
 
 /**
@@ -589,6 +602,10 @@ export function normalizeCourtIdentifier(identifier: string): string {
   // If it looks like a slug, return as-is
   if (isValidCourtSlug(decoded)) {
     return decoded
+  }
+
+  if (isValidCourtSlug(decoded.toLowerCase())) {
+    return decoded.toLowerCase()
   }
   
   // If it contains special characters, treat as ID and generate slug
