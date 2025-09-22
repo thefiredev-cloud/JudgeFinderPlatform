@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Gavel, Filter, Search, ChevronDown, Badge, Calendar, User } from 'lucide-react'
 import Link from 'next/link'
+import { generateSlug } from '@/lib/utils/slug'
 
 interface Judge {
   id: string
@@ -293,7 +294,7 @@ export default function CourtJudgesSection({ courtId, courtName, initialJudges =
           {filteredJudges.map((judge) => (
             <Link
               key={judge.id}
-              href={`/judges/${judge.name.toLowerCase().replace(/\s+/g, '-').replace(/[.,]/g, '')}`}
+              href={`/judges/${generateSlug(judge.name)}`}
               className="block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm"
             >
               <div className="flex justify-between items-start">

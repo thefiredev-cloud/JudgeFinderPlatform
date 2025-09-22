@@ -98,36 +98,7 @@ export function SEOBreadcrumbs({ items, judgeName, jurisdiction }: SEOBreadcrumb
 }
 
 // Helper function to generate breadcrumbs for judge pages
-export function generateJudgeBreadcrumbs(
-  judgeName: string, 
-  jurisdiction: string, 
-  courtName: string,
-  courtSlug?: string | null
-): BreadcrumbItem[] {
-  const jurisdictionSlug = jurisdiction.toLowerCase().replace(/\s+/g, '-')
-  const preferredCourtSlug =
-    courtSlug || resolveCourtSlug({ slug: courtSlug, name: courtName }) || 'unknown-court'
-  
-  return [
-    {
-      label: 'Judges',
-      href: '/judges'
-    },
-    {
-      label: jurisdiction,
-      href: `/jurisdictions/${jurisdictionSlug}`
-    },
-    {
-      label: courtName,
-      href: `/courts/${preferredCourtSlug}`
-    },
-    {
-      label: `Judge ${judgeName}`,
-      href: '#',
-      current: true
-    }
-  ]
-}
+// Moved to server-safe utils at lib/seo/breadcrumbs.ts for SSR usage
 
 // Helper function for court pages
 export function generateCourtBreadcrumbs(

@@ -10,6 +10,9 @@ if (process.env.NODE_ENV === 'production' || process.env.NETLIFY_BUILD === 'true
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  sentry: {
+    hideSourceMaps: true,
+  },
   
   // Performance optimizations for legal platform
   experimental: {
@@ -74,14 +77,13 @@ const nextConfig = {
         ],
       },
       // Security headers are handled by middleware.ts to avoid conflicts
-      // This prevents header duplication and ensures consistent security policy
-      // Only cache-control headers are set here for specific routes
+      // Avoid caching SSR HTML to prevent stale pages referencing old asset hashes
       {
         source: '/judges/:path*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, s-maxage=600, stale-while-revalidate=3600'
+            value: 'no-store'
           }
         ],
       },
@@ -90,7 +92,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, s-maxage=7200, stale-while-revalidate=86400'
+            value: 'no-store'
           }
         ],
       },

@@ -4,9 +4,21 @@
 // Minimal MCP server over stdio implementing initialize, tools/list, tools/call for Clerk Admin API
 // Env: CLERK_SECRET_KEY (required), NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY (optional)
 
+// Ensure fetch is available in all Node runtimes
+try {
+  if (typeof fetch !== 'function') {
+    // Prefer undici which is supported in CommonJS
+    const { fetch: undiciFetch } = require('undici')
+    global.fetch = undiciFetch
+  }
+} catch (_) {
+  // If undici is not available, keep going; runtime may provide global fetch
+}
+
 const { stdin, stdout } = process
 
 const SERVER_INFO = { name: 'clerk-mcp-local', version: '0.1.0' }
+const PROTOCOL_VERSION = '2024-11-05'
 
 // ---- JSON-RPC over stdio framing (Content-Length) ----
 let readBuffer = Buffer.alloc(0)
@@ -57,9 +69,6 @@ function error(id, code, message, data) {
 
 // ---- Clerk REST helpers ----
 const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY || process.env.CLERK_API_KEY
-if (!CLERK_SECRET_KEY) {
-  console.error('[clerk-mcp] Missing CLERK_SECRET_KEY in environment')
-}
 
 async function clerkFetch(path, options = {}) {
   const url = `https://api.clerk.com${path}`
@@ -195,9 +204,14 @@ function handleMessage(msg) {
     switch (method) {
       case 'initialize': {
         reply(id, {
+          protocolVersion: PROTOCOL_VERSION,
           serverInfo: SERVER_INFO,
           capabilities: { tools: { listChanged: false } }
         })
+        break
+      }
+      case 'notifications/initialized': {
+        // Notification, no response required
         break
       }
       case 'tools/list': {
@@ -225,6 +239,8 @@ function handleMessage(msg) {
         break
       }
       default: {
+        // If this was a notification (no id), ignore silently per JSON-RPC
+        if (id === undefined || id === null) return
         error(id, -32601, `Unknown method: ${method}`)
       }
     }

@@ -74,6 +74,7 @@ export function generateCSP(config: SecurityConfig): string {
       "https://clerk.shared.lcl.dev",
       "https://cdn.jsdelivr.net",
       "https://api.openai.com",
+      "https://generativelanguage.googleapis.com",
       "https://www.courtlistener.com",
 
       "https://www.google-analytics.com",
@@ -81,6 +82,9 @@ export function generateCSP(config: SecurityConfig): string {
       "https://www.clarity.ms",
       "https://pagead2.googlesyndication.com",
       "https://challenges.cloudflare.com",
+      "https://o.sentry.io",
+      "https://*.ingest.sentry.io",
+      "https://*.sentry.io",
       ...(isDev ? ["http://localhost:*", "ws://localhost:*"] : [])
     ],
     'frame-src': [
@@ -107,6 +111,10 @@ export function generateCSP(config: SecurityConfig): string {
       'upgrade-insecure-requests': [],
       'block-all-mixed-content': []
     } : {})
+  }
+
+  if (config.reportCSPViolations) {
+    policies['report-to'] = ['csp-endpoint']
   }
 
   // Convert to CSP string format
@@ -167,8 +175,17 @@ export function getSecurityHeaders(config: SecurityConfig) {
     
     // CSP Reporting (production only)
     if (config.reportCSPViolations && config.environment === 'production') {
+      const reportEndpoint = `https://${config.domain}/api/security/csp-report`
       headers['Content-Security-Policy-Report-Only'] = 
-        generateCSP(config) + `; report-uri https://${config.domain}/api/security/csp-report`
+        generateCSP(config) + `; report-uri ${reportEndpoint}`
+      headers['Report-To'] = JSON.stringify({
+        group: 'csp-endpoint',
+        max_age: 10886400,
+        endpoints: [
+          { url: reportEndpoint }
+        ]
+      })
+      headers['Reporting-Endpoints'] = `csp-endpoint="${reportEndpoint}"`
     }
   }
 
