@@ -17,7 +17,7 @@ export interface SecurityConfig {
 export function generateCSP(config: SecurityConfig): string {
   const isDev = config.environment === 'development'
   
-  const policies = {
+  const policies: Record<string, string[]> = {
     'default-src': ["'self'"],
     'script-src': [
       "'self'",
@@ -107,10 +107,12 @@ export function generateCSP(config: SecurityConfig): string {
       "*.clerk.com"
     ],
     'object-src': ["'none'"],
-    ...(config.environment === 'production' ? {
-      'upgrade-insecure-requests': [],
-      'block-all-mixed-content': []
-    } : {})
+    ...(config.environment === 'production'
+      ? {
+          'upgrade-insecure-requests': [],
+          'block-all-mixed-content': [],
+        }
+      : {})
   }
 
   if (config.reportCSPViolations) {

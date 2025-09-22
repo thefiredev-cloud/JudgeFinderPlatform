@@ -81,17 +81,6 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
     updateFrequency: 'Not yet tracked'
   })
 
-  const filtersSignature = useMemo(
-    () =>
-      JSON.stringify({
-        search: debouncedSearchQuery.trim() || '',
-        jurisdiction: selectedJurisdiction || 'all',
-        onlyWithDecisions,
-        recentYearsFilter,
-      }),
-    [debouncedSearchQuery, selectedJurisdiction, onlyWithDecisions, recentYearsFilter],
-  )
-
   // Initialize search from URL on mount
   useEffect(() => {
     const searchQuery = searchParams.get('search') || searchParams.get('q') || ''
@@ -102,6 +91,17 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
 
   // Use debounced search
   const { debouncedSearchQuery, isSearching } = useSearchDebounce(searchInput, 300)
+
+  const filtersSignature = useMemo(
+    () =>
+      JSON.stringify({
+        search: debouncedSearchQuery.trim() || '',
+        jurisdiction: selectedJurisdiction || 'all',
+        onlyWithDecisions,
+        recentYearsFilter,
+      }),
+    [debouncedSearchQuery, selectedJurisdiction, onlyWithDecisions, recentYearsFilter],
+  )
 
   useEffect(() => {
     activeSignatureRef.current = filtersSignature
