@@ -80,10 +80,25 @@ function JudgesLoading() {
   )
 }
 
-export default function JudgesPage() {
+async function getInitialJudges() {
+  try {
+    const response = await fetch(`/api/judges/list?limit=20&page=1&jurisdiction=CA&include_decisions=true`, {
+      cache: 'force-cache',
+      next: { revalidate: 600 }
+    })
+    if (!response.ok) return null
+    const data = await response.json()
+    return data
+  } catch {
+    return null
+  }
+}
+
+export default async function JudgesPage() {
+  const initialData = await getInitialJudges()
   return (
     <Suspense fallback={<JudgesLoading />}>
-      <JudgesContent />
+      <JudgesContent initialData={initialData || undefined} />
     </Suspense>
   )
 }
