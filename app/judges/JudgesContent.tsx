@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { Gavel, MapPin, Scale, Search, Loader2, Calendar, Users, ArrowRight, Shield, TrendingUp, ChevronRight, Sparkles } from 'lucide-react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { Gavel, MapPin, Scale, Search, Loader2, Calendar, Users, ArrowRight, Shield, TrendingUp, ChevronRight, Sparkles, AlertCircle, RefreshCcw } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import type { Judge, JudgeDecisionSummary } from '@/types'
@@ -13,6 +13,7 @@ import { ParticleBackground } from '@/components/ui/ParticleBackground'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { TypewriterText } from '@/components/ui/TypewriterText'
 import { ScrollIndicator } from '@/components/ui/ScrollIndicator'
+import * as Sentry from '@sentry/nextjs'
 
 const RECENT_JUDGE_YEARS = 3
 const RECENT_YEAR_OPTIONS = [
@@ -43,6 +44,11 @@ interface JudgesContentProps {
   initialData?: JudgesResponse
 }
 
+interface FetchOptions {
+  reset?: boolean
+  prefetch?: boolean
+}
+
 export default function JudgesContent({ initialData }: JudgesContentProps) {
   const currentYear = new Date().getFullYear()
   const [recentYearsFilter, setRecentYearsFilter] = useState(RECENT_JUDGE_YEARS)
@@ -62,6 +68,10 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
   const [currentPage, setCurrentPage] = useState(initialData?.page ?? 1)
   const [hasMore, setHasMore] = useState(initialData?.has_more ?? false)
   const [onlyWithDecisions, setOnlyWithDecisions] = useState(false)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+  const prefetchedPagesRef = useRef<Map<string, JudgesResponse>>(new Map())
+  const prefetchInFlightRef = useRef<Set<string>>(new Set())
+  const activeSignatureRef = useRef<string>('')
   
   // State for judge-specific stats
   const [judgeStats, setJudgeStats] = useState({
@@ -70,6 +80,17 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
     avgExperience: '—',
     updateFrequency: 'Not yet tracked'
   })
+
+  const filtersSignature = useMemo(
+    () =>
+      JSON.stringify({
+        search: debouncedSearchQuery.trim() || '',
+        jurisdiction: selectedJurisdiction || 'all',
+        onlyWithDecisions,
+        recentYearsFilter,
+      }),
+    [debouncedSearchQuery, selectedJurisdiction, onlyWithDecisions, recentYearsFilter],
+  )
 
   // Initialize search from URL on mount
   useEffect(() => {
@@ -82,64 +103,231 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
   // Use debounced search
   const { debouncedSearchQuery, isSearching } = useSearchDebounce(searchInput, 300)
 
-  const fetchJudges = useCallback(async (page = 1, reset = false) => {
-    if (reset) {
-      setLoading(true)
+  useEffect(() => {
+    activeSignatureRef.current = filtersSignature
+    prefetchedPagesRef.current.clear()
+    prefetchInFlightRef.current.clear()
+    setFetchError(null)
+  }, [filtersSignature])
+
+  const buildPrefetchKey = useCallback(
+    (page: number, signature: string) => `${signature}::${page}`,
+    [],
+  )
+
+  const commitPageData = useCallback((data: JudgesResponse, { reset }: { reset: boolean }) => {
+    const mergeUniqueById = (existing: JudgeWithDecisions[], incoming: JudgeWithDecisions[]) => {
+      const map = new Map<string, JudgeWithDecisions>()
+      for (const judge of existing) map.set(judge.id, judge)
+      for (const judge of incoming) map.set(judge.id, judge)
+      return Array.from(map.values())
     }
-    
-    try {
+
+    if (reset || data.page <= 1) {
+      setJudges(mergeUniqueById([], data.judges))
+    } else {
+      setJudges((prev) => mergeUniqueById(prev, data.judges))
+    }
+
+    setTotalCount(data.total_count)
+    setCurrentPage(data.page)
+    setHasMore(data.has_more)
+  }, [])
+
+  const requestJudges = useCallback(
+    async (page: number) => {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '20',
-        include_decisions: 'true' // Use combined endpoint
+        include_decisions: 'true',
       })
-      
-      if (debouncedSearchQuery.trim()) params.append('q', debouncedSearchQuery)
+
+      const trimmedQuery = debouncedSearchQuery.trim()
+      if (trimmedQuery) params.append('q', trimmedQuery)
       if (selectedJurisdiction) params.append('jurisdiction', selectedJurisdiction)
       if (onlyWithDecisions) {
         params.append('only_with_decisions', 'true')
         params.append('recent_years', recentYearsFilter.toString())
       }
 
-      const response = await fetch(`/api/judges/list?${params}`)
-      if (!response.ok) throw new Error('Failed to fetch judges')
-      
-      const data: JudgesResponse = await response.json()
-      
-      const mergeUniqueById = (existing: JudgeWithDecisions[], incoming: JudgeWithDecisions[]) => {
-        const map = new Map<string, JudgeWithDecisions>()
-        for (const j of existing) map.set(j.id, j)
-        for (const j of incoming) map.set(j.id, j)
-        return Array.from(map.values())
+      const url = `/api/judges/list?${params.toString()}`
+      const start = typeof performance !== 'undefined' ? performance.now() : Date.now()
+
+      try {
+        const response = await fetch(url)
+        if (!response.ok) {
+          const error = new Error(`Failed to fetch judges (status ${response.status})`)
+          ;(error as any).status = response.status
+          throw error
+        }
+
+        const data: JudgesResponse = await response.json()
+        const duration = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - start
+        return { data, duration, url }
+      } catch (unknownError) {
+        const duration = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - start
+        const error = unknownError instanceof Error ? unknownError : new Error('Failed to fetch judges')
+        ;(error as any).duration = duration
+        ;(error as any).url = url
+        throw error
+      }
+    },
+    [debouncedSearchQuery, onlyWithDecisions, recentYearsFilter, selectedJurisdiction],
+  )
+
+  const queuePrefetch = useCallback(
+    async (page: number) => {
+      if (page <= 0) return
+
+      const signature = filtersSignature
+      const key = buildPrefetchKey(page, signature)
+
+      if (prefetchedPagesRef.current.has(key) || prefetchInFlightRef.current.has(key)) {
+        return
       }
 
-      if (reset || page === 1) {
-        setJudges(mergeUniqueById([], data.judges))
-      } else {
-        setJudges(prev => mergeUniqueById(prev, data.judges))
+      prefetchInFlightRef.current.add(key)
+
+      try {
+        const { data } = await requestJudges(page)
+        if (activeSignatureRef.current !== signature) return
+        prefetchedPagesRef.current.set(key, data)
+      } catch (error) {
+        if (error instanceof Error && activeSignatureRef.current === signature) {
+          Sentry.captureException(error, {
+            tags: {
+              feature: 'judges-directory',
+              fetch_type: 'prefetch',
+            },
+            extra: {
+              page,
+              durationMs: (error as any).duration ?? undefined,
+              url: (error as any).url ?? undefined,
+              signature,
+            },
+            level: 'warning',
+          })
+        }
+      } finally {
+        prefetchInFlightRef.current.delete(key)
       }
-      
-      setTotalCount(data.total_count)
-      setCurrentPage(data.page)
-      setHasMore(data.has_more)
-    } catch (error) {
-      console.error('Error fetching judges:', error)
-    } finally {
-      setLoading(false)
-      setInitialLoad(false)
-    }
-  }, [debouncedSearchQuery, selectedJurisdiction, onlyWithDecisions, recentYearsFilter])
+    },
+    [buildPrefetchKey, filtersSignature, requestJudges],
+  )
+
+  const fetchJudges = useCallback(
+    async (page = 1, options: FetchOptions = {}) => {
+      const { reset = false, prefetch = false } = options
+      const signature = filtersSignature
+
+      if (reset) {
+        setLoading(true)
+        setFetchError(null)
+        prefetchedPagesRef.current.clear()
+        prefetchInFlightRef.current.clear()
+      } else if (!prefetch) {
+        setLoading(true)
+        setFetchError(null)
+      }
+
+      try {
+        const { data, duration, url } = await requestJudges(page)
+
+        if (signature !== activeSignatureRef.current) {
+          return data
+        }
+
+        if (prefetch) {
+          prefetchedPagesRef.current.set(buildPrefetchKey(page, signature), data)
+          return data
+        }
+
+        commitPageData(data, { reset: reset || page === 1 })
+        setFetchError(null)
+
+        if (page === 1) {
+          Sentry.captureMessage('judges-list-initial-fetch', {
+            level: 'info',
+            tags: {
+              feature: 'judges-directory',
+            },
+            extra: {
+              durationMs: Math.round(duration),
+              page,
+              hasMore: data.has_more,
+              totalCount: data.total_count,
+              searchTerm: debouncedSearchQuery.trim() || null,
+              jurisdiction: selectedJurisdiction || 'all',
+              onlyWithDecisions,
+              recentYearsFilter,
+              url,
+              preloaded: Boolean(initialData),
+              signature,
+            },
+          })
+        }
+
+        if (data.has_more) {
+          void queuePrefetch(data.page + 1)
+        }
+
+        return data
+      } catch (error) {
+        if (!prefetch && signature === activeSignatureRef.current && error instanceof Error) {
+          setFetchError('We had trouble loading judges. Please try again.')
+          Sentry.captureException(error, {
+            tags: {
+              feature: 'judges-directory',
+              fetch_type: reset ? 'reset' : 'paginate',
+            },
+            extra: {
+              page,
+              durationMs: (error as any).duration ?? undefined,
+              url: (error as any).url ?? undefined,
+              searchTerm: debouncedSearchQuery.trim() || null,
+              jurisdiction: selectedJurisdiction || 'all',
+              onlyWithDecisions,
+              recentYearsFilter,
+              signature,
+            },
+            level: 'error',
+          })
+        }
+
+        throw error
+      } finally {
+        if (!prefetch && signature === activeSignatureRef.current) {
+          setLoading(false)
+          setInitialLoad(false)
+        }
+      }
+    },
+    [
+      commitPageData,
+      buildPrefetchKey,
+      debouncedSearchQuery,
+      filtersSignature,
+      initialData,
+      onlyWithDecisions,
+      queuePrefetch,
+      recentYearsFilter,
+      requestJudges,
+      selectedJurisdiction,
+    ],
+  )
 
   // Filter judges based on decisions toggle
   const filteredJudges = onlyWithDecisions 
     ? judges.filter(judge => judge.decision_summary?.total_recent && judge.decision_summary.total_recent > 0)
     : judges
 
+  const hasCachedResults = judges.length > 0
+
   useEffect(() => {
     // If we have initial data from SSR, don't immediately refetch on mount.
     // Refetch when user changes filters/search.
     if (!initialData) {
-      fetchJudges(1, true)
+      fetchJudges(1, { reset: true })
     }
   }, [fetchJudges, initialData])
   
@@ -164,11 +352,58 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
     fetchJudgeStats()
   }, [])
 
-  const handleLoadMore = () => {
-    if (hasMore && !loading) {
-      fetchJudges(currentPage + 1, false)
+  const handleLoadMore = useCallback(async () => {
+    if (!hasMore || loading) return
+
+    const nextPage = currentPage + 1
+    const signature = filtersSignature
+    const key = buildPrefetchKey(nextPage, signature)
+    const prefetched = prefetchedPagesRef.current.get(key)
+
+    if (prefetched && signature === activeSignatureRef.current) {
+      prefetchedPagesRef.current.delete(key)
+      commitPageData(prefetched, { reset: false })
+      setFetchError(null)
+
+      if (prefetched.has_more) {
+        void queuePrefetch(prefetched.page + 1)
+      }
+
+      Sentry.captureMessage('judges-list-prefetch-consumed', {
+        level: 'info',
+        tags: {
+          feature: 'judges-directory',
+        },
+        extra: {
+          page: nextPage,
+          totalCount: prefetched.total_count,
+          hasMore: prefetched.has_more,
+          signature,
+        },
+      })
+
+      return
     }
-  }
+
+    try {
+      await fetchJudges(nextPage)
+    } catch (error) {
+      // Errors are already surfaced via fetchJudges
+    }
+  }, [
+    buildPrefetchKey,
+    commitPageData,
+    currentPage,
+    fetchJudges,
+    filtersSignature,
+    hasMore,
+    loading,
+    queuePrefetch,
+  ])
+
+  const handleRetry = useCallback(() => {
+    void fetchJudges(1, { reset: true })
+  }, [fetchJudges])
 
   // Use consistent slug generation from utils
   const generateJudgeSlug = (judge: Judge) => {
@@ -576,7 +811,49 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
               </motion.div>
             </motion.div>
           </motion.div>
-          
+
+          <AnimatePresence>
+            {fetchError && (
+              <motion.div
+                key="fetch-error"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="mt-6 rounded-lg border border-destructive/40 bg-destructive/10 p-4"
+                role="alert"
+              >
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="mt-0.5 h-5 w-5 text-destructive" aria-hidden="true" />
+                    <div>
+                      <p className="text-sm font-medium text-destructive">
+                        {hasCachedResults
+                          ? "We couldn't refresh the judge list. Showing cached results for now."
+                          : fetchError}
+                      </p>
+                      {hasCachedResults && (
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Retry to fetch the latest data when you're ready.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleRetry}
+                    className="inline-flex items-center justify-center gap-2 rounded-md border border-destructive/60 bg-destructive/20 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive hover:text-white"
+                  >
+                    <RefreshCcw className="h-4 w-4" aria-hidden="true" />
+                    Retry now
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Results Summary */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
@@ -598,6 +875,21 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                       <Loader2 className="h-4 w-4 animate-spin mr-2 text-blue-600" />
                       Loading judges...
                     </motion.div>
+                  ) : fetchError ? (
+                    <motion.div
+                      key="error"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex items-center gap-2 text-destructive"
+                    >
+                      <AlertCircle className="h-4 w-4" aria-hidden="true" />
+                      <span className="text-sm">
+                        {hasCachedResults
+                          ? 'Showing cached results until the latest data is available.'
+                          : fetchError}
+                      </span>
+                    </motion.div>
                   ) : (
                     <motion.div
                       key="results"
@@ -617,7 +909,7 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                 </AnimatePresence>
               </div>
               <AnimatePresence>
-                {!loading && totalCount > 0 && (
+                {!loading && !fetchError && totalCount > 0 && (
                   <motion.div 
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -655,6 +947,48 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                   <JudgeCardSkeleton />
                 </motion.div>
               ))}
+            </motion.div>
+          ) : fetchError && judges.length === 0 ? (
+            <motion.div
+              key="fetch-error-empty"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="flex flex-col items-center justify-center rounded-2xl border border-destructive/30 bg-destructive/10 px-6 py-16 text-center"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', duration: 0.4 }}
+              >
+                <AlertCircle className="h-12 w-12 text-destructive" aria-hidden="true" />
+              </motion.div>
+              <motion.h3
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="mt-6 text-lg font-semibold text-foreground"
+              >
+                We couldn't load judges right now
+              </motion.h3>
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="mt-2 max-w-md text-sm text-muted-foreground"
+              >
+                Check your network connection and retry. We'll reload the list as soon as we're able to reach the data source again.
+              </motion.p>
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={handleRetry}
+                className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-destructive px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-transform hover:bg-destructive/90"
+              >
+                <RefreshCcw className="h-4 w-4" aria-hidden="true" />
+                Try again
+              </motion.button>
             </motion.div>
           ) : filteredJudges.length === 0 ? (
             <motion.div 
