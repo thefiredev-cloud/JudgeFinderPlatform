@@ -3,6 +3,7 @@ import { Building, MapPin, Users, Scale, Phone, Globe, Gavel, Award, TrendingUp 
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import CourtJudgesSection from '@/components/courts/CourtJudgesSection'
+import CourtClientFallback from '@/components/courts/CourtClientFallback'
 import { CourtAdvertiserSlots } from '@/components/courts/CourtAdvertiserSlots'
 import { SEOBreadcrumbs, generateCourtBreadcrumbs } from '@/components/seo/SEOBreadcrumbs'
 import { 
@@ -92,12 +93,8 @@ export default async function CourtPage({ params }: { params: Params }) {
     // Render a minimal shell instead of throwing to avoid generic error page
     return (
       <div className="min-h-screen bg-background text-foreground">
-        <SEOBreadcrumbs items={[{ label: 'Courts', href: '/courts' }, { label: 'Unknown Court', href: '/courts', current: true }]} />
-        <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-          <h1 className="text-3xl font-bold mb-2">Court Not Found</h1>
-          <p className="text-muted-foreground mb-6">We couldn't load this court profile. Please try again or browse all courts.</p>
-          <Link href="/courts" className="inline-block bg-primary text-primary-foreground px-4 py-2 rounded-lg">Back to Courts</Link>
-        </div>
+        <SEOBreadcrumbs items={[{ label: 'Courts', href: '/courts' }, { label: 'Loading…', href: '/courts', current: true }]} />
+        <CourtClientFallback slug={generateCourtSlug(id)} />
       </div>
     )
   }
@@ -415,12 +412,8 @@ export default async function CourtPage({ params }: { params: Params }) {
   } catch {
     return (
       <div className="min-h-screen bg-background text-foreground">
-        <SEOBreadcrumbs items={[{ label: 'Courts', href: '/courts' }, { label: serializedCourt.name || 'Court', href: '/courts', current: true }]} />
-        <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-          <h1 className="text-3xl font-bold mb-2">Court Page Unavailable</h1>
-          <p className="text-muted-foreground mb-6">There was a problem rendering this court. Please try again shortly.</p>
-          <Link href="/courts" className="inline-block bg-primary text-primary-foreground px-4 py-2 rounded-lg">Back to Courts</Link>
-        </div>
+        <SEOBreadcrumbs items={[{ label: 'Courts', href: '/courts' }, { label: 'Loading…', href: '/courts', current: true }]} />
+        <CourtClientFallback slug={preferredCourtSlug} />
       </div>
     )
   }
