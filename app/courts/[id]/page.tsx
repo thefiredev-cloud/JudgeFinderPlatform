@@ -18,7 +18,7 @@ import type { Court } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
-type Params = { id: string }
+type Params = Promise<{ id: string }>
 
 interface JudgeWithPosition {
   id: string
@@ -174,7 +174,7 @@ async function getInitialJudges(courtId: string): Promise<{ judges: JudgeWithPos
 }
 
 export default async function CourtPage({ params }: { params: Params }) {
-  const { id } = params
+  const { id } = await params
   const court = await getCourt(id)
 
   if (!court) {
@@ -485,7 +485,7 @@ export default async function CourtPage({ params }: { params: Params }) {
 }
 
 export async function generateMetadata({ params }: { params: Params }) {
-  const { id } = params
+  const { id } = await params
   const court = await getCourt(id)
   
   if (!court) {
