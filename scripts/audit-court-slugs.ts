@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 import 'dotenv/config'
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createCanonicalCourtSlug, isValidCourtSlug } from '../lib/utils/slug'
 
 type CourtRecord = {
@@ -27,7 +27,9 @@ function requireEnv(name: string): string {
   return value
 }
 
-async function fetchAllCourts(client: ReturnType<typeof createClient>): Promise<CourtRecord[]> {
+type SupabaseAny = SupabaseClient<any, 'public', any>
+
+async function fetchAllCourts(client: SupabaseAny): Promise<CourtRecord[]> {
   const courts: CourtRecord[] = []
   let from = 0
 
@@ -46,7 +48,13 @@ async function fetchAllCourts(client: ReturnType<typeof createClient>): Promise<
       break
     }
 
-    courts.push(...data)
+    courts.push(
+      ...data.map(row => ({
+        id: String(row.id),
+        name: String(row.name ?? ''),
+        slug: row.slug === null || row.slug === undefined ? null : String(row.slug)
+      }))
+    )
 
     if (data.length < PAGE_SIZE) {
       break
@@ -114,7 +122,7 @@ function buildUniqueSlug(name: string, taken: Set<string>, fallbackSuffix: strin
 }
 
 async function applyFixes(
-  client: ReturnType<typeof createClient>,
+  client: SupabaseAny,
   audit: AuditResult,
   courts: CourtRecord[]
 ): Promise<void> {
@@ -184,7 +192,7 @@ async function main() {
     const supabaseUrl = requireEnv('NEXT_PUBLIC_SUPABASE_URL')
     const supabaseServiceKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY')
 
-    const client = createClient(supabaseUrl, supabaseServiceKey, {
+    const client: SupabaseAny = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { persistSession: false },
       db: { schema: 'public' }
     })
