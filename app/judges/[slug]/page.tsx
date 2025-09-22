@@ -176,7 +176,7 @@ interface JudgePageProps {
 export default async function JudgePage({ params }: JudgePageProps) {
   // Add param validation
   if (!params.slug || typeof params.slug !== 'string') {
-    console.error('Invalid slug parameter:', resolvedParams.slug)
+    console.error('Invalid slug parameter:', params.slug)
     notFound()
   }
 
