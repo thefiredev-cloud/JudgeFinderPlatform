@@ -48,20 +48,25 @@ export function CourtsSearch({ initialCourts, initialJurisdiction = 'CA' }: Cour
   // Use debounced search
   const { debouncedSearchQuery, isSearching } = useSearchDebounce(searchInput, 300)
 
+  // Reset pagination when filters/search change
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearchQuery, selectedJurisdiction, selectedType])
+
+  // Fetch courts when page or filters change
   useEffect(() => {
     let isMounted = true
     let abortController: AbortController | null = null
-    
+
     async function searchCourts() {
       try {
         if (page === 1) {
           setLoading(true)
         }
         setError(null)
-        
-        // Create new abort controller for this request
+
         abortController = new AbortController()
-        
+
         const params = new URLSearchParams({
           page: page.toString(),
           limit: '20',
@@ -81,16 +86,16 @@ export function CourtsSearch({ initialCourts, initialJurisdiction = 'CA' }: Cour
         }
 
         const data: CourtsResponse = await res.json()
-        
-        if (isMounted) {
-          if (page === 1) {
-            setCourts(data.courts)
-          } else {
-            setCourts(prev => [...prev, ...data.courts])
-          }
-          setHasMore(data.has_more)
-          setTotalCount(data.total_count)
+
+        if (!isMounted) return
+
+        if (page === 1) {
+          setCourts(data.courts)
+        } else {
+          setCourts(prev => [...prev, ...data.courts])
         }
+        setHasMore(data.has_more)
+        setTotalCount(data.total_count)
       } catch (error) {
         if (isMounted && !(error instanceof Error && error.name === 'AbortError')) {
           setError('Failed to load courts')
@@ -103,12 +108,7 @@ export function CourtsSearch({ initialCourts, initialJurisdiction = 'CA' }: Cour
       }
     }
 
-    // Reset page when search parameters change
-    if (page === 1) {
-      searchCourts()
-    } else {
-      setPage(1)
-    }
+    searchCourts()
 
     return () => {
       isMounted = false
@@ -116,7 +116,7 @@ export function CourtsSearch({ initialCourts, initialJurisdiction = 'CA' }: Cour
         abortController.abort()
       }
     }
-  }, [debouncedSearchQuery, selectedJurisdiction, selectedType, page])
+  }, [page, debouncedSearchQuery, selectedJurisdiction, selectedType])
 
   const handleLoadMore = () => {
     if (!loading && hasMore) {
