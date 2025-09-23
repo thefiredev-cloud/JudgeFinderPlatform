@@ -21,15 +21,23 @@ export async function POST(request: NextRequest) {
     const supabase = await createServerClient()
 
     // Increment click counters for spot and optionally record event
-    await supabase.rpc('increment_ad_spot_clicks', { p_spot_id: parsed.data.slot_id }).catch(() => undefined)
+    try {
+      await supabase.rpc('increment_ad_spot_clicks', { p_spot_id: parsed.data.slot_id })
+    } catch (_) {
+      // ignore counter errors
+    }
 
-    await supabase.from('ad_click_events').insert({
-      ad_spot_id: parsed.data.slot_id,
-      judge_id: parsed.data.judge_id || null,
-      court_id: parsed.data.court_id || null,
-      user_agent: request.headers.get('user-agent') || null,
-      ip_hash: null,
-    }).catch(() => undefined)
+    try {
+      await supabase.from('ad_click_events').insert({
+        ad_spot_id: parsed.data.slot_id,
+        judge_id: parsed.data.judge_id || null,
+        court_id: parsed.data.court_id || null,
+        user_agent: request.headers.get('user-agent') || null,
+        ip_hash: null,
+      })
+    } catch (_) {
+      // ignore logging errors
+    }
 
     return NextResponse.json({ ok: true })
   } catch (e: any) {
