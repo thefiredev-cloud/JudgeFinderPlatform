@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { MapPin, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -22,6 +22,7 @@ export function CountiesTab() {
   const [counties, setCounties] = useState<CountyItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
 
   useEffect(() => {
     let isMounted = true
@@ -52,6 +53,12 @@ export function CountiesTab() {
     return () => { isMounted = false }
   }, [])
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const base = q ? counties.filter(c => c.name.toLowerCase().includes(q)) : counties
+    return [...base].sort((a, b) => a.name.localeCompare(b.name))
+  }, [counties, query])
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -67,29 +74,29 @@ export function CountiesTab() {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {counties.map((c, index) => (
+      <div className="relative max-w-md">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search counties..."
+          className="w-full rounded-lg border border-border bg-background py-2.5 px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+        />
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {filtered.map((c, index) => (
           <motion.div
             key={c.name}
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.02 * index }}
+            transition={{ delay: Math.min(0.003 * index, 0.2) }}
           >
             <Link
               href={`/jurisdictions/${toSlug(c.name)}`}
-              className="group block rounded-lg border border-border p-4 transition-all hover:border-primary/40 hover:shadow-lg bg-card"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-sm hover:border-primary/40 hover:text-primary transition-colors"
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {c.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {c.judgeCount.toLocaleString()} judges
-                  </p>
-                </div>
-                <MapPin className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-              </div>
+              <MapPin className="h-4 w-4" />
+              <span className="font-medium">{c.name}</span>
             </Link>
           </motion.div>
         ))}
