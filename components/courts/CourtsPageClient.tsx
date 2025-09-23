@@ -5,6 +5,7 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import { Building, Gavel, Users, MapPin, ChevronRight, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { CourtsSearch } from './CourtsSearch'
+import { CountiesTab } from './CountiesTab'
 
 interface Court {
   id: string
@@ -164,6 +165,8 @@ export function CourtsPageClient({ initialCourts, initialJurisdiction = 'CA' }: 
     fetchStats()
   }, [])
 
+  const [activeTab, setActiveTab] = useState<'courts' | 'counties'>('courts')
+
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
       {/* Enhanced Hero Section with Animations */}
@@ -285,7 +288,35 @@ export function CourtsPageClient({ initialCourts, initialJurisdiction = 'CA' }: 
             </div>
           </motion.div>
           
-          <CourtsSearch initialCourts={initialCourts} initialJurisdiction={initialJurisdiction} />
+          {/* Tabs */}
+          <div className="mb-6 flex items-center gap-2">
+            <button
+              onClick={() => setActiveTab('courts')}
+              className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                activeTab === 'courts'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-card border-border text-foreground hover:bg-accent/5'
+              }`}
+            >
+              Courts
+            </button>
+            <button
+              onClick={() => setActiveTab('counties')}
+              className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                activeTab === 'counties'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-card border-border text-foreground hover:bg-accent/5'
+              }`}
+            >
+              Counties
+            </button>
+          </div>
+
+          {activeTab === 'courts' ? (
+            <CourtsSearch initialCourts={initialCourts} initialJurisdiction={initialJurisdiction} />
+          ) : (
+            <CountiesTab />
+          )}
         </div>
       </motion.section>
     </div>
