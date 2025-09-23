@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
+import { isAdmin } from '@/lib/auth/is-admin'
 import { createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/utils/logger'
@@ -46,6 +48,10 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now()
   
   try {
+    const { userId } = await auth()
+    if (!userId || !(await isAdmin())) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     logger.apiRequest('GET', '/api/admin/data-status')
     
     // Validate environment (but don't fail if invalid)
