@@ -125,6 +125,12 @@
 }
 
 @layer components {
+  /* Ensure chip lists never show ordered list numbers if browser applies defaults */
+  .unstyled-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+  }
   .skip-link {
     position: fixed;
     left: 1rem;

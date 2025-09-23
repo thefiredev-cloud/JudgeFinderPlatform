@@ -75,7 +75,7 @@ export function CitiesTab() {
         />
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 unstyled-list">
         {filtered.map((c, idx) => (
           <motion.div key={`${c.city}-${idx}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(idx * 0.003, 0.2) }}>
             <Link
