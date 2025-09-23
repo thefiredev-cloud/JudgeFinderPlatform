@@ -59,7 +59,7 @@ export function CitiesTab() {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {items.map((c, idx) => (
         <motion.div key={`${c.city}-${idx}`} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.01 }}>
-          <Link href={`/search?city=${encodeURIComponent(c.city)}`} className="group block rounded-lg border border-border p-4 bg-card hover:border-primary/40 hover:shadow-lg transition-all">
+          <Link href={`/cities/${toSlugCity(c.city)}`} className="group block rounded-lg border border-border p-4 bg-card hover:border-primary/40 hover:shadow-lg transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{c.city}</h3>
