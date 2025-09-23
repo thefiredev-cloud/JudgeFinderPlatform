@@ -6,6 +6,7 @@ import { Building, Gavel, Users, MapPin, ChevronRight, Sparkles } from 'lucide-r
 import Link from 'next/link'
 import { CourtsSearch } from './CourtsSearch'
 import { CountiesTab } from './CountiesTab'
+import { CitiesTab } from './CitiesTab'
 
 interface Court {
   id: string
@@ -165,7 +166,7 @@ export function CourtsPageClient({ initialCourts, initialJurisdiction = 'CA' }: 
     fetchStats()
   }, [])
 
-  const [activeTab, setActiveTab] = useState<'courts' | 'counties'>('courts')
+  const [activeTab, setActiveTab] = useState<'courts' | 'counties' | 'cities'>('courts')
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
@@ -310,13 +311,23 @@ export function CourtsPageClient({ initialCourts, initialJurisdiction = 'CA' }: 
             >
               Counties
             </button>
+            <button
+              onClick={() => setActiveTab('cities')}
+              className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                activeTab === 'cities'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-card border-border text-foreground hover:bg-accent/5'
+              }`}
+            >
+              Cities
+            </button>
           </div>
 
-          {activeTab === 'courts' ? (
+          {activeTab === 'courts' && (
             <CourtsSearch initialCourts={initialCourts} initialJurisdiction={initialJurisdiction} />
-          ) : (
-            <CountiesTab />
           )}
+          {activeTab === 'counties' && <CountiesTab />}
+          {activeTab === 'cities' && <CitiesTab />}
         </div>
       </motion.section>
     </div>
