@@ -290,7 +290,7 @@ export function CourtsPageClient({ initialCourts, initialJurisdiction = 'CA' }: 
           </motion.div>
           
           {/* Tabs */}
-          <div className="mb-6 flex items-center gap-2">
+          <div className="mb-6 flex items-center gap-2 justify-center">
             <button
               onClick={() => setActiveTab('courts')}
               className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
@@ -323,11 +323,13 @@ export function CourtsPageClient({ initialCourts, initialJurisdiction = 'CA' }: 
             </button>
           </div>
 
-          {activeTab === 'courts' && (
-            <CourtsSearch initialCourts={initialCourts} initialJurisdiction={initialJurisdiction} />
-          )}
-          {activeTab === 'counties' && <CountiesTab />}
-          {activeTab === 'cities' && <CitiesTab />}
+          <div className="mx-auto max-w-6xl">
+            {activeTab === 'courts' && (
+              <CourtsSearch initialCourts={initialCourts} initialJurisdiction={initialJurisdiction} />
+            )}
+            {activeTab === 'counties' && <CountiesTab />}
+            {activeTab === 'cities' && <CitiesTab />}
+          </div>
         </div>
       </motion.section>
     </div>
