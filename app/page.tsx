@@ -53,11 +53,20 @@ export const metadata: Metadata = {
     canonical: BASE_URL,
   },
   
+  // Search engine verification (configured via environment variables)
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || '',
+    yandex: process.env.YANDEX_VERIFICATION || '',
+    other: {
+      'msvalidate.01': process.env.BING_SITE_VERIFICATION || '',
+    }
+  },
+  
   other: {
-    'google-site-verification': 'your-google-verification-code',
-    'msvalidate.01': 'your-bing-verification-code',
-    'yandex-verification': 'your-yandex-verification-code',
-    'fb:app_id': 'your-facebook-app-id',
+    'google-site-verification': process.env.GOOGLE_SITE_VERIFICATION || '',
+    'msvalidate.01': process.env.BING_SITE_VERIFICATION || '',
+    'yandex-verification': process.env.YANDEX_VERIFICATION || '',
+    'fb:app_id': process.env.FB_APP_ID || '',
     'apple-mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'black-translucent',
     'format-detection': 'telephone=no',

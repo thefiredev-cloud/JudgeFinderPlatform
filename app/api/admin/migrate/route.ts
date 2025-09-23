@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { auth } from '@clerk/nextjs/server'
+import { isAdmin } from '@/lib/auth/is-admin'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
+    const { userId } = await auth()
+    if (!userId || !(await isAdmin())) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     console.log('🔄 Starting database migration...')
     
     const supabase = await createServerClient()
