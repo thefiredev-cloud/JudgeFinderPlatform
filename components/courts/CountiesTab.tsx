@@ -83,7 +83,7 @@ export function CountiesTab() {
         />
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 unstyled-list">
         {filtered.map((c, index) => (
           <motion.div
             key={c.name}
