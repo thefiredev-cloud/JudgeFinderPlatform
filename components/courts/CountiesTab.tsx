@@ -31,21 +31,14 @@ export function CountiesTab() {
         setLoading(true)
         setError(null)
 
-        // Reuse existing judges list to aggregate counts per jurisdiction (county)
-        const res = await fetch('/api/judges/list?limit=2000')
-        if (!res.ok) throw new Error(`Failed to load judges: ${res.status}`)
+        // Use lightweight counts endpoint
+        const res = await fetch('/api/jurisdictions/counts')
+        if (!res.ok) throw new Error(`Failed to load counts: ${res.status}`)
         const data = await res.json()
 
-        const counts: Record<string, number> = {}
-        for (const j of data.judges ?? []) {
-          const key = j.jurisdiction as string | undefined
-          if (!key) continue
-          counts[key] = (counts[key] || 0) + 1
-        }
-
-        const items = Object.entries(counts)
-          .map(([name, judgeCount]) => ({ name, judgeCount }))
-          .sort((a, b) => a.name.localeCompare(b.name))
+        const items: CountyItem[] = (data.counts as Array<{ jurisdiction: string; judge_count: number }> | undefined)?.map(
+          (row) => ({ name: row.jurisdiction, judgeCount: row.judge_count })
+        )?.sort((a, b) => a.name.localeCompare(b.name)) ?? []
 
         if (isMounted) setCounties(items)
       } catch (e) {
