@@ -66,7 +66,7 @@ export function CitiesTab() {
 
   return (
     <div className="space-y-4">
-      <div className="relative max-w-md">
+      <div className="relative max-w-md mx-auto">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -75,7 +75,7 @@ export function CitiesTab() {
         />
       </div>
 
-      <div className="flex flex-wrap gap-2 unstyled-list">
+      <div className="flex flex-wrap gap-2 unstyled-list justify-center">
         {filtered.map((c, idx) => (
           <motion.div key={`${c.city}-${idx}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(idx * 0.003, 0.2) }}>
             <Link

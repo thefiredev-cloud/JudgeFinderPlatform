@@ -74,7 +74,7 @@ export function CountiesTab() {
 
   return (
     <div className="space-y-4">
-      <div className="relative max-w-md">
+      <div className="relative max-w-md mx-auto">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -83,7 +83,7 @@ export function CountiesTab() {
         />
       </div>
 
-      <div className="flex flex-wrap gap-2 unstyled-list">
+      <div className="flex flex-wrap gap-2 unstyled-list justify-center">
         {filtered.map((c, index) => (
           <motion.div
             key={c.name}
