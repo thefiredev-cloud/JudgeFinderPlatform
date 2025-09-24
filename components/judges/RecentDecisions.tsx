@@ -150,8 +150,8 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
           </p>
           <div className="rounded-2xl border border-[rgba(110,168,254,0.35)] bg-[rgba(110,168,254,0.18)] p-4 text-[color:hsl(var(--accent))]">
             <p className="text-xs">
-              <strong>Coming soon:</strong> Real-time filing data integration with detailed judicial decision patterns and
-              analytics.
+              Real-time filing data syncs daily. As new decisions arrive we surface ruling patterns, timelines, and
+              analytics across the site.
             </p>
           </div>
         </div>

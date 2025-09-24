@@ -3,6 +3,66 @@ import { createServerClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
 
+type AnalyticsPreview = {
+  overall_confidence: number | null
+  total_cases_analyzed: number | null
+  civil_plaintiff_favor: number | null
+  criminal_sentencing_severity: number | null
+  generated_at: string | null
+}
+
+async function getAnalyticsPreview(supabase: any, judgeIds: string[]): Promise<Map<string, AnalyticsPreview | null>> {
+  const idSet = Array.from(new Set(judgeIds.filter(Boolean)))
+  const analyticsMap = new Map<string, AnalyticsPreview | null>()
+
+  if (idSet.length === 0) {
+    return analyticsMap
+  }
+
+  const { data, error } = await supabase
+    .from('judge_analytics_cache')
+    .select('judge_id, analytics')
+    .in('judge_id', idSet)
+
+  if (error) {
+    console.error('Failed to load analytics preview:', error)
+    return analyticsMap
+  }
+
+  data?.forEach((row: any) => {
+    if (!row?.judge_id) return
+    const analytics = row.analytics || null
+
+    if (!analytics) {
+      analyticsMap.set(row.judge_id, null)
+      return
+    }
+
+    const toNumber = (value: any): number | null => {
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        return Math.round(value)
+      }
+      if (value === null || value === undefined) {
+        return null
+      }
+      const parsed = Number(value)
+      return Number.isFinite(parsed) ? Math.round(parsed) : null
+    }
+
+    analyticsMap.set(row.judge_id, {
+      overall_confidence: toNumber(analytics.overall_confidence),
+      total_cases_analyzed: typeof analytics.total_cases_analyzed === 'number' && Number.isFinite(analytics.total_cases_analyzed)
+        ? Math.round(analytics.total_cases_analyzed)
+        : null,
+      civil_plaintiff_favor: toNumber(analytics.civil_plaintiff_favor),
+      criminal_sentencing_severity: toNumber(analytics.criminal_sentencing_severity),
+      generated_at: typeof analytics.generated_at === 'string' ? analytics.generated_at : null
+    })
+  })
+
+  return analyticsMap
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { buildRateLimiter, getClientIp } = await import('@/lib/security/rate-limit')
@@ -39,8 +99,9 @@ export async function GET(request: NextRequest) {
       .ilike('name', `%${cleanName}%`)
       .limit(1)
       .single()
-    
+
     if (exactMatch) {
+      const analyticsPreview = await getAnalyticsPreview(supabase, [exactMatch.id])
       // Return single judge with limited data for free users
       return NextResponse.json({
         judge: {
@@ -51,8 +112,7 @@ export async function GET(request: NextRequest) {
           jurisdiction: exactMatch.jurisdiction || 'California',
           appointed_date: exactMatch.appointed_date,
           case_count: exactMatch.case_count?.[0]?.count || 0,
-          // Limited bias score preview for free users
-          bias_score: 4.2 // This would normally come from analytics
+          analytics_preview: analyticsPreview.get(exactMatch.id) ?? null
         },
         rate_limit_remaining: remaining
       })
@@ -98,6 +158,11 @@ export async function GET(request: NextRequest) {
       })
     }
     
+    const analyticsPreview = await getAnalyticsPreview(
+      supabase,
+      judges.map(judge => judge.id).filter(Boolean)
+    )
+
     // Return multiple judges with limited data
     return NextResponse.json({
       judges: judges.map(judge => ({
@@ -107,8 +172,7 @@ export async function GET(request: NextRequest) {
         court_name: judge.court_name,
         jurisdiction: judge.jurisdiction || 'California',
         appointed_date: judge.appointed_date,
-        // Limited data for free users
-        bias_score: Math.floor(Math.random() * 2) + 3 // Placeholder score 3-5
+        analytics_preview: analyticsPreview.get(judge.id) ?? null
       })),
       total: judges.length,
       rate_limit_remaining: remaining

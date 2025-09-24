@@ -97,8 +97,8 @@ export function JudgeMainContent({
               </p>
               <div className="p-4 rounded-lg border border-primary/30 bg-primary/10">
                 <p className="text-sm text-primary">
-                  <strong>Analytics Coming Soon:</strong> Detailed case history, 
-                  ruling patterns, and judicial insights will be available here.
+                  <strong>Analytics Live:</strong> Explore the analytics panels below for ruling patterns,
+                  case timelines, and decision insights generated from recent court data.
                 </p>
               </div>
             </div>

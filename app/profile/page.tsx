@@ -1,4 +1,5 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
+import { ensureCurrentAppUser } from '@/lib/auth/user-mapping'
 import { redirect } from 'next/navigation'
 import { ProfileSettings } from '@/components/profile/ProfileSettings'
 
@@ -11,6 +12,9 @@ export default async function ProfilePage() {
   if (!userId) {
     redirect('/sign-in')
   }
+
+  // Ensure Clerk↔Supabase mapping exists
+  await ensureCurrentAppUser()
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black">

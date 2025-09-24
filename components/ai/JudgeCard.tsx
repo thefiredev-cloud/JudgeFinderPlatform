@@ -1,10 +1,36 @@
 'use client'
 
 import Link from 'next/link'
-import { 
-  User, MapPin, Building, Calendar, 
-  BarChart3, ArrowRight, Scale, Gavel 
-} from 'lucide-react'
+import { MapPin, Building, Calendar, BarChart3, ArrowRight, Scale, Gavel } from 'lucide-react'
+
+function AnalyticsMetric({ label, value, suffix }: { label: string; value: number | null | undefined; suffix?: string }) {
+  if (value === null || value === undefined) {
+    return (
+      <div className="flex flex-col">
+        <span className="text-xs font-medium text-gray-500">{label}</span>
+        <span className="text-sm text-gray-400">Data unavailable</span>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col">
+      <span className="text-xs font-medium text-gray-500">{label}</span>
+      <span className="text-lg font-semibold text-gray-900">
+        {value}
+        {suffix}
+      </span>
+    </div>
+  )
+}
+
+interface JudgeAnalyticsPreview {
+  overall_confidence: number | null
+  total_cases_analyzed: number | null
+  civil_plaintiff_favor: number | null
+  criminal_sentencing_severity: number | null
+  generated_at: string | null
+}
 
 interface JudgeCardProps {
   judge: {
@@ -15,7 +41,7 @@ interface JudgeCardProps {
     jurisdiction?: string
     appointed_date?: string
     case_count?: number
-    bias_score?: number
+    analytics_preview?: JudgeAnalyticsPreview | null
     image_url?: string
   }
   compact?: boolean
@@ -120,19 +146,40 @@ export default function JudgeCard({ judge, compact = false }: JudgeCardProps) {
         )}
       </div>
 
-      {/* Bias Score Preview (Limited for free users) */}
-      {judge.bias_score && (
+      {/* Analytics Preview */}
+      {judge.analytics_preview && (
         <div className="mb-4 p-3 bg-white/70 rounded-lg">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">Consistency Score</span>
-            <span className="text-sm font-bold text-blue-600">{judge.bias_score}/5</span>
+            <span className="text-sm font-medium text-gray-700">Analytics Snapshot</span>
+            <span className="text-xs text-gray-500">
+              {judge.analytics_preview.total_cases_analyzed
+                ? `${judge.analytics_preview.total_cases_analyzed.toLocaleString()} cases`
+                : 'Data pending'}
+            </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500"
-              style={{ width: `${(judge.bias_score / 5) * 100}%` }}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <AnalyticsMetric
+              label="Civil plaintiff favor"
+              value={judge.analytics_preview.civil_plaintiff_favor}
+              suffix="%"
+            />
+            <AnalyticsMetric
+              label="Sentencing severity"
+              value={judge.analytics_preview.criminal_sentencing_severity}
+              suffix="%"
             />
           </div>
+
+          <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+            <span>
+              Confidence: {judge.analytics_preview.overall_confidence ?? 'N/A'}%
+            </span>
+            <span>
+              Updated {judge.analytics_preview.generated_at ? new Date(judge.analytics_preview.generated_at).toLocaleDateString() : 'recently'}
+            </span>
+          </div>
+
           <p className="text-xs text-gray-500 mt-2">
             Full analytics available on profile page
           </p>
@@ -153,7 +200,7 @@ export default function JudgeCard({ judge, compact = false }: JudgeCardProps) {
       {/* Trust Badge */}
       <div className="mt-3 text-center">
         <p className="text-xs text-gray-500">
-          Trusted by 10,000+ attorneys in California
+          Built with public court data. Verify details on each profile.
         </p>
       </div>
     </div>

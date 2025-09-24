@@ -14,51 +14,50 @@ export async function GET(request: Request) {
     }
     const supabase = await createServerClient()
 
-    // Get saved preference count to approximate engaged users
-    const { count: userCount, error: userError } = await supabase
-      .from('user_preferences')
-      .select('*', { count: 'exact', head: true })
+    const monthAgoIso = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
-    if (userError) {
-      console.error('Error fetching user count:', userError)
-    }
+    const [{ count: userCount, error: userError }, { data: monthActivity, error: activityError }, { data: oldestCase, error: caseError }] = await Promise.all([
+      supabase
+        .from('user_preferences')
+        .select('*', { count: 'exact', head: true }),
+      supabase
+        .from('user_activity')
+        .select('id, created_at, activity_type')
+        .gte('created_at', monthAgoIso),
+      supabase
+        .from('cases')
+        .select('date_filed')
+        .not('date_filed', 'is', null)
+        .order('date_filed', { ascending: true })
+        .limit(1)
+    ])
 
-    // Get oldest case date to determine years of historical data
-    const { data: oldestCase, error: caseError } = await supabase
-      .from('cases')
-      .select('date_filed')
-      .not('date_filed', 'is', null)
-      .order('date_filed', { ascending: true })
-      .limit(1)
+    if (userError) console.error('Error fetching user count:', userError)
+    if (activityError) console.error('Error fetching monthly activity:', activityError)
+    if (caseError) console.error('Error fetching oldest case:', caseError)
 
-    if (caseError) {
-      console.error('Error fetching oldest case:', caseError)
-    }
+    const totalUsers = typeof userCount === 'number' ? userCount : null
 
-    // Calculate years of historical data
+    const searchesLast30 = (monthActivity || []).filter(item => item.activity_type === 'search').length
+    const monthlySearches = searchesLast30 > 0 ? searchesLast30.toLocaleString() : '—'
+
     let yearsOfData: number | null = null
     if (oldestCase && oldestCase[0]?.date_filed) {
       const oldestDate = new Date(oldestCase[0].date_filed)
       const currentDate = new Date()
-      yearsOfData = Math.floor((currentDate.getTime() - oldestDate.getTime()) / (1000 * 60 * 60 * 24 * 365))
-      yearsOfData = Math.max(1, Math.min(yearsOfData, 10)) // Cap between 1-10 years
+      const diffYears = Math.floor((currentDate.getTime() - oldestDate.getTime()) / (1000 * 60 * 60 * 24 * 365))
+      yearsOfData = Math.max(1, Math.min(diffYears, 10))
     }
 
-    // Treat preference count as a proxy for total users but do not infer traffic
-    const totalUsers = typeof userCount === 'number' ? userCount : null
-
-    // Security metric (explicitly zero if no incidents recorded)
-    const dataBreaches = 0
-
     const stats = {
-      monthlySearches: 'Coming Soon',
-      monthlySearchesRaw: null,
+      monthlySearches,
+      monthlySearchesRaw: searchesLast30 > 0 ? searchesLast30 : null,
       yearsOfData,
       yearsOfDataDisplay: yearsOfData ? `${yearsOfData} ${yearsOfData === 1 ? 'Year' : 'Years'} Historical Data` : '—',
       availability: 'Monitoring',
       availabilityPercentage: null,
       uptimeDays: null,
-      dataBreaches,
+      dataBreaches: 0,
       securityDisplay: 'Zero Data Breaches',
       activeUsers: null,
       totalUsers,
@@ -74,10 +73,9 @@ export async function GET(request: Request) {
 
   } catch (error) {
     console.error('Platform stats error:', error)
-    
-    // Return fallback data
+
     return NextResponse.json({
-      monthlySearches: 'Coming Soon',
+      monthlySearches: '—',
       monthlySearchesRaw: null,
       yearsOfData: null,
       yearsOfDataDisplay: '—',
@@ -91,6 +89,6 @@ export async function GET(request: Request) {
       platformAge: null,
       error: 'Using fallback data',
       timestamp: new Date().toISOString()
-    })
+    }, { status: 500 })
   }
 }

@@ -4,6 +4,7 @@ import { createServiceRoleClient } from '@/lib/supabase/server'
 import { buildRateLimiter, getClientIp } from '@/lib/security/rate-limit'
 import { logger } from '@/lib/utils/logger'
 import { validateParams } from '@/lib/utils/validation'
+import crypto from 'crypto'
 
 const ISSUE_TYPE_VALUES = ['data_accuracy', 'bias_context', 'assignment_change', 'ads_or_policy', 'other'] as const
 const issueSchema = z.object({
@@ -17,6 +18,8 @@ const issueSchema = z.object({
     .email({ message: 'Invalid email address' })
     .max(200)
     .optional(),
+  // Optional Turnstile token (required only when TURNSTILE_SECRET_KEY is configured)
+  turnstileToken: z.string().min(10).max(1000).optional(),
 })
 
 const limiter = buildRateLimiter({
@@ -70,6 +73,44 @@ function computeSlaDue(start: Date, severity: Severity): Date {
   return due
 }
 
+function normalizeDetails(input: string): string {
+  // Collapse whitespace and limit consecutive special characters
+  let details = input.replace(/\s+/g, ' ').trim()
+  // Remove obvious tracking query params in URLs
+  details = details.replace(/([?&](utm_[^=]+|fbclid|gclid)=[^\s]+)/gi, '')
+  // Remove zero-width/control characters
+  details = details.replace(/[\u200B-\u200D\uFEFF\u0000-\u001F\u007F]/g, '')
+  // Hard cap length server-side as a safety net
+  if (details.length > 2000) {
+    details = details.slice(0, 2000)
+  }
+  return details
+}
+
+async function verifyTurnstile(token: string, remoteip: string | null): Promise<{ ok: boolean; score?: number }> {
+  const secret = process.env.TURNSTILE_SECRET_KEY
+  if (!secret) return { ok: true }
+  try {
+    const body = new URLSearchParams()
+    body.set('secret', secret)
+    body.set('response', token)
+    if (remoteip && remoteip !== 'unknown') {
+      body.set('remoteip', remoteip)
+    }
+
+    const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body,
+    })
+    const json: any = await resp.json()
+    return { ok: Boolean(json?.success), score: typeof json?.score === 'number' ? json.score : undefined }
+  } catch (error) {
+    logger.error('Turnstile verification failed', { error })
+    return { ok: false }
+  }
+}
+
 async function dispatchCorrectionsWebhook(payload: {
   id: string
   judge_slug: string
@@ -110,14 +151,38 @@ export async function POST(request: NextRequest) {
     logger.warn('Profile issue rate limited', { clientIp })
     return NextResponse.json(
       { error: 'Too many reports. Please wait a few minutes and try again.' },
-      { status: 429 },
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': String((rateResult as any).limit ?? ''),
+          'X-RateLimit-Remaining': String(rateResult.remaining ?? 0),
+          'X-RateLimit-Reset': String(rateResult.reset ?? ''),
+        },
+      },
     )
+  }
+
+  // Enforce content-type and small JSON body size (< 8KB)
+  const contentType = request.headers.get('content-type') || ''
+  if (!contentType.toLowerCase().includes('application/json')) {
+    return NextResponse.json({ error: 'Invalid content type' }, { status: 415 })
+  }
+
+  const contentLength = Number(request.headers.get('content-length') || '0')
+  const MAX_BYTES = 8 * 1024 // 8KB
+  if (contentLength > 0 && contentLength > MAX_BYTES) {
+    return NextResponse.json({ error: 'Payload too large' }, { status: 413 })
   }
 
   let payload: unknown
 
   try {
-    payload = await request.json()
+    // Read as text to enforce size limits, then parse
+    const raw = await request.text()
+    if (raw.length > MAX_BYTES) {
+      return NextResponse.json({ error: 'Payload too large' }, { status: 413 })
+    }
+    payload = JSON.parse(raw)
   } catch (error) {
     logger.warn('Profile issue invalid JSON', { clientIp })
     return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
@@ -130,12 +195,33 @@ export async function POST(request: NextRequest) {
 
   const data = validation.data
 
+  // Optional Turnstile verification (enforced only when TURNSTILE_SECRET_KEY is configured)
+  const secretPresent = Boolean(process.env.TURNSTILE_SECRET_KEY)
+  const headerToken = request.headers.get('cf-turnstile-token') || request.headers.get('cf-turnstile-response')
+  const token = headerToken || (data as any).turnstileToken
+  if (secretPresent) {
+    if (!token) {
+      return NextResponse.json({ error: 'Verification required' }, { status: 400 })
+    }
+    const verify = await verifyTurnstile(token, clientIp)
+    if (!verify.ok) {
+      return NextResponse.json({ error: 'Verification failed' }, { status: 403 })
+    }
+  }
+
   const dailyResult = await dailyLimiter.limit(`${clientIp}:${data.judgeSlug}`)
   if (!dailyResult.success) {
     logger.warn('Profile issue daily rate limited', { clientIp, judgeSlug: data.judgeSlug })
     return NextResponse.json(
       { error: 'Too many reports today. Please try again tomorrow or email corrections@judgefinder.io.' },
-      { status: 429 },
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': String((dailyResult as any).limit ?? ''),
+          'X-RateLimit-Remaining': String(dailyResult.remaining ?? 0),
+          'X-RateLimit-Reset': String(dailyResult.reset ?? ''),
+        },
+      },
     )
   }
 
@@ -162,6 +248,15 @@ export async function POST(request: NextRequest) {
     metadata.user_agent = userAgent
   }
 
+  // Add a privacy-preserving fingerprint (IP + UA + day) to deter abuse
+  try {
+    const dayBucket = new Date(now)
+    dayBucket.setUTCHours(0, 0, 0, 0)
+    const fpSource = `${clientIp || 'unknown'}|${userAgent || 'unknown'}|${dayBucket.toISOString()}`
+    const fingerprint = crypto.createHash('sha256').update(fpSource).digest('hex')
+    metadata.fingerprint_hash = fingerprint
+  } catch {}
+
   try {
     const supabase = await createServiceRoleClient()
     const { data: insertedIssue, error } = await supabase
@@ -170,7 +265,7 @@ export async function POST(request: NextRequest) {
         judge_slug: data.judgeSlug.trim(),
         court_id: data.courtId?.trim() ?? null,
         issue_type: data.issueType,
-        details: data.details.trim(),
+        details: normalizeDetails(data.details),
         reporter_email: data.reporterEmail?.trim().toLowerCase() ?? null,
         severity,
         priority,
@@ -205,6 +300,9 @@ export async function POST(request: NextRequest) {
         status: 201,
         headers: {
           'Cache-Control': 'no-store',
+          'X-RateLimit-Limit': String((rateResult as any).limit ?? ''),
+          'X-RateLimit-Remaining': String(rateResult.remaining ?? 0),
+          'X-RateLimit-Reset': String(rateResult.reset ?? ''),
         },
       },
     )
