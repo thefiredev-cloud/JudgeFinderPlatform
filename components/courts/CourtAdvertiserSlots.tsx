@@ -55,7 +55,20 @@ export function CourtAdvertiserSlots({ courtId, courtName }: CourtAdvertiserSlot
       }
 
       const data: ApiResponse = await response.json()
-      setSlots(data.slots ?? getDemoSlots())
+
+      // Normalize to exactly three positions (1-3), padding with placeholders
+      const incoming = (data.slots ?? []).reduce<Record<number, AdSlot>>((acc, slot) => {
+        if (slot && typeof slot.position === 'number' && slot.position >= 1 && slot.position <= 3) {
+          acc[slot.position] = slot
+        }
+        return acc
+      }, {})
+
+      const normalized: AdSlot[] = [1, 2, 3].map((pos) => {
+        return incoming[pos] ?? { id: `placeholder-${pos}`, position: pos }
+      })
+
+      setSlots(normalized)
     } catch (error) {
       console.error('Error fetching ad slots:', error)
       setSlots(getDemoSlots())
@@ -69,23 +82,7 @@ export function CourtAdvertiserSlots({ courtId, courtName }: CourtAdvertiserSlot
   }, [fetchAdSlots])
 
   function getDemoSlots(): AdSlot[] {
-    return [
-      {
-        id: '1',
-        position: 1
-        // Empty slot - available for booking
-      },
-      {
-        id: '2',
-        position: 2
-        // Empty slot - available for booking
-      },
-      {
-        id: '3',
-        position: 3
-        // Empty slot - available for booking
-      }
-    ]
+    return [1, 2, 3].map((pos) => ({ id: `placeholder-${pos}`, position: pos }))
   }
 
   function trackClick(slotId: string, url: string) {
@@ -222,7 +219,7 @@ export function CourtAdvertiserSlots({ courtId, courtName }: CourtAdvertiserSlot
                 Position #{slot.position} • Premium visibility
               </p>
               <Link
-                href="/professional"
+                href={`/dashboard/advertiser/ad-spots?preselected=true&entityType=court&entityId=${encodeURIComponent(courtId)}&position=${encodeURIComponent(String(slot.position))}`}
                 className="inline-block px-4 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
               >
                 Book This Spot

@@ -56,7 +56,20 @@ export function AdvertiserSlots({ judgeId, judgeName }: AdvertiserSlotsProps) {
       }
 
       const data: ApiResponse = await response.json()
-      setSlots(data.slots ?? getDemoSlots())
+
+      // Normalize to exactly three positions (1-3), padding with placeholders
+      const incoming = (data.slots ?? []).reduce<Record<number, AdSlot>>((acc, slot) => {
+        if (slot && typeof slot.position === 'number' && slot.position >= 1 && slot.position <= 3) {
+          acc[slot.position] = slot
+        }
+        return acc
+      }, {})
+
+      const normalized: AdSlot[] = [1, 2, 3].map((pos) => {
+        return incoming[pos] ?? { id: `placeholder-${pos}`, position: pos }
+      })
+
+      setSlots(normalized)
     } catch (error) {
       console.error('Error fetching ad slots:', error)
       setSlots(getDemoSlots())
@@ -70,23 +83,7 @@ export function AdvertiserSlots({ judgeId, judgeName }: AdvertiserSlotsProps) {
   }, [fetchAdSlots])
 
   function getDemoSlots(): AdSlot[] {
-    return [
-      {
-        id: '1',
-        position: 1
-        // Empty slot - available for booking
-      },
-      {
-        id: '2',
-        position: 2
-        // Empty slot - available for booking
-      },
-      {
-        id: '3',
-        position: 3
-        // Empty slot - available for booking
-      }
-    ]
+    return [1, 2, 3].map((pos) => ({ id: `placeholder-${pos}`, position: pos }))
   }
 
   function trackClick(slotId: string, url: string) {
@@ -275,7 +272,7 @@ export function AdvertiserSlots({ judgeId, judgeName }: AdvertiserSlotsProps) {
                   Position #{slot.position} • Premium visibility
                 </p>
                 <Link
-                  href="/professional"
+                  href={`/dashboard/advertiser/ad-spots?preselected=true&entityType=judge&entityId=${encodeURIComponent(judgeId)}&position=${encodeURIComponent(String(slot.position))}`}
                   className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-[hsl(var(--bg-2))] px-4 py-2 text-sm font-semibold text-[color:hsl(var(--text-2))] transition-colors hover:border-[rgba(110,168,254,0.45)] hover:text-[color:hsl(var(--text-1))]"
                 >
                   Book this spot
