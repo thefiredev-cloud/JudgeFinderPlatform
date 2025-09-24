@@ -1,4 +1,5 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
+import { ensureCurrentAppUser } from '@/lib/auth/user-mapping'
 import { redirect } from 'next/navigation'
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard'
 import { isAdmin } from '@/lib/auth/is-admin'
@@ -10,6 +11,9 @@ export default async function WelcomePage() {
   if (!userId) {
     redirect('/sign-in')
   }
+
+  // Ensure Clerk↔Supabase mapping exists
+  await ensureCurrentAppUser()
 
   // Check if user is admin
   const userIsAdmin = await isAdmin()

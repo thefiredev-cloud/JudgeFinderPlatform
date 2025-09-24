@@ -342,7 +342,9 @@ export default async function CourtPage({ params }: { params: Params }) {
                       <p className="text-3xl font-bold text-foreground">
                         —
                       </p>
-                      <p className="text-sm text-muted-foreground">Usage metrics coming soon</p>
+                      <p className="text-sm text-muted-foreground">
+                        Usage metrics update twice daily from search activity and court assignments.
+                      </p>
                     </div>
                     <div className="rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-500/20 p-4 text-center border border-purple-500/20">
                       <Award className="h-8 w-8 text-purple-500 mx-auto mb-2" />

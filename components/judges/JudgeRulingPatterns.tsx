@@ -2,33 +2,65 @@
 
 import { useState } from 'react'
 import { BarChart, PieChart, TrendingUp, TrendingDown } from 'lucide-react'
+import useSWR from 'swr'
+import { fetcher } from '@/lib/utils/fetcher'
+import { Skeleton } from '@/components/ui/Skeleton'
+
+interface AnalyticsResponse {
+  analytics: {
+    civil_plaintiff_favor?: number | null
+    contract_enforcement_rate?: number | null
+    settlement_encouragement_rate?: number | null
+    criminal_sentencing_severity?: number | null
+    motion_grant_rate?: number | null
+    notable_patterns?: string[]
+  }
+}
 
 interface JudgeRulingPatternsProps {
   judgeId: string
 }
 
 export function JudgeRulingPatterns({ judgeId }: JudgeRulingPatternsProps) {
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'trends'>('overview')
 
-  // Mock data - would be fetched based on judgeId
-  const patterns = {
-    plaintiff_win_rate: 0.58,
-    defendant_win_rate: 0.42,
-    settlement_rate: 0.35,
-    dismissal_rate: 0.15,
-    summary_judgment: {
-      granted: 0.28,
-      denied: 0.72
+  const { data, isLoading } = useSWR<AnalyticsResponse>(
+    judgeId ? `/api/judges/${judgeId}/analytics` : null,
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 5 * 60 * 1000 }
+  )
+
+  const analytics = data?.analytics
+
+  const metrics = [
+    {
+      label: 'Plaintiff Favor Rate',
+      value: analytics?.civil_plaintiff_favor,
+      tooltip: 'Percentage of civil cases favoring plaintiffs'
     },
-    case_types: [
-      { type: 'Civil Rights', percentage: 25, trend: 'up' },
-      { type: 'Contract Disputes', percentage: 20, trend: 'stable' },
-      { type: 'Personal Injury', percentage: 18, trend: 'down' },
-      { type: 'Employment', percentage: 15, trend: 'up' },
-      { type: 'Criminal', percentage: 12, trend: 'stable' },
-      { type: 'Other', percentage: 10, trend: 'stable' }
-    ]
-  }
+    {
+      label: 'Contract Enforcement Rate',
+      value: analytics?.contract_enforcement_rate,
+      tooltip: 'Share of contract disputes resulting in enforcement'
+    },
+    {
+      label: 'Settlement Encouragement',
+      value: analytics?.settlement_encouragement_rate,
+      tooltip: 'Cases where settlements were reached or encouraged'
+    },
+    {
+      label: 'Sentencing Severity',
+      value: analytics?.criminal_sentencing_severity,
+      tooltip: 'Relative severity of criminal sentences (higher is stricter)'
+    },
+    {
+      label: 'Motion Grant Rate',
+      value: analytics?.motion_grant_rate,
+      tooltip: 'Percentage of motions granted'
+    }
+  ]
+
+  const hasAnalytics = metrics.some(metric => typeof metric.value === 'number')
 
   return (
     <div className="rounded-lg bg-white p-6 shadow-sm">
@@ -60,91 +92,60 @@ export function JudgeRulingPatterns({ judgeId }: JudgeRulingPatternsProps) {
 
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          {/* Win Rates */}
-          <div>
-            <h3 className="mb-4 font-semibold text-gray-900">Party Win Rates</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-lg border border-gray-200 p-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Plaintiff Win Rate</span>
-                  <BarChart className="h-4 w-4 text-gray-400" />
-                </div>
-                <p className="text-2xl font-bold text-gray-900">
-                  {(patterns.plaintiff_win_rate * 100).toFixed(0)}%
-                </p>
-                <div className="mt-2 h-2 rounded-full bg-gray-200">
-                  <div
-                    className="h-2 rounded-full bg-blue-600"
-                    style={{ width: `${patterns.plaintiff_win_rate * 100}%` }}
-                  />
-                </div>
-              </div>
-              <div className="rounded-lg border border-gray-200 p-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Defendant Win Rate</span>
-                  <BarChart className="h-4 w-4 text-gray-400" />
-                </div>
-                <p className="text-2xl font-bold text-gray-900">
-                  {(patterns.defendant_win_rate * 100).toFixed(0)}%
-                </p>
-                <div className="mt-2 h-2 rounded-full bg-gray-200">
-                  <div
-                    className="h-2 rounded-full bg-green-600"
-                    style={{ width: `${patterns.defendant_win_rate * 100}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Case Types */}
-          <div>
-            <h3 className="mb-4 font-semibold text-gray-900">Case Type Distribution</h3>
+          {isLoading && (
             <div className="space-y-3">
-              {patterns.case_types.map((caseType) => (
-                <div key={caseType.type} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <PieChart className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-700">{caseType.type}</span>
+              {[0, 1, 2].map(key => (
+                <Skeleton key={key} className="h-20 rounded-lg" />
+              ))}
+            </div>
+          )}
+
+          {!isLoading && !hasAnalytics && (
+            <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
+              Analytics for this judge are still being generated. Check back after the next data refresh.
+            </div>
+          )}
+
+          {!isLoading && hasAnalytics && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {metrics.map(metric => (
+                <div key={metric.label} className="rounded-lg border border-gray-200 p-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-sm text-gray-600">{metric.label}</span>
+                    <BarChart className="h-4 w-4 text-gray-400" />
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <span className="text-sm font-medium text-gray-900">
-                      {caseType.percentage}%
-                    </span>
-                    {caseType.trend === 'up' && (
-                      <TrendingUp className="h-4 w-4 text-green-500" />
-                    )}
-                    {caseType.trend === 'down' && (
-                      <TrendingDown className="h-4 w-4 text-red-500" />
-                    )}
-                  </div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {typeof metric.value === 'number' ? `${metric.value.toFixed(0)}%` : '—'}
+                  </p>
+                  <p className="mt-2 text-xs text-gray-500">{metric.tooltip}</p>
                 </div>
               ))}
             </div>
-          </div>
+          )}
 
-          {/* Additional Metrics */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-lg bg-gray-50 p-4">
-              <p className="text-sm text-gray-600">Settlement Rate</p>
-              <p className="text-xl font-bold text-gray-900">
-                {(patterns.settlement_rate * 100).toFixed(0)}%
-              </p>
+          {!isLoading && Array.isArray(analytics?.notable_patterns) && analytics.notable_patterns.length > 0 && (
+            <div>
+              <h3 className="mb-3 font-semibold text-gray-900">Notable Patterns</h3>
+              <ul className="space-y-2 text-sm text-gray-700">
+                {analytics.notable_patterns.map(pattern => (
+                  <li key={pattern} className="flex items-start">
+                    <PieChart className="mr-2 h-4 w-4 mt-1 text-gray-400" />
+                    <span>{pattern}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className="rounded-lg bg-gray-50 p-4">
-              <p className="text-sm text-gray-600">Dismissal Rate</p>
-              <p className="text-xl font-bold text-gray-900">
-                {(patterns.dismissal_rate * 100).toFixed(0)}%
-              </p>
-            </div>
-          </div>
+          )}
         </div>
       )}
 
       {activeTab === 'trends' && (
         <div className="py-8 text-center text-gray-500">
           <TrendingUp className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-          <p>Trend analysis coming soon</p>
+          <p>
+            Time-series trend visualizations are coming soon. We are aggregating monthly rulings to surface meaningful
+            changes over time.
+          </p>
         </div>
       )}
     </div>

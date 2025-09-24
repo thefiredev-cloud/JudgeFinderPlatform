@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { ensureCurrentAppUser } from '@/lib/auth/user-mapping'
 import * as Sentry from '@sentry/nextjs'
 import { NextResponse } from 'next/server'
 import type { NextFetchEvent, NextRequest } from 'next/server'
@@ -30,10 +31,14 @@ const clerkWrappedHandler = hasValidClerkKeys
 
       if (isProtectedRoute(request)) {
         await auth.protect()
+        // Best-effort user mapping; don't block response on failure
+        try { await ensureCurrentAppUser() } catch {}
       }
 
       if (isAdminRoute(request)) {
         await auth.protect()
+        // Ensure mapping for admins too
+        try { await ensureCurrentAppUser() } catch {}
       }
 
       return baseMiddleware(request)

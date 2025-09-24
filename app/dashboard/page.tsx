@@ -1,4 +1,5 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
+import { ensureCurrentAppUser } from '@/lib/auth/user-mapping'
 import { redirect } from 'next/navigation'
 import { UserDashboard } from '@/components/dashboard/UserDashboard'
 
@@ -11,6 +12,9 @@ export default async function DashboardPage() {
   if (!userId) {
     redirect('/sign-in')
   }
+
+  // Ensure Clerk↔Supabase mapping exists on first visit
+  await ensureCurrentAppUser()
 
   // Serialize the user data to pass to client component
   const serializedUser = user ? {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { 
   BookmarkIcon, 
@@ -43,6 +43,28 @@ interface ApiResponse {
   message: string
 }
 
+interface BookmarkJudge {
+  id: string
+  judge_id: string
+  created_at: string
+  judges: {
+    id: string
+    name: string
+    court?: string | null
+    court_name?: string | null
+    jurisdiction?: string | null
+    slug?: string | null
+  }
+}
+
+interface ActivityEntry {
+  id?: string
+  activity_type: string
+  created_at: string
+  activity_data?: Record<string, any> | null
+  search_query?: string | null
+}
+
 export function UserDashboard({ user }: UserDashboardProps) {
   const [stats, setStats] = useState<DashboardStats>({
     totalSearches: 0,
@@ -55,38 +77,48 @@ export function UserDashboard({ user }: UserDashboardProps) {
   })
   const [loading, setLoading] = useState(true)
   const [showAdPurchaseModal, setShowAdPurchaseModal] = useState(false)
+  const [savedLoading, setSavedLoading] = useState(true)
+  const [searchLoading, setSearchLoading] = useState(true)
+  const [savedJudges, setSavedJudges] = useState<BookmarkJudge[]>([])
+  const [recentSearches, setRecentSearches] = useState<ActivityEntry[]>([])
+
+  const formattedMemberSince = useMemo(() => stats.memberSince || 'N/A', [stats.memberSince])
+
+  const formatRelativeTime = (timestamp: string) => {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+
+    if (diffMs < 60_000) return 'Just now'
+    const diffMinutes = Math.round(diffMs / 60_000)
+    if (diffMinutes < 60) return `${diffMinutes} min${diffMinutes === 1 ? '' : 's'} ago`
+
+    const diffHours = Math.round(diffMinutes / 60)
+    if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`
+
+    const diffDays = Math.round(diffHours / 24)
+    if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`
+
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
 
   useEffect(() => {
     async function fetchUserStats() {
-      if (!user) return
+      if (!user) {
+        setLoading(false)
+        return
+      }
 
       try {
         setLoading(true)
         const response = await fetch('/api/user/stats')
-        
         if (response.ok) {
           const data: ApiResponse = await response.json()
           if (data.success) {
             setStats(data.stats)
           }
-        } else {
-          // Fallback to mock data if API fails
-          const joinedDate = user.createdAt ? new Date(user.createdAt) : new Date()
-          const daysSinceJoin = Math.floor((Date.now() - joinedDate.getTime()) / (1000 * 60 * 60 * 24))
-          
-          setStats({
-            totalSearches: 8,
-            judgesViewed: 47,
-            bookmarkedJudges: 12,
-            comparisonsRun: 3,
-            recentActivity: 15,
-            daysSinceJoin,
-            memberSince: joinedDate.toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })
-          })
+        } else if (response.status === 401) {
+          setStats(prev => ({ ...prev, memberSince: '', daysSinceJoin: 0 }))
         }
       } catch (error) {
         console.error('Failed to fetch user stats:', error)
@@ -97,6 +129,161 @@ export function UserDashboard({ user }: UserDashboardProps) {
 
     fetchUserStats()
   }, [user])
+
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchSavedJudges = async () => {
+      if (!user) {
+        if (isMounted) {
+          setSavedJudges([])
+          setSavedLoading(false)
+        }
+        return
+      }
+
+      try {
+        setSavedLoading(true)
+        const response = await fetch('/api/user/bookmarks')
+        if (!isMounted) return
+
+        if (response.ok) {
+          const data = await response.json()
+          const bookmarks: BookmarkJudge[] = data.bookmarks || []
+          setSavedJudges(bookmarks.slice(0, 3))
+        } else if (response.status === 401) {
+          setSavedJudges([])
+        }
+      } catch (error) {
+        console.error('Failed to fetch saved judges:', error)
+      } finally {
+        if (isMounted) {
+          setSavedLoading(false)
+        }
+      }
+    }
+
+    const fetchRecentSearches = async () => {
+      if (!user) {
+        if (isMounted) {
+          setRecentSearches([])
+          setSearchLoading(false)
+        }
+        return
+      }
+
+      try {
+        setSearchLoading(true)
+        const response = await fetch('/api/user/activity?limit=5&type=search')
+        if (!isMounted) return
+
+        if (response.ok) {
+          const data = await response.json()
+          const activities: ActivityEntry[] = data.activity || []
+          setRecentSearches(activities)
+        } else if (response.status === 401) {
+          setRecentSearches([])
+        }
+      } catch (error) {
+        console.error('Failed to fetch recent searches:', error)
+      } finally {
+        if (isMounted) {
+          setSearchLoading(false)
+        }
+      }
+    }
+
+    fetchSavedJudges()
+    fetchRecentSearches()
+
+    return () => {
+      isMounted = false
+    }
+  }, [user])
+
+  const renderSavedJudges = () => {
+    if (savedLoading) {
+      return (
+        <div className="space-y-3">
+          {[0, 1, 2].map(key => (
+            <div key={key} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg animate-pulse">
+              <div className="w-full space-y-2">
+                <div className="h-4 bg-gray-600/60 rounded" />
+                <div className="h-3 bg-gray-600/40 rounded w-1/2" />
+              </div>
+              <StarIcon className="h-5 w-5 text-gray-600" />
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    if (!savedJudges.length) {
+      return (
+        <div className="py-6 text-center text-sm text-gray-400">
+          No saved judges yet. Bookmark judges to see them here.
+        </div>
+      )
+    }
+
+    return savedJudges.map(bookmark => {
+      const judge = bookmark.judges
+      const courtLabel = judge.court_name || judge.court || 'Court information unavailable'
+
+      return (
+        <div key={bookmark.id} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
+          <div>
+            <p className="font-medium text-white">{judge.name}</p>
+            <p className="text-sm text-gray-400">{courtLabel}</p>
+          </div>
+          <StarIcon className="h-5 w-5 text-yellow-400" />
+        </div>
+      )
+    })
+  }
+
+  const renderRecentSearches = () => {
+    if (searchLoading) {
+      return (
+        <div className="space-y-3">
+          {[0, 1, 2].map(key => (
+            <div key={key} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg animate-pulse">
+              <div className="w-full space-y-2">
+                <div className="h-4 bg-gray-600/60 rounded" />
+                <div className="h-3 bg-gray-600/40 rounded w-1/2" />
+              </div>
+              <SearchIcon className="h-5 w-5 text-gray-600" />
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    if (!recentSearches.length) {
+      return (
+        <div className="py-6 text-center text-sm text-gray-400">
+          No recent searches yet. Start exploring judges and courts to see them here.
+        </div>
+      )
+    }
+
+    return recentSearches.map((activity, index) => {
+      const query = activity.search_query || activity.activity_data?.query || 'Search'
+      const context = activity.activity_data?.context || activity.activity_data?.jurisdiction || activity.activity_data?.court_name || ''
+
+      return (
+        <div key={activity.id ?? index} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
+          <div>
+            <p className="font-medium text-white">{query}</p>
+            <p className="text-sm text-gray-400">
+              {context ? `${context} • ` : ''}{formatRelativeTime(activity.created_at)}
+            </p>
+          </div>
+          <SearchIcon className="h-5 w-5 text-gray-400" />
+        </div>
+      )
+    })
+  }
 
   return (
     <div className="space-y-8">
@@ -246,28 +433,7 @@ export function UserDashboard({ user }: UserDashboardProps) {
             </Link>
           </div>
           <div className="space-y-3">
-            {/* Mock data - will be replaced with real data */}
-            <div className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
-              <div>
-                <p className="font-medium text-white">Hon. Sarah Johnson</p>
-                <p className="text-sm text-gray-400">Superior Court of Orange County</p>
-              </div>
-              <StarIcon className="h-5 w-5 text-yellow-400" />
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
-              <div>
-                <p className="font-medium text-white">Hon. Michael Chen</p>
-                <p className="text-sm text-gray-400">Los Angeles Superior Court</p>
-              </div>
-              <StarIcon className="h-5 w-5 text-yellow-400" />
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
-              <div>
-                <p className="font-medium text-white">Hon. Lisa Rodriguez</p>
-                <p className="text-sm text-gray-400">San Diego Superior Court</p>
-              </div>
-              <StarIcon className="h-5 w-5 text-yellow-400" />
-            </div>
+            {renderSavedJudges()}
           </div>
         </div>
 
@@ -280,28 +446,7 @@ export function UserDashboard({ user }: UserDashboardProps) {
             </Link>
           </div>
           <div className="space-y-3">
-            {/* Mock data - will be replaced with real data */}
-            <div className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
-              <div>
-                <p className="font-medium text-white">Family Law Judges</p>
-                <p className="text-sm text-gray-400">Orange County • 2 hours ago</p>
-              </div>
-              <SearchIcon className="h-5 w-5 text-gray-400" />
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
-              <div>
-                <p className="font-medium text-white">Criminal Defense</p>
-                <p className="text-sm text-gray-400">Los Angeles • Yesterday</p>
-              </div>
-              <SearchIcon className="h-5 w-5 text-gray-400" />
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
-              <div>
-                <p className="font-medium text-white">Civil Litigation</p>
-                <p className="text-sm text-gray-400">San Francisco • 3 days ago</p>
-              </div>
-              <SearchIcon className="h-5 w-5 text-gray-400" />
-            </div>
+            {renderRecentSearches()}
           </div>
         </div>
       </div>
@@ -317,7 +462,7 @@ export function UserDashboard({ user }: UserDashboardProps) {
           <div>
             <p className="text-sm font-medium text-gray-400 mb-1">Member Since</p>
             <p className="text-white">
-              {loading ? 'Loading...' : (stats.memberSince || 'N/A')}
+              {loading ? 'Loading...' : formattedMemberSince}
             </p>
           </div>
           <div>
