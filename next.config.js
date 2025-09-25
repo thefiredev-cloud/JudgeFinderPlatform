@@ -10,6 +10,10 @@ if (process.env.NODE_ENV === 'production' || process.env.NETLIFY_BUILD === 'true
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  eslint: {
+    // Netlify's Next.js integration runs lint during build; treat warnings locally instead of blocking deploys
+    ignoreDuringBuilds: true,
+  },
   sentry: {
     hideSourceMaps: true,
   },

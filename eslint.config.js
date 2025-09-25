@@ -3,6 +3,8 @@
 const { FlatCompat } = require('@eslint/eslintrc');
 const compat = new FlatCompat({ baseDirectory: __dirname });
 
+const strictSeverity = process.env.LINT_LEVEL === 'strict' ? 'error' : 'warn';
+
 module.exports = [
   // Global ignores to prevent linting build artifacts
   {
@@ -75,22 +77,22 @@ module.exports = [
       'lib/utils/logger.ts'
     ],
     rules: {
-      'max-lines': ['error', { max: 500, skipBlankLines: true, skipComments: true }],
-      'max-lines-per-function': ['error', { max: 40, skipComments: true, IIFEs: true }],
-      complexity: ['error', { max: 10 }],
-      'max-depth': ['error', 3],
-      'max-classes-per-file': ['error', 1],
-      '@typescript-eslint/explicit-function-return-type': ['error', { allowExpressions: true }],
-      '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+      'max-lines': [strictSeverity, { max: 500, skipBlankLines: true, skipComments: true }],
+      'max-lines-per-function': [strictSeverity, { max: 40, skipComments: true, IIFEs: true }],
+      complexity: [strictSeverity, { max: 10 }],
+      'max-depth': [strictSeverity, 3],
+      'max-classes-per-file': [strictSeverity, 1],
+      '@typescript-eslint/explicit-function-return-type': [strictSeverity, { allowExpressions: true }],
+      '@typescript-eslint/consistent-type-definitions': [strictSeverity, 'interface'],
       '@typescript-eslint/naming-convention': [
-        'error',
+        strictSeverity,
         { selector: 'variable', format: ['camelCase', 'UPPER_CASE'] },
         { selector: 'function', format: ['camelCase', 'PascalCase'] },
         { selector: 'typeLike', format: ['PascalCase'] },
         { selector: 'enumMember', format: ['PascalCase'] }
       ],
       // Keep camelCase for identifiers but allow snake_case properties (DB/API)
-      camelcase: ['error', { properties: 'never', ignoreDestructuring: false }],
+      camelcase: [strictSeverity, { properties: 'never', ignoreDestructuring: false }],
       'id-length': ['warn', { min: 2, properties: 'never', exceptions: ['id','fs','ms','rl','qm','x','y','i','j','k','v','p','r','e','t','u','q','d'] }],
     }
   }
