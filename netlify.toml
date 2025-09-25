@@ -8,7 +8,7 @@
   SECRETS_SCAN_ENABLED = "false"
   NEXT_TELEMETRY_DISABLED = "1"
   # Ensure Next.js uses the correct Node version
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
   # Make npm installs more resilient on Netlify build VMs
   NPM_FLAGS = "--legacy-peer-deps --no-audit --fund=false --prefer-offline --retry=5 --fetch-retry-maxtimeout=200000 --fetch-retry-mintimeout=20000"
   NPM_CONFIG_AUDIT = "false"
