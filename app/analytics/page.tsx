@@ -93,10 +93,10 @@ function OperationalMetrics({ stats }: { stats: DashboardStats | null }): JSX.El
           <div className="mt-1 text-xs text-muted-foreground">Lookup volume: {stats && typeof stats.searchVolume === 'number' ? stats.searchVolume.toLocaleString() : '—'}</div>
         </div>
         <div className="rounded-lg border border-border bg-background p-4">
-          <div className="text-sm text-muted-foreground">Latency (p50 / p95)</div>
+          <div className="text-sm text-muted-foreground">Latency (p50 &frasl; p95)</div>
           <div className="mt-2 text-2xl font-semibold">
             {stats ? formatLatency(stats.latencyP50) : '—'}
-            <span className="text-sm text-muted-foreground"> / {stats ? formatLatency(stats.latencyP95) : '—'}</span>
+            <span className="text-sm text-muted-foreground">&nbsp;&frasl;&nbsp;{stats ? formatLatency(stats.latencyP95) : '—'}</span>
           </div>
         </div>
       </div>
