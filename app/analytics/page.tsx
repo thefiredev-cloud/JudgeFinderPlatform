@@ -93,13 +93,13 @@ function OperationalMetrics({ stats }: { stats: DashboardStats | null }): JSX.El
           <div className="mt-1 text-xs text-muted-foreground">Lookup volume: {stats && typeof stats.searchVolume === 'number' ? stats.searchVolume.toLocaleString() : '—'}</div>
         </div>
         <div className="rounded-lg border border-border bg-background p-4">
-          <div className="text-sm text-muted-foreground">Latency (p50 &frasl; p95)</div>
+          <div className="text-sm text-muted-foreground">Latency (p50 / p95)</div>
           <div className="mt-2 text-2xl font-semibold">
             {stats ? formatLatency(stats.latencyP50) : '—'}
-            <span className="text-sm text-muted-foreground">&nbsp;&frasl;&nbsp;{stats ? formatLatency(stats.latencyP95) : '—'}</span>
+            <span className="text-sm text-muted-foreground"> / {stats ? formatLatency(stats.latencyP95) : '—'}</span>
           </div>
         </div>
-      </div>
+    </div>
     </div>
   )
 }
@@ -211,10 +211,9 @@ export default function AnalyticsPage(): JSX.Element {
           </div>
 
           <OperationalMetrics stats={stats} />
-            <p className="mt-4 text-xs text-muted-foreground">
-            Need more context? Review our <Link href="/docs/methodology" className="text-primary underline-offset-4 hover:text-foreground">methodology</Link>{' '}
-            and <Link href="/docs/governance" className="text-primary underline-offset-4 hover:text-foreground">governance</Link> guides.
-            </p>
+          <p className="mt-4 text-xs text-muted-foreground">
+            Need more context? Review our <Link href="/docs/methodology" className="text-primary underline-offset-4 hover:text-foreground">methodology</Link> and <Link href="/docs/governance" className="text-primary underline-offset-4 hover:text-foreground">governance</Link> guides.
+          </p>
 
           
           <FreshnessTable freshness={freshness} />
@@ -228,7 +227,6 @@ export default function AnalyticsPage(): JSX.Element {
                 <ArrowLeft className="h-4 w-4 rotate-180" />
               </Link>
             </div>
-          </div>
         </div>
       </div>
     </div>
