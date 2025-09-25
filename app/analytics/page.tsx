@@ -1,4 +1,4 @@
-'use client'
+ 'use client'
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -9,12 +9,12 @@ export const dynamic = 'force-dynamic'
 
 function formatPercent(value?: number | null): string {
   if (value === null || value === undefined || Number.isNaN(value)) return '—'
-  return `${value.toFixed(1)}%`
+  return value.toFixed(1) + '%'
 }
 
 function formatLatency(value?: number | null): string {
   if (value === null || value === undefined || Number.isNaN(value)) return '—'
-  return `${Math.round(value)} ms`
+  return String(Math.round(value)) + ' ms'
 }
 
 function Header(): JSX.Element {
@@ -211,10 +211,10 @@ export default function AnalyticsPage(): JSX.Element {
           </div>
 
           <OperationalMetrics stats={stats} />
-          <p className="mt-4 text-xs text-muted-foreground">
+            <p className="mt-4 text-xs text-muted-foreground">
             Need more context? Review our <Link href="/docs/methodology" className="text-primary underline-offset-4 hover:text-foreground">methodology</Link>{' '}
             and <Link href="/docs/governance" className="text-primary underline-offset-4 hover:text-foreground">governance</Link> guides.
-          </p>
+            </p>
 
           {/* Freshness table */}
           <FreshnessTable freshness={freshness} />
