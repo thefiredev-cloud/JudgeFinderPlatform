@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { PostgrestFilterBuilder } from '@supabase/postgrest-js'
 import { createServerClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import type { Judge, Court, Case } from '@/types'
@@ -63,6 +64,8 @@ const DEFAULT_TABLES: DatabaseStatusTables = {
     lastGenerated: null,
   },
 }
+
+type FilterBuilder = PostgrestFilterBuilder<any, any, any[], unknown, unknown>
 
 export class DataStatusManager {
   private constructor(private readonly supabase: SupabaseClient) {}
@@ -151,11 +154,11 @@ export class DataStatusManager {
 
   private async countRows(
     table: string,
-    applyFilter?: (query: ReturnType<SupabaseClient['from']>) => ReturnType<SupabaseClient['from']>
+    applyFilter?: (query: FilterBuilder) => FilterBuilder
   ): Promise<number> {
-    const baseQuery = this.supabase.from(table)
-    const query = applyFilter ? applyFilter(baseQuery) : baseQuery
-    const { count, error } = await query.select('*', { count: 'exact', head: true })
+    const baseQuery = this.supabase.from(table).select('*', { count: 'exact', head: true })
+    const filteredQuery = applyFilter ? applyFilter(baseQuery) : baseQuery
+    const { count, error } = await filteredQuery
     if (error) {
       throw new Error(error.message)
     }

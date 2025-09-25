@@ -8,6 +8,11 @@ import type { DatabaseStatusTables } from '@/lib/admin/data-status-manager'
 
 export const dynamic = 'force-dynamic'
 
+interface ErrorResponse {
+  error: string
+  message: string
+}
+
 interface DataStatusResponse {
   status: 'healthy' | 'partial' | 'empty' | 'error'
   timestamp: string
@@ -44,7 +49,7 @@ interface DataStatusResponse {
   recommendations: string[]
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse<DataStatusResponse>> {
+export async function GET(request: NextRequest): Promise<NextResponse<DataStatusResponse | ErrorResponse>> {
   const startTime = Date.now()
 
   try {
@@ -82,13 +87,10 @@ export async function GET(request: NextRequest): Promise<NextResponse<DataStatus
     logger.error('API error in data status', { duration }, errorPayload)
     logger.apiResponse('GET', '/api/admin/data-status', 500, duration)
 
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: errorPayload?.message ?? 'Unknown error',
-      },
-      { status: 500 }
-    )
+    return NextResponse.json<ErrorResponse>({
+      error: 'Internal server error',
+      message: errorPayload?.message ?? 'Unknown error',
+    }, { status: 500 })
   }
 }
 

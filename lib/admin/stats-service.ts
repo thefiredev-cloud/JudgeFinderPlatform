@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import type { PostgrestFilterBuilder } from '@supabase/postgrest-js'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
@@ -46,6 +47,8 @@ interface CacheSnapshot {
   latencyP95: number | null
 }
 
+type FilterBuilder = PostgrestFilterBuilder<any, any, any[], unknown, unknown>
+
 export class AdminStatsService {
   private constructor(private readonly supabase: SupabaseClient) {}
 
@@ -78,8 +81,6 @@ export class AdminStatsService {
   }
 
   private async fetchEntityCounts(): Promise<CountsResponse> {
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-
     const [judges, courts, cases, users, pending] = await Promise.all([
       this.countRows('judges'),
       this.countRows('courts'),
@@ -196,10 +197,11 @@ export class AdminStatsService {
 
   private async countRows(
     table: string,
-    applyFilter?: (query: ReturnType<SupabaseClient['from']>) => ReturnType<SupabaseClient['from']>
+    applyFilter?: (query: FilterBuilder) => FilterBuilder
   ): Promise<number> {
-    const query = applyFilter ? applyFilter(this.supabase.from(table)) : this.supabase.from(table)
-    const { count, error } = await query.select('*', { count: 'exact', head: true })
+    const baseQuery = this.supabase.from(table).select('*', { count: 'exact', head: true }) as FilterBuilder
+    const filteredQuery = applyFilter ? applyFilter(baseQuery) : baseQuery
+    const { count, error } = await filteredQuery
     if (error) {
       throw new Error(`Failed to count ${table}: ${error.message}`)
     }

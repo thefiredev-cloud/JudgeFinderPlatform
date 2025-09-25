@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { isAdmin } from '@/lib/auth/is-admin'
-import { MigrationCoordinator, MissingColumnError } from '@/lib/admin/migration-coordinator'
+import { MigrationCoordinator } from '@/lib/admin/migration-coordinator'
+import { MissingColumnError } from '@/lib/admin/migration-errors'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     })
   } catch (error) {
     if (error instanceof MissingColumnError) {
-      return NextResponse.json(
+      return NextResponse.json<{ error: string; details: string; status: unknown }>(
         {
           error: error.message,
           details: 'Run SQL migration manually in Supabase dashboard first',

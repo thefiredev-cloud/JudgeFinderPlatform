@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
+import { isAdmin } from '@/lib/auth/is-admin'
 
 type AllowedKeyName = 'SYNC_API_KEY' | 'CRON_SECRET'
 
@@ -15,7 +17,7 @@ export function extractApiKey(req: NextRequest): string | null {
     const url = new URL(req.url)
     const q = url.searchParams.get('key')?.trim()
     if (q) return q
-  } catch (_) {
+  } catch (parseError) {
     // ignore URL parse issues
   }
   return null
@@ -41,35 +43,57 @@ export function requireApiKey(
   return { ok: true }
 }
 
-export function requireApiKeyIfEnabled(headers: Headers, url?: string) {
+export async function requireAdminApiAccess(
+  req: NextRequest,
+  allow: AllowedKeyName[] = ['SYNC_API_KEY', 'CRON_SECRET']
+): Promise<void> {
+  const providedKey = extractApiKey(req)
+  if (providedKey && isValidApiKey(providedKey, allow)) {
+    return
+  }
+
+  const { userId } = await auth()
+  if (!userId || !(await isAdmin())) {
+    throw new Error('Forbidden')
+  }
+}
+
+export function requireApiKeyIfEnabled(headers: Headers, url?: string): { ok: boolean; reason?: string } {
   const requireKey = String(process.env.REQUIRE_API_KEY_FOR_V1 || '').toLowerCase() === 'true'
   if (!requireKey) return { ok: true }
 
   const headerKey = headers.get('x-api-key')?.trim()
-  const keyFromQuery = (() => {
-    if (!url) return undefined
-    try {
-      const u = new URL(url)
-      const k = u.searchParams.get('key')
-      return k ? k.trim() : undefined
-    } catch {
-      return undefined
-    }
-  })()
-
-  const provided = headerKey || keyFromQuery
+  const queryKey = extractKeyFromUrl(url)
+  const provided = headerKey || queryKey
   if (!provided) return { ok: false, reason: 'missing_api_key' }
 
+  const allowedKeys = buildAllowedKeySet()
+  if (allowedKeys.size === 0) {
+    return { ok: false, reason: 'no_keys_configured' }
+  }
+
+  const isAllowed = allowedKeys.has(provided)
+  return { ok: isAllowed, reason: isAllowed ? undefined : 'invalid_api_key' }
+}
+
+function extractKeyFromUrl(url?: string): string | undefined {
+  if (!url) return undefined
+  try {
+    const parsedUrl = new URL(url)
+    const key = parsedUrl.searchParams.get('key')
+    return key ? key.trim() : undefined
+  } catch {
+    return undefined
+  }
+}
+
+function buildAllowedKeySet(): Set<string> {
   const single = process.env.PUBLIC_API_KEY?.trim()
-  const csv = (process.env.PUBLIC_API_KEYS || '')
+  const csvKeys = (process.env.PUBLIC_API_KEYS || '')
     .split(',')
-    .map(s => s.trim())
+    .map((entry) => entry.trim())
     .filter(Boolean)
-
-  const allowed = new Set([...(single ? [single] : []), ...csv])
-  if (allowed.size === 0) return { ok: false, reason: 'no_keys_configured' }
-
-  return { ok: allowed.has(provided), reason: allowed.has(provided) ? undefined : 'invalid_api_key' }
+  return new Set([...(single ? [single] : []), ...csvKeys])
 }
 
 
