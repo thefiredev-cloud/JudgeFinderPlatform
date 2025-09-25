@@ -38,7 +38,7 @@ function StatCards({ stats, loading }: { stats: DashboardStats | null; loading: 
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-semibold">Coverage & Freshness</h2>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCcw className={'h-4 w-4 ' + (loading ? 'animate-spin' : '')} />
           {loading ? 'Loading…' : 'Updated'}
         </div>
       </div>
@@ -186,10 +186,10 @@ export default function AnalyticsPage(): JSX.Element {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* Main Content */}
+      
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
-          {/* Hero Section */}
+          
           <div className="text-center mb-12">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
               <BarChart3 className="h-8 w-8 text-primary" />
@@ -200,7 +200,7 @@ export default function AnalyticsPage(): JSX.Element {
             </p>
           </div>
 
-          {/* Live Thin Dashboard */}
+          
           <StatCards stats={stats} loading={loading} />
 
           {error && <div className="text-sm text-red-500 mt-4">{error}</div>}
@@ -216,7 +216,7 @@ export default function AnalyticsPage(): JSX.Element {
             and <Link href="/docs/governance" className="text-primary underline-offset-4 hover:text-foreground">governance</Link> guides.
             </p>
 
-          {/* Freshness table */}
+          
           <FreshnessTable freshness={freshness} />
 
             <div className="mt-8">
