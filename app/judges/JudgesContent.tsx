@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { Gavel, MapPin, Scale, Search, Loader2, Calendar, Users, ArrowRight, Shield, TrendingUp, ChevronRight, Sparkles, AlertCircle, RefreshCcw } from 'lucide-react'
+import { Gavel, Scale, Search, Loader2, Calendar, ArrowRight, ChevronRight, Sparkles, AlertCircle, RefreshCcw } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import type { Judge, JudgeDecisionSummary } from '@/types'
@@ -10,7 +10,6 @@ import { useSearchDebounce } from '@/lib/hooks/useDebounce'
 import { JudgeCardSkeleton, SearchSkeleton } from '@/components/ui/Skeleton'
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { ParticleBackground } from '@/components/ui/ParticleBackground'
-import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { TypewriterText } from '@/components/ui/TypewriterText'
 import { ScrollIndicator } from '@/components/ui/ScrollIndicator'
 import * as Sentry from '@sentry/nextjs'
@@ -73,14 +72,6 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
   const prefetchInFlightRef = useRef<Set<string>>(new Set())
   const activeSignatureRef = useRef<string>('')
   
-  // State for judge-specific stats
-  const [judgeStats, setJudgeStats] = useState({
-    totalJudges: null as number | null,
-    analyticsCoverage: '—',
-    avgExperience: '—',
-    updateFrequency: 'Not yet tracked'
-  })
-
   // Initialize search from URL on mount
   useEffect(() => {
     const searchQuery = searchParams.get('search') || searchParams.get('q') || ''
@@ -331,27 +322,6 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
     }
   }, [fetchJudges, initialData])
   
-  // Fetch judge-specific stats
-  useEffect(() => {
-    const fetchJudgeStats = async () => {
-      try {
-        const response = await fetch('/api/stats/judges')
-        if (response.ok) {
-          const data = await response.json()
-          setJudgeStats({
-            totalJudges: typeof data.totalJudges === 'number' ? data.totalJudges : null,
-            analyticsCoverage: typeof data.analyticsCoverage === 'string' ? data.analyticsCoverage : '—',
-            avgExperience: typeof data.avgExperienceDisplay === 'string' ? data.avgExperienceDisplay : '—',
-            updateFrequency: typeof data.updateFrequency === 'string' ? data.updateFrequency : 'Not yet tracked'
-          })
-        }
-      } catch (error) {
-        console.error('Failed to fetch judge stats:', error)
-      }
-    }
-    fetchJudgeStats()
-  }, [])
-
   const handleLoadMore = useCallback(async () => {
     if (!hasMore || loading) return
 
@@ -596,52 +566,6 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
             Research judicial profiles, decision patterns, and case histories for bias detection and transparency
           </motion.p>
           
-          {/* Animated Statistics */}
-          <motion.div 
-            className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.8 }}
-          >
-            {[
-              {
-                icon: Gavel,
-                value: typeof judgeStats.totalJudges === 'number' ? judgeStats.totalJudges : totalCount,
-                label: "Total Judges",
-                color: "text-primary",
-                suffix: "",
-                isText: typeof judgeStats.totalJudges === 'number' ? false : totalCount === 0,
-                text: totalCount === 0 ? '—' : undefined
-              },
-              { icon: Scale, value: 0, label: "Have Bias Analytics", color: "text-enterprise-accent", isText: true, text: judgeStats.analyticsCoverage, suffix: "" },
-              { icon: MapPin, value: 0, label: "Avg Experience", color: "text-enterprise-deep", isText: true, text: judgeStats.avgExperience, suffix: "" },
-              { icon: Users, value: 0, label: "Data Freshness", color: "text-enterprise-light", isText: true, text: judgeStats.updateFrequency, suffix: "" }
-            ].map((stat, index) => (
-              <motion.div 
-                key={stat.label}
-                className="group"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1 + index * 0.1 }}
-                whileHover={{ scale: 1.05 }}
-              >
-                <div className="p-4 rounded-xl border border-border bg-card/50 backdrop-blur-sm hover:bg-accent/5 transition-all duration-300">
-                  <stat.icon className={`w-8 h-8 ${stat.color} mx-auto mb-2`} />
-                  <div className={`text-3xl font-bold ${stat.color}`}>
-                    {stat.isText ? (
-                      <span className="text-lg">{stat.text ?? '—'}</span>
-                    ) : (
-                      <>
-                        <AnimatedCounter end={stat.value} />
-                        {stat.suffix}
-                      </>
-                    )}
-                  </div>
-                  <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
         </motion.div>
         
         <ScrollIndicator />
