@@ -14,7 +14,7 @@ import {
   normalizeJurisdiction,
   toTitle
 } from '@/lib/sync/normalization'
-import { getDecisionKey } from '@/lib/sync/decision-helpers'
+import { getDecisionKey, determineCaseOutcomeAndStatus, classifyCaseTypeFromDocket, formatDate, buildCaseSummaryFromDocket, buildCourtListenerUrl } from '@/lib/sync/decision-helpers'
 import { syncJudgeFilings as syncJudgeFilingsExternal } from '@/lib/sync/decision-filings'
 import { DecisionRepository } from '@/lib/sync/decision-repository'
 import { ensureOpinionForCase as ensureOpinionForCaseExternal } from '@/lib/sync/decision-opinions'

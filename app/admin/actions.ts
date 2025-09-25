@@ -117,8 +117,9 @@ export async function transitionProfileIssue({ id, nextStatus, responseNotes }: 
       await markBreachedIfApplicable(supabase, id, row, nowIso)
     }
     logger.info('Profile issue transitioned', { id, nextStatus })
-  } catch (error: any) {
-    logger.error('Failed to transition profile issue', { id, nextStatus, error: error?.message || String(error) })
+  } catch (error: unknown) {
+    const message = typeof error === 'object' && error && 'message' in error ? String((error as { message?: string }).message) : String(error)
+    logger.error('Failed to transition profile issue', { id, nextStatus, error: message })
     throw new Error('Unable to transition issue status')
   }
   return { success: true }

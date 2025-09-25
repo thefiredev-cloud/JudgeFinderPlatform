@@ -1,13 +1,13 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { resolveAdminStatus } from '@/lib/auth/is-admin'
-import { fetchSyncStatus } from '@/lib/admin/sync-status'
+import { fetchSyncStatus, type SyncStatusResponse } from '@/lib/admin/sync-status'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import AdminDashboard from '@/components/dashboard/AdminDashboard'
 
 export const dynamic = 'force-dynamic'
 
-async function loadAdminData() {
+async function loadAdminData(): Promise<{ status: SyncStatusResponse | null; issueRows: any[]; profileIssueCounts: Array<{ status: 'new' | 'researching' | 'resolved' | 'dismissed'; count: number }>; overdueCount: number }> {
   const status = await fetchSyncStatus()
   const supabase = await createServiceRoleClient()
   const { data: issueRows } = await supabase
@@ -75,7 +75,7 @@ export default async function AdminPage(): Promise<JSX.Element> {
   )
 }
 
-export const metadata = {
+export const metadata: { title: string; description: string } = {
   title: 'Admin Dashboard - JudgeFinder.io',
   description: 'Administrative dashboard for managing the JudgeFinder platform.',
 }

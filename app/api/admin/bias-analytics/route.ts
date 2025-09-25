@@ -53,7 +53,7 @@ interface BiasAnalyticsData {
   }>
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const { userId } = await auth()
     if (!userId || !(await isAdmin())) {
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
       .from('cases')
       .select('judge_id, case_type, outcome, status, filing_date, decision_date, case_value')
       .in('judge_id', judges?.map(j => j.id) || [])
-      .limit(5000) // Limit to prevent excessive queries
+      .limit(5000)
 
     // Calculate analytics
     const analyticsData = await calculateBiasAnalytics(judges || [], cases || [], riskLevel)
@@ -107,9 +107,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function calculateBiasAnalytics(judges: any[], cases: any[], riskFilter?: string | null): Promise<BiasAnalyticsData> {
+async function calculateBiasAnalytics(judges: Array<{ id: string; name: string; jurisdiction?: string | null }>, cases: Array<{ judge_id: string; case_type?: string | null; outcome?: string | null; status?: string | null; filing_date?: string | null; decision_date?: string | null; case_value?: number | null }>, riskFilter?: string | null): Promise<BiasAnalyticsData> {
   // Group cases by judge
-  const casesByJudge = cases.reduce((groups: any, case_: any) => {
+  const casesByJudge = cases.reduce((groups: Record<string, any[]>, case_) => {
     if (!groups[case_.judge_id]) {
       groups[case_.judge_id] = []
     }
@@ -122,22 +122,22 @@ async function calculateBiasAnalytics(judges: any[], cases: any[], riskFilter?: 
     const judgeCases = casesByJudge[judge.id] || []
     
     // Calculate settlement rate
-    const settledCases = judgeCases.filter((c: any) => 
+    const settledCases = judgeCases.filter((c) => 
       (c.outcome || c.status || '').toLowerCase().includes('settl')
     ).length
     const settlementRate = judgeCases.length > 0 ? settledCases / judgeCases.length : 0
 
     // Calculate consistency score (based on settlement rate variance across case types)
-    const caseTypeGroups = judgeCases.reduce((groups: any, case_: any) => {
+    const caseTypeGroups = judgeCases.reduce((groups: Record<string, any[]>, case_) => {
       const type = case_.case_type || 'Other'
       if (!groups[type]) groups[type] = []
       groups[type].push(case_)
       return groups
     }, {})
 
-    const caseTypeRates = Object.values(caseTypeGroups).map((cases: any) => {
-      const settled = cases.filter((c: any) => (c.outcome || c.status || '').toLowerCase().includes('settl')).length
-      return cases.length > 0 ? settled / cases.length : 0
+    const caseTypeRates = Object.values(caseTypeGroups).map((casesArr: any[]) => {
+      const settled = casesArr.filter((c) => (c.outcome || c.status || '').toLowerCase().includes('settl')).length
+      return casesArr.length > 0 ? settled / casesArr.length : 0
     })
 
     const avgCaseTypeRate = caseTypeRates.length > 0 ? caseTypeRates.reduce((sum: number, rate: number) => sum + rate, 0) / caseTypeRates.length : 0
@@ -145,11 +145,11 @@ async function calculateBiasAnalytics(judges: any[], cases: any[], riskFilter?: 
     const consistencyScore = Math.max(0, 100 - (variance * 400))
 
     // Calculate speed score
-    const casesWithDuration = judgeCases.filter((c: any) => c.filing_date && c.decision_date)
+    const casesWithDuration = judgeCases.filter((c) => c.filing_date && c.decision_date)
     const avgDuration = casesWithDuration.length > 0 
-      ? casesWithDuration.reduce((sum: number, c: any) => {
-          const filing = new Date(c.filing_date)
-          const decision = new Date(c.decision_date)
+      ? casesWithDuration.reduce((sum: number, c) => {
+          const filing = new Date(c.filing_date as string)
+          const decision = new Date(c.decision_date as string)
           return sum + Math.abs(decision.getTime() - filing.getTime()) / (1000 * 60 * 60 * 24)
         }, 0) / casesWithDuration.length
       : 180
@@ -217,7 +217,7 @@ async function calculateBiasAnalytics(judges: any[], cases: any[], riskFilter?: 
   })
 
   // Calculate settlement patterns by case type
-  const caseTypeStats = cases.reduce((stats: any, case_: any) => {
+  const caseTypeStats = cases.reduce((stats: Record<string, { total: number; settled: number; judges: Set<string> }>, case_) => {
     const type = case_.case_type || 'Other'
     if (!stats[type]) {
       stats[type] = { total: 0, settled: 0, judges: new Set() }
@@ -230,16 +230,16 @@ async function calculateBiasAnalytics(judges: any[], cases: any[], riskFilter?: 
     return stats
   }, {})
 
-  const settlementPatterns = Object.entries(caseTypeStats).map(([caseType, stats]: [string, any]) => ({
+  const settlementPatterns = Object.entries(caseTypeStats).map(([caseType, stats]) => ({
     case_type: caseType,
     avg_settlement_rate: stats.total > 0 ? stats.settled / stats.total : 0,
     judge_count: stats.judges.size,
-    variance: 0.1 // Simplified variance calculation
+    variance: 0.1
   })).sort((a, b) => b.judge_count - a.judge_count).slice(0, 10)
 
   // Calculate temporal trends (simplified)
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  const temporalTrends = months.map((month, index) => ({
+  const temporalTrends = months.map((month) => ({
     month,
     avg_consistency: avgConsistencyScore + (Math.random() - 0.5) * 10,
     avg_settlement_rate: avgSettlementRate + (Math.random() - 0.5) * 0.2,
@@ -247,16 +247,16 @@ async function calculateBiasAnalytics(judges: any[], cases: any[], riskFilter?: 
   }))
 
   // Calculate geographic distribution
-  const jurisdictionStats = judges.reduce((stats: any, judge) => {
-    const jurisdiction = judge.jurisdiction || 'Unknown'
-    if (!stats[jurisdiction]) {
-      stats[jurisdiction] = { judges: [], cases: 0 }
+  const jurisdictionStats = judges.reduce((stats: Record<string, { judges: string[]; cases: number }>, judge) => {
+    const j = judge.jurisdiction || 'Unknown'
+    if (!stats[j]) {
+      stats[j] = { judges: [], cases: 0 }
     }
-    stats[jurisdiction].judges.push(judge.id)
+    stats[j].judges.push(judge.id)
     return stats
   }, {})
 
-  const geographicDistribution = Object.entries(jurisdictionStats).map(([jurisdiction, stats]: [string, any]) => {
+  const geographicDistribution = Object.entries(jurisdictionStats).map(([jurisdiction, _stats]) => {
     const relevantMetrics = filteredJudgeMetrics.filter(j => {
       const judge = judges.find(jdg => jdg.id === j.judge_id)
       return judge?.jurisdiction === jurisdiction
@@ -294,7 +294,7 @@ async function calculateBiasAnalytics(judges: any[], cases: any[], riskFilter?: 
     consistency_distribution: consistencyDistribution,
     settlement_patterns: settlementPatterns,
     temporal_trends: temporalTrends,
-    bias_indicators: filteredJudgeMetrics.slice(0, 50), // Limit to first 50 for display
+    bias_indicators: filteredJudgeMetrics.slice(0, 50),
     geographic_distribution: geographicDistribution,
     case_value_impact: caseValueImpact
   }
