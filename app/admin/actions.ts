@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/auth/is-admin'
 import { runSyncAdminAction } from '@/lib/admin/sync-status'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 type ProfileIssueStatus = 'new' | 'researching' | 'resolved' | 'dismissed'
 
@@ -73,7 +74,7 @@ function buildIssueUpdatePayload(nextStatus: ProfileIssueStatus, responseNotes: 
 }
 
 async function upsertIssueStatus(
-  supabase: any,
+  supabase: SupabaseClient,
   id: string,
   updates: Record<string, unknown>
 ): Promise<{ sla_due_at: string | null; status: ProfileIssueStatus; breached_at: string | null } | null> {
@@ -92,7 +93,7 @@ async function upsertIssueStatus(
 }
 
 async function markBreachedIfApplicable(
-  supabase: any,
+  supabase: SupabaseClient,
   id: string,
   row: { sla_due_at: string | null; status: ProfileIssueStatus; breached_at: string | null },
   nowIso: string

@@ -1,45 +1,143 @@
- 'use client'
+'use client'
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { BarChart3, ArrowLeft, Clock, Database, RefreshCcw } from 'lucide-react'
+import type { DashboardStats, FreshnessRow } from './StatsTypes'
 
 export const dynamic = 'force-dynamic'
 
-type DashboardStats = {
-  totalJudges: number | null
-  totalCourts: number | null
-  totalCases: number | null
-  pendingSync: number
-  lastSyncTime: string | null
-  systemHealth: 'healthy' | 'warning' | 'error'
-  activeUsers: number | null
-  searchVolume: number | null
-  syncSuccessRate: number
-  retryCount: number
-  cacheHitRatio: number
-  latencyP50: number | null
-  latencyP95: number | null
+function formatPercent(value?: number | null): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return '—'
+  return `${value.toFixed(1)}%`
 }
 
-export default function AnalyticsPage() {
+function formatLatency(value?: number | null): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return '—'
+  return `${Math.round(value)} ms`
+}
+
+function Header(): JSX.Element {
+  return (
+    <div className="border-b border-border bg-card/50 backdrop-blur-sm">
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex items-center gap-4">
+          <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StatCards({ stats, loading }: { stats: DashboardStats | null; loading: boolean }): JSX.Element {
+  return (
+    <div className="bg-card rounded-lg border border-border p-8">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-semibold">Coverage & Freshness</h2>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          {loading ? 'Loading…' : 'Updated'}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="p-4 rounded-lg border border-border bg-background">
+          <div className="flex items-center gap-2 text-muted-foreground mb-1">
+            <Database className="h-4 w-4" />
+            Total Judges
+          </div>
+          <div className="text-3xl font-bold">{stats && stats.totalJudges !== null ? stats.totalJudges.toLocaleString() : '—'}</div>
+        </div>
+
+        <div className="p-4 rounded-lg border border-border bg-background">
+          <div className="flex items-center gap-2 text-muted-foreground mb-1">
+            <Database className="h-4 w-4" />
+            Case Records
+          </div>
+          <div className="text-3xl font-bold">{stats && stats.totalCases !== null ? stats.totalCases.toLocaleString() : '—'}</div>
+        </div>
+
+        <div className="p-4 rounded-lg border border-border bg-background">
+          <div className="flex items-center gap-2 text-muted-foreground mb-1">
+            <Database className="h-4 w-4" />
+            CA Courts
+          </div>
+          <div className="text-3xl font-bold">{stats && stats.totalCourts !== null ? stats.totalCourts.toLocaleString() : '—'}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function OperationalMetrics({ stats }: { stats: DashboardStats | null }): JSX.Element {
+  return (
+    <div className="mt-8 border-t border-border pt-6">
+      <h3 className="text-xl font-semibold text-foreground">Operational metrics (last 24h)</h3>
+      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-lg border border-border bg-background p-4">
+          <div className="text-sm text-muted-foreground">Sync success</div>
+          <div className="mt-2 text-2xl font-semibold">{stats ? formatPercent(stats.syncSuccessRate) : '—'}</div>
+          <div className="mt-1 text-xs text-muted-foreground">Retry attempts: {stats ? stats.retryCount.toLocaleString() : '—'}</div>
+        </div>
+        <div className="rounded-lg border border-border bg-background p-4">
+          <div className="text-sm text-muted-foreground">Pending jobs</div>
+          <div className="mt-2 text-2xl font-semibold">{stats ? stats.pendingSync.toLocaleString() : '—'}</div>
+          <div className="mt-1 text-xs text-muted-foreground">Active users: {stats && typeof stats.activeUsers === 'number' ? stats.activeUsers.toLocaleString() : '—'}</div>
+        </div>
+        <div className="rounded-lg border border-border bg-background p-4">
+          <div className="text-sm text-muted-foreground">Cache hit ratio</div>
+          <div className="mt-2 text-2xl font-semibold">{stats ? formatPercent(stats.cacheHitRatio) : '—'}</div>
+          <div className="mt-1 text-xs text-muted-foreground">Lookup volume: {stats && typeof stats.searchVolume === 'number' ? stats.searchVolume.toLocaleString() : '—'}</div>
+        </div>
+        <div className="rounded-lg border border-border bg-background p-4">
+          <div className="text-sm text-muted-foreground">Latency (p50 / p95)</div>
+          <div className="mt-2 text-2xl font-semibold">
+            {stats ? formatLatency(stats.latencyP50) : '—'}
+            <span className="text-sm text-muted-foreground"> / {stats ? formatLatency(stats.latencyP95) : '—'}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function FreshnessTable({ freshness }: { freshness: FreshnessRow[] }): JSX.Element {
+  return (
+    <div className="mt-8">
+      <div className="text-sm font-medium mb-2">Freshness by Court (latest filing date)</div>
+      <div className="overflow-auto border border-border rounded-lg">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="bg-muted/50">
+              <th className="text-left p-2">Court</th>
+              <th className="text-left p-2">Last Update</th>
+            </tr>
+          </thead>
+          <tbody>
+            {freshness.map((row) => (
+              <tr key={row.court_id} className="border-t border-border">
+                <td className="p-2">{row.court_name}</td>
+                <td className="p-2 text-muted-foreground">{row.last_update ? new Date(row.last_update).toLocaleDateString() : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+export default function AnalyticsPage(): JSX.Element {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [freshness, setFreshness] = useState<Array<{ court_id: string; court_name: string; last_update: string | null }>>([])
-
-  const formatPercent = (value?: number | null) => {
-    if (value === null || value === undefined || Number.isNaN(value)) return '—'
-    return `${value.toFixed(1)}%`
-  }
-
-  const formatLatency = (value?: number | null) => {
-    if (value === null || value === undefined || Number.isNaN(value)) return '—'
-    return `${Math.round(value)} ms`
-  }
+  const [freshness, setFreshness] = useState<FreshnessRow[]>([])
 
   useEffect(() => {
-    const load = async () => {
+    const load = async (): Promise<void> => {
       try {
         const [judgesRes, courtsRes, casesRes, platformRes, freshRes] = await Promise.all([
           fetch('/api/stats/judges', { cache: 'no-store' }),
@@ -75,7 +173,7 @@ export default function AnalyticsPage() {
 
         setStats(combined)
         setFreshness(fresh.rows || [])
-      } catch (e: any) {
+      } catch {
         setError('Failed to load analytics stats')
       } finally {
         setLoading(false)
@@ -86,20 +184,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-4">
-            <Link 
-              href="/" 
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Home
-            </Link>
-          </div>
-        </div>
-      </div>
+      <Header />
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12">
@@ -116,122 +201,23 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Live Thin Dashboard */}
-          <div className="bg-card rounded-lg border border-border p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold">Coverage & Freshness</h2>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                {loading ? 'Loading…' : 'Updated'}
-              </div>
-            </div>
+          <StatCards stats={stats} loading={loading} />
 
-            {error && (
-              <div className="text-sm text-red-500 mb-4">{error}</div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="p-4 rounded-lg border border-border bg-background">
-                <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <Database className="h-4 w-4" />
-                  Total Judges
-                </div>
-                <div className="text-3xl font-bold">
-                  {stats && stats.totalJudges !== null ? stats.totalJudges.toLocaleString() : '—'}
-                </div>
-              </div>
-
-              <div className="p-4 rounded-lg border border-border bg-background">
-                <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <Database className="h-4 w-4" />
-                  Case Records
-                </div>
-                <div className="text-3xl font-bold">
-                  {stats && stats.totalCases !== null ? stats.totalCases.toLocaleString() : '—'}
-                </div>
-              </div>
-
-              <div className="p-4 rounded-lg border border-border bg-background">
-                <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <Database className="h-4 w-4" />
-                  CA Courts
-                </div>
-                <div className="text-3xl font-bold">
-                  {stats && stats.totalCourts !== null ? stats.totalCourts.toLocaleString() : '—'}
-                </div>
-              </div>
-            </div>
+          {error && <div className="text-sm text-red-500 mt-4">{error}</div>}
 
           <div className="mt-6 text-sm text-muted-foreground flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Last sync: {stats && stats.lastSyncTime ? new Date(stats.lastSyncTime).toLocaleString() : '—'}
           </div>
 
-          <div className="mt-8 border-t border-border pt-6">
-            <h3 className="text-xl font-semibold text-foreground">Operational metrics (last 24h)</h3>
-            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-lg border border-border bg-background p-4">
-                <div className="text-sm text-muted-foreground">Sync success</div>
-                <div className="mt-2 text-2xl font-semibold">
-                  {stats ? formatPercent(stats.syncSuccessRate) : '—'}
-                </div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  Retry attempts: {stats ? stats.retryCount.toLocaleString() : '—'}
-                </div>
-              </div>
-              <div className="rounded-lg border border-border bg-background p-4">
-                <div className="text-sm text-muted-foreground">Pending jobs</div>
-                <div className="mt-2 text-2xl font-semibold">
-                  {stats ? stats.pendingSync.toLocaleString() : '—'}
-                </div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  Active users: {stats && typeof stats.activeUsers === 'number' ? stats.activeUsers.toLocaleString() : '—'}
-                </div>
-              </div>
-              <div className="rounded-lg border border-border bg-background p-4">
-                <div className="text-sm text-muted-foreground">Cache hit ratio</div>
-                <div className="mt-2 text-2xl font-semibold">
-                  {stats ? formatPercent(stats.cacheHitRatio) : '—'}
-                </div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  Lookup volume: {stats && typeof stats.searchVolume === 'number' ? stats.searchVolume.toLocaleString() : '—'}
-                </div>
-              </div>
-              <div className="rounded-lg border border-border bg-background p-4">
-                <div className="text-sm text-muted-foreground">Latency (p50 / p95)</div>
-                <div className="mt-2 text-2xl font-semibold">
-                  {stats ? formatLatency(stats.latencyP50) : '—'}
-                  <span className="text-sm text-muted-foreground"> / {stats ? formatLatency(stats.latencyP95) : '—'}</span>
-                </div>
-              </div>
-            </div>
-            <p className="mt-4 text-xs text-muted-foreground">
-              Need more context? Review our <Link href="/docs/methodology" className="text-[color:hsl(var(--accent))] underline-offset-4 hover:text-[color:hsl(var(--text-1))]">methodology</Link>{' '}
-              and <Link href="/docs/governance" className="text-[color:hsl(var(--accent))] underline-offset-4 hover:text-[color:hsl(var(--text-1))]">governance</Link> guides.
-            </p>
-          </div>
+          <OperationalMetrics stats={stats} />
+          <p className="mt-4 text-xs text-muted-foreground">
+            Need more context? Review our <Link href="/docs/methodology" className="text-[color:hsl(var(--accent))] underline-offset-4 hover:text-[color:hsl(var(--text-1))]">methodology</Link>{' '}
+            and <Link href="/docs/governance" className="text-[color:hsl(var(--accent))] underline-offset-4 hover:text-[color:hsl(var(--text-1))]">governance</Link> guides.
+          </p>
 
           {/* Freshness table */}
-          <div className="mt-8">
-            <div className="text-sm font-medium mb-2">Freshness by Court (latest filing date)</div>
-            <div className="overflow-auto border border-border rounded-lg">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="bg-muted/50">
-                    <th className="text-left p-2">Court</th>
-                    <th className="text-left p-2">Last Update</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {freshness.map((row) => (
-                    <tr key={row.court_id} className="border-t border-border">
-                      <td className="p-2">{row.court_name}</td>
-                      <td className="p-2 text-muted-foreground">{row.last_update ? new Date(row.last_update).toLocaleDateString() : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <FreshnessTable freshness={freshness} />
 
             <div className="mt-8">
               <Link 
