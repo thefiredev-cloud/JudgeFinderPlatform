@@ -236,3 +236,30 @@ export interface AssignmentHistory {
   department?: string | null
   duration_days: number
 }
+
+// Admin & Corrections types
+export type ProfileIssueStatus = 'new' | 'researching' | 'resolved' | 'dismissed'
+
+export type ProfileIssueType =
+  | 'data_accuracy'
+  | 'bias_context'
+  | 'assignment_change'
+  | 'ads_or_policy'
+  | 'other'
+
+export type ProfileIssueSeverity = 'high' | 'medium' | 'low'
+
+export interface ProfileIssueRow {
+  id: string
+  judge_slug: string
+  court_id: string | null
+  issue_type: ProfileIssueType
+  status: ProfileIssueStatus
+  reporter_email: string | null
+  created_at: string
+  severity: ProfileIssueSeverity
+  priority: number
+  sla_due_at: string | null
+  last_status_change_at: string | null
+  breached_at: string | null
+}

@@ -4,10 +4,11 @@ import { resolveAdminStatus } from '@/lib/auth/is-admin'
 import { fetchSyncStatus, type SyncStatusResponse } from '@/lib/admin/sync-status'
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import AdminDashboard from '@/components/dashboard/AdminDashboard'
+import type { ProfileIssueRow } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
-async function loadAdminData(): Promise<{ status: SyncStatusResponse | null; issueRows: any[]; profileIssueCounts: Array<{ status: 'new' | 'researching' | 'resolved' | 'dismissed'; count: number }>; overdueCount: number }> {
+async function loadAdminData(): Promise<{ status: SyncStatusResponse | null; issueRows: ProfileIssueRow[]; profileIssueCounts: Array<{ status: 'new' | 'researching' | 'resolved' | 'dismissed'; count: number }>; overdueCount: number }> {
   const status = await fetchSyncStatus()
   const supabase = await createServiceRoleClient()
   const { data: issueRows } = await supabase
@@ -29,7 +30,7 @@ async function loadAdminData(): Promise<{ status: SyncStatusResponse | null; iss
     })
   )
 
-  const overdueCount = (issueRows || []).reduce((total, issue) => {
+  const overdueCount = (issueRows || []).reduce((total, issue: ProfileIssueRow) => {
     if (!issue?.sla_due_at) return total
     if (issue.status === 'resolved' || issue.status === 'dismissed') return total
     const due = new Date(issue.sla_due_at)
@@ -37,7 +38,7 @@ async function loadAdminData(): Promise<{ status: SyncStatusResponse | null; iss
     return due.getTime() < Date.now() ? total + 1 : total
   }, 0)
 
-  return { status, issueRows: issueRows || [], profileIssueCounts, overdueCount }
+  return { status, issueRows: Array.isArray(issueRows) ? (issueRows as ProfileIssueRow[]) : [], profileIssueCounts, overdueCount }
 }
 
 export default async function AdminPage(): Promise<JSX.Element> {
