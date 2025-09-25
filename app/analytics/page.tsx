@@ -212,8 +212,8 @@ export default function AnalyticsPage(): JSX.Element {
 
           <OperationalMetrics stats={stats} />
           <p className="mt-4 text-xs text-muted-foreground">
-            Need more context? Review our <Link href="/docs/methodology" className="text-[color:hsl(var(--accent))] underline-offset-4 hover:text-[color:hsl(var(--text-1))]">methodology</Link>{' '}
-            and <Link href="/docs/governance" className="text-[color:hsl(var(--accent))] underline-offset-4 hover:text-[color:hsl(var(--text-1))]">governance</Link> guides.
+            Need more context? Review our <Link href="/docs/methodology" className="text-primary underline-offset-4 hover:text-foreground">methodology</Link>{' '}
+            and <Link href="/docs/governance" className="text-primary underline-offset-4 hover:text-foreground">governance</Link> guides.
           </p>
 
           {/* Freshness table */}
