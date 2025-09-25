@@ -10,6 +10,8 @@
     "start": "next start",
     "test": "npm run lint && npm run type-check",
     "lint": "eslint .",
+    "lint:strict": "eslint . --max-warnings=0",
+    "lint:models": "eslint lib/**/*.ts --max-warnings=0",
     "type-check": "tsc --noEmit",
     "integrity:full": "node scripts/database-integrity-check.js",
     "assignments:update": "node scripts/automated-assignment-updater.js run",
