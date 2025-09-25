@@ -265,13 +265,13 @@ function buildSettlementPatterns(cases: CaseInput[]): BiasAnalyticsData['settlem
     return acc
   }, {})
   return Object.entries(stats)
-    .map(([caseType, agg]) => ({
+    .map(([caseType, aggregates]) => ({
       case_type: caseType,
-      avg_settlement_rate: agg.total > 0 ? agg.settled / agg.total : 0,
-      judge_count: agg.judges.size,
+      avg_settlement_rate: aggregates.total > 0 ? aggregates.settled / aggregates.total : 0,
+      judge_count: aggregates.judges.size,
       variance: 0.1,
     }))
-    .sort((a, b) => b.judge_count - a.judge_count)
+    .sort((leftEntry, rightEntry) => rightEntry.judge_count - leftEntry.judge_count)
     .slice(0, 10)
 }
 
@@ -297,8 +297,8 @@ function buildGeographicDistribution(judges: JudgeInput[], metrics: JudgeMetric[
     const relevantMetrics = metrics.filter((metric) => value.judges.includes(metric.judge_id))
     return {
       jurisdiction,
-      avg_consistency: relevantMetrics.length > 0 ? relevantMetrics.reduce((sum, m) => sum + m.consistency_score, 0) / relevantMetrics.length : 0,
-      avg_settlement_rate: relevantMetrics.length > 0 ? relevantMetrics.reduce((sum, m) => sum + m.settlement_rate, 0) / relevantMetrics.length : 0,
+      avg_consistency: relevantMetrics.length > 0 ? relevantMetrics.reduce((sum, metric) => sum + metric.consistency_score, 0) / relevantMetrics.length : 0,
+      avg_settlement_rate: relevantMetrics.length > 0 ? relevantMetrics.reduce((sum, metric) => sum + metric.settlement_rate, 0) / relevantMetrics.length : 0,
       judge_count: relevantMetrics.length,
     }
   })
@@ -320,19 +320,19 @@ async function calculateBiasAnalytics(judges: JudgeInput[], cases: CaseInput[], 
   const judgeMetrics = filterJudgeMetricsByRisk(judgeMetricsAll, riskFilter)
 
   const overview = calculateOverviewStats(judgeMetrics, cases.length)
-  const consistency_distribution = buildConsistencyDistribution(judgeMetrics)
-  const settlement_patterns = buildSettlementPatterns(cases)
-  const temporal_trends = buildTemporalTrends(overview.avg_consistency_score, overview.avg_settlement_rate, overview.cases_analyzed)
-  const geographic_distribution = buildGeographicDistribution(judges, judgeMetrics)
-  const case_value_impact = buildCaseValueImpact(overview.avg_settlement_rate, overview.total_judges)
+  const consistencyDistribution = buildConsistencyDistribution(judgeMetrics)
+  const settlementPatterns = buildSettlementPatterns(cases)
+  const temporalTrends = buildTemporalTrends(overview.avg_consistency_score, overview.avg_settlement_rate, overview.cases_analyzed)
+  const geographicDistribution = buildGeographicDistribution(judges, judgeMetrics)
+  const caseValueImpact = buildCaseValueImpact(overview.avg_settlement_rate, overview.total_judges)
 
   return {
     overview,
-    consistency_distribution,
-    settlement_patterns,
-    temporal_trends,
+    consistency_distribution: consistencyDistribution,
+    settlement_patterns: settlementPatterns,
+    temporal_trends: temporalTrends,
     bias_indicators: judgeMetrics.slice(0, 50),
-    geographic_distribution,
-    case_value_impact,
+    geographic_distribution: geographicDistribution,
+    case_value_impact: caseValueImpact,
   }
 }
