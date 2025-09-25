@@ -15,7 +15,7 @@ export async function queueSyncJob({
   type: string
   options?: Record<string, unknown>
   priority?: number
-}) {
+}): Promise<unknown> {
   await requireAdmin()
   const payload: Record<string, unknown> = { type }
   if (options) payload.options = options
@@ -23,14 +23,14 @@ export async function queueSyncJob({
   return runSyncAdminAction('queue_job', payload)
 }
 
-export async function cancelSyncJobs(type?: string) {
+export async function cancelSyncJobs(type?: string): Promise<unknown> {
   await requireAdmin()
   const payload: Record<string, unknown> = {}
   if (type) payload.type = type
   return runSyncAdminAction('cancel_jobs', payload)
 }
 
-export async function restartSyncQueue() {
+export async function restartSyncQueue(): Promise<unknown> {
   await requireAdmin()
   return runSyncAdminAction('restart_queue')
 }
@@ -41,12 +41,7 @@ interface TransitionProfileIssueArgs {
   responseNotes?: string
 }
 
-export async function transitionProfileIssue({ id, nextStatus, responseNotes }: TransitionProfileIssueArgs) {
-  await requireAdmin()
-  const supabase = await createServiceRoleClient()
-
-  const now = new Date()
-  const nowIso = now.toISOString()
+function buildIssueUpdatePayload(nextStatus: ProfileIssueStatus, responseNotes: string | undefined, nowIso: string): Record<string, unknown> {
   const updates: Record<string, unknown> = {
     status: nextStatus,
     last_status_change_at: nowIso,
@@ -74,6 +69,14 @@ export async function transitionProfileIssue({ id, nextStatus, responseNotes }: 
       break
   }
 
+  return updates
+}
+
+async function upsertIssueStatus(
+  supabase: any,
+  id: string,
+  updates: Record<string, unknown>
+): Promise<{ sla_due_at: string | null; status: ProfileIssueStatus; breached_at: string | null } | null> {
   const { data, error } = await supabase
     .from('profile_issues')
     .update(updates)
@@ -82,26 +85,40 @@ export async function transitionProfileIssue({ id, nextStatus, responseNotes }: 
     .single()
 
   if (error) {
-    logger.error('Failed to transition profile issue', { id, nextStatus, error: error.message })
+    throw new Error(error.message)
+  }
+
+  return data ?? null
+}
+
+async function markBreachedIfApplicable(
+  supabase: any,
+  id: string,
+  row: { sla_due_at: string | null; status: ProfileIssueStatus; breached_at: string | null },
+  nowIso: string
+): Promise<void> {
+  if (!row?.sla_due_at || row.breached_at || row.status === 'resolved' || row.status === 'dismissed') return
+  const due = new Date(row.sla_due_at)
+  if (Number.isNaN(due.getTime()) || due.getTime() >= Date.now()) return
+  await supabase.from('profile_issues').update({ breached_at: nowIso }).eq('id', id)
+}
+
+export async function transitionProfileIssue({ id, nextStatus, responseNotes }: TransitionProfileIssueArgs): Promise<{ success: true }> {
+  await requireAdmin()
+  const supabase = await createServiceRoleClient()
+
+  const now = new Date()
+  const nowIso = now.toISOString()
+  try {
+    const updates = buildIssueUpdatePayload(nextStatus, responseNotes, nowIso)
+    const row = await upsertIssueStatus(supabase, id, updates)
+    if (row) {
+      await markBreachedIfApplicable(supabase, id, row, nowIso)
+    }
+    logger.info('Profile issue transitioned', { id, nextStatus })
+  } catch (error: any) {
+    logger.error('Failed to transition profile issue', { id, nextStatus, error: error?.message || String(error) })
     throw new Error('Unable to transition issue status')
   }
-
-  if (
-    data &&
-    data.sla_due_at &&
-    !data.breached_at &&
-    data.status !== 'resolved' &&
-    data.status !== 'dismissed'
-  ) {
-    const due = new Date(data.sla_due_at)
-    if (!Number.isNaN(due.getTime()) && due.getTime() < Date.now()) {
-      await supabase
-        .from('profile_issues')
-        .update({ breached_at: nowIso })
-        .eq('id', id)
-    }
-  }
-
-  logger.info('Profile issue transitioned', { id, nextStatus })
   return { success: true }
 }

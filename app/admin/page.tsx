@@ -7,7 +7,7 @@ import AdminDashboard from '@/components/dashboard/AdminDashboard'
 
 export const dynamic = 'force-dynamic'
 
-export default async function AdminPage() {
+export default async function AdminPage(): Promise<JSX.Element> {
   const { userId } = await auth()
   
   if (!userId) {
