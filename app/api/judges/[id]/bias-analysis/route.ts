@@ -11,6 +11,8 @@ import {
 import { getCourtBaseline } from '@/lib/analytics/baselines'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+export const revalidate = 0
 
 interface BiasAnalysisParams {
   params: Promise<{ id: string }>

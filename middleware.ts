@@ -16,10 +16,38 @@ const isAdminRoute = createRouteMatcher([
   '/admin(.*)',
 ])
 
-// Check if Clerk is properly configured (only check public key for client-side safety)
-const hasValidClerkKeys = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
-                          !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.includes('YOUR_') &&
-                          !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.includes('CONFIGURE')
+const clerkKeys = {
+  publishable: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+  secret: process.env.CLERK_SECRET_KEY
+}
+
+const isProduction = process.env.NODE_ENV === 'production'
+const hasConfiguredClerkKeys = Boolean(
+  clerkKeys.publishable &&
+  clerkKeys.secret &&
+  clerkKeys.publishable.startsWith('pk_') &&
+  !clerkKeys.publishable.includes('YOUR_') &&
+  !clerkKeys.publishable.includes('CONFIGURE')
+)
+
+if (isProduction && !hasConfiguredClerkKeys) {
+  throw new Error('Clerk keys are missing or invalid in production environment')
+}
+
+const hasValidClerkKeys = hasConfiguredClerkKeys
+  ? clerkKeys.publishable &&
+    clerkKeys.secret &&
+    clerkKeys.publishable.startsWith('pk_') &&
+    !clerkKeys.publishable.includes('YOUR_') &&
+    !clerkKeys.publishable.includes('CONFIGURE')
+  : null
+
+if (!hasValidClerkKeys) {
+  console.warn('[middleware] Clerk keys missing or invalid; authentication disabled for public routes', {
+    publishableConfigured: Boolean(clerkKeys.publishable),
+    environment: process.env.NODE_ENV
+  })
+}
 
 // Only use Clerk middleware if keys are configured
 const clerkWrappedHandler = hasValidClerkKeys

@@ -3,6 +3,7 @@ import { JudgeSyncManager } from '@/lib/sync/judge-sync'
 import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export const runtime = 'nodejs'
 export const maxDuration = 300 // 5 minutes for judge sync

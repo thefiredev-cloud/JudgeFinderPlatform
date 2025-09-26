@@ -6,6 +6,8 @@ import { logger } from '@/lib/utils/logger'
 import { validateParams } from '@/lib/utils/validation'
 import crypto from 'crypto'
 
+export const dynamic = 'force-dynamic'
+
 const ISSUE_TYPE_VALUES = ['data_accuracy', 'bias_context', 'assignment_change', 'ads_or_policy', 'other'] as const
 const issueSchema = z.object({
   judgeSlug: z.string().min(2).max(200),

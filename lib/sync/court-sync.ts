@@ -4,7 +4,7 @@
  */
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { CourtListenerClient } from '@/lib/courtlistener/client'
+import { CourtListenerClient, type CourtListenerCourt } from '@/lib/courtlistener/client'
 import { logger } from '@/lib/utils/logger'
 import { sleep } from '@/lib/utils/helpers'
 
@@ -21,27 +21,6 @@ interface CourtSyncResult {
   courtsCreated: number
   errors: string[]
   duration: number
-}
-
-interface CourtListenerCourt {
-  id: string
-  name: string
-  full_name: string
-  jurisdiction: string
-  url?: string
-  position?: string
-  date_created?: string
-  date_modified?: string
-  short_name?: string
-  citation_string?: string
-  in_use?: boolean
-  has_opinion_scraper?: boolean
-  has_oral_argument_scraper?: boolean
-  position_count?: number
-  start_date?: string
-  end_date?: string
-  location?: string
-  [key: string]: any
 }
 
 export class CourtSyncManager {
@@ -153,37 +132,41 @@ export class CourtSyncManager {
    * Fetch courts from CourtListener API
    */
   private async fetchCourtsFromCourtListener(options: CourtSyncOptions): Promise<CourtListenerCourt[]> {
-    // Note: CourtListener uses /courts/ endpoint
-    // This is a placeholder implementation - actual API structure may vary
+    const collected: CourtListenerCourt[] = []
+    let cursor: string | null = null
+
     try {
-      const response = await fetch('https://www.courtlistener.com/api/rest/v4/courts/', {
-        headers: {
-          'Authorization': `Token ${process.env.COURTLISTENER_API_KEY}`,
-          'Accept': 'application/json'
+      do {
+        const response = await this.courtListener.listCourts({
+          cursorUrl: cursor,
+          ordering: '-date_modified'
+        })
+
+        const results = response.results || []
+        collected.push(...results)
+        cursor = response.next
+
+        // Respect CourtListener pacing
+        if (cursor) {
+          await sleep(750)
         }
-      })
+      } while (cursor && collected.length < 1000)
 
-      if (!response.ok) {
-        throw new Error(`CourtListener API error: ${response.status}`)
-      }
+      let courts = collected
 
-      const data = await response.json()
-      let courts = data.results || []
-
-      // Filter by jurisdiction if specified
       if (options.jurisdiction) {
-        courts = courts.filter((court: any) => 
-          court.jurisdiction === options.jurisdiction ||
-          court.full_name?.includes(options.jurisdiction)
-        )
+        const matcher = options.jurisdiction.toUpperCase()
+        courts = courts.filter(court => (
+          court.jurisdiction?.toUpperCase() === matcher ||
+          court.full_name?.toUpperCase().includes(matcher) ||
+          court.name?.toUpperCase().includes(matcher)
+        ))
       }
 
       logger.info('Fetched courts from CourtListener', { count: courts.length })
       return courts
-
     } catch (error) {
       logger.error('Failed to fetch courts from CourtListener', { error })
-      // record metric (best-effort)
       try {
         await this.supabase.from('performance_metrics').insert({
           metric_name: 'courtlistener_fetch_courts_failed',
@@ -191,7 +174,8 @@ export class CourtSyncManager {
           page_url: '/lib/sync/court-sync',
           page_type: 'sync',
           metric_id: 'fetch_courts_failed',
-          rating: 'poor'
+          rating: 'poor',
+          metadata: { error: error instanceof Error ? error.message : String(error) }
         })
       } catch (_) {}
       throw error

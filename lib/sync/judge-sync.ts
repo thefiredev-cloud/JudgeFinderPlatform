@@ -4,10 +4,11 @@
  */
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { CourtListenerClient } from '@/lib/courtlistener/client'
+import { CourtListenerClient, type CourtListenerJudge } from '@/lib/courtlistener/client'
 import { logger } from '@/lib/utils/logger'
 import { sleep } from '@/lib/utils/helpers'
 import { normalizeJurisdiction } from '@/lib/sync/normalization'
+import { SupabaseServiceRoleFactory } from '@/lib/supabase/service-role'
 
 interface JudgeSyncOptions {
   batchSize?: number
@@ -31,18 +32,6 @@ interface JudgeSyncResult {
   duration: number
 }
 
-interface CourtListenerJudge {
-  id: string
-  name: string
-  name_full?: string
-  positions?: any[]
-  educations?: any[]
-  date_created?: string
-  date_modified?: string
-  fjc_id?: string
-  cl_id?: string
-}
-
 interface BatchSyncStats {
   processed: number
   updated: number
@@ -51,12 +40,29 @@ interface BatchSyncStats {
   errors: string[]
 }
 
-export class JudgeSyncManager {
-  private supabase: SupabaseClient
-  private courtListener: CourtListenerClient
-  private syncId: string
+export interface JudgeSyncDependencies {
+  supabase: SupabaseClient
+  courtListener: CourtListenerClient
+}
 
-  constructor() {
+export class JudgeSyncManager {
+  private readonly supabase: SupabaseClient
+  private readonly courtListener: CourtListenerClient
+  private readonly syncId: string
+  private readonly maxBatchSize = 25
+  private readonly defaultBatchSize = 10
+  private readonly perRunJudgeLimit = 250
+  private readonly perRunCreateLimit = 150
+  private processedCount = 0
+  private createdCount = 0
+
+  constructor(dependencies?: Partial<JudgeSyncDependencies>) {
+    this.supabase = dependencies?.supabase ?? this.createSupabaseServiceRoleClient()
+    this.courtListener = dependencies?.courtListener ?? this.createCourtListenerClient()
+    this.syncId = `judge-sync-${Date.now()}`
+  }
+
+  private createSupabaseServiceRoleClient(): SupabaseClient {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -64,11 +70,15 @@ export class JudgeSyncManager {
       throw new Error('Supabase credentials missing: set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY')
     }
 
-    this.supabase = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { persistSession: false }
-    })
-    this.courtListener = new CourtListenerClient()
-    this.courtListener.setMetricsReporter(async (name, value, meta) => {
+    return new SupabaseServiceRoleFactory({
+      url: supabaseUrl,
+      serviceRoleKey
+    }).create()
+  }
+
+  private createCourtListenerClient(): CourtListenerClient {
+    const client = new CourtListenerClient()
+    client.setMetricsReporter(async (name, value, meta) => {
       try {
         await this.supabase.from('performance_metrics').insert({
           metric_name: name,
@@ -81,7 +91,41 @@ export class JudgeSyncManager {
         })
       } catch (_) {}
     })
-    this.syncId = `judge-sync-${Date.now()}`
+    return client
+  }
+
+  private resolveBatchSize(requested?: number): number {
+    if (!requested) {
+      return this.defaultBatchSize
+    }
+
+    if (requested < 1) {
+      return 1
+    }
+
+    return Math.min(requested, this.maxBatchSize)
+  }
+
+  private shouldAbortSync(): boolean {
+    if (this.processedCount >= this.perRunJudgeLimit) {
+      return true
+    }
+
+    if (this.createdCount >= this.perRunCreateLimit) {
+      return true
+    }
+
+    return false
+  }
+
+  private trackBatchOutcome(result: { processed: number; created: number }) {
+    this.processedCount += result.processed
+    this.createdCount += result.created
+  }
+
+  private resetRunLimits() {
+    this.processedCount = 0
+    this.createdCount = 0
   }
 
   /**
@@ -155,16 +199,29 @@ export class JudgeSyncManager {
       errors: []
     }
 
-    const batchSize = options.batchSize || 10
+    const batchSize = this.resolveBatchSize(options.batchSize)
 
     for (let i = 0; i < judgeIds.length; i += batchSize) {
+      if (this.shouldAbortSync()) {
+        stats.errors.push('Run limits reached; aborting remaining judge sync operations')
+        break
+      }
+
       const batch = judgeIds.slice(i, i + batchSize)
       
       try {
         for (const judgeId of batch) {
+          if (this.shouldAbortSync()) {
+            stats.errors.push('Run limits reached during batch processing')
+            break
+          }
+
           const processed = await this.syncSingleJudge(judgeId, options)
           if (processed.updated) stats.updated++
-          if (processed.created) stats.created++
+          if (processed.created) {
+            stats.created++
+            this.createdCount++
+          }
           if (processed.enhanced) stats.enhanced++
           stats.processed++
         }
@@ -173,9 +230,15 @@ export class JudgeSyncManager {
         stats.errors.push(`Batch processing failed: ${details}`)
       }
 
+      this.trackBatchOutcome({ processed: batch.length, created: stats.created })
+
       // Rate limiting
-      if (i + batchSize < judgeIds.length) {
+      if (i + batchSize < judgeIds.length && !this.shouldAbortSync()) {
         await sleep(1000)
+      }
+
+      if (this.shouldAbortSync()) {
+        break
       }
     }
 
@@ -198,9 +261,14 @@ export class JudgeSyncManager {
     const judgesToSync = await this.getJudgesNeedingUpdate(options)
 
     if (judgesToSync.length > 0) {
-      const batchSize = options.batchSize || 10
+      const batchSize = this.resolveBatchSize(options.batchSize)
 
       for (let i = 0; i < judgesToSync.length; i += batchSize) {
+        if (this.shouldAbortSync()) {
+          stats.errors.push('Run limits reached; aborting remaining judge sync operations')
+          break
+        }
+
         const batch = judgesToSync.slice(i, i + batchSize)
         
         try {
@@ -210,29 +278,37 @@ export class JudgeSyncManager {
           stats.created += batchResult.created
           stats.enhanced += batchResult.enhanced
           stats.errors.push(...batchResult.errors)
+
+          this.trackBatchOutcome({ processed: batchResult.processed, created: batchResult.created })
         } catch (error) {
           const details = error instanceof Error ? error.message : String(error)
           stats.errors.push(`Batch ${Math.floor(i / batchSize) + 1} failed: ${details}`)
         }
 
         // Rate limiting
-        if (i + batchSize < judgesToSync.length) {
+        if (i + batchSize < judgesToSync.length && !this.shouldAbortSync()) {
           await sleep(2000)
+        }
+
+        if (this.shouldAbortSync()) {
+          break
         }
       }
     }
 
     // Discover and import new judges that are not yet in our database
-    const newJudgeIds = await this.discoverNewJudgeIds(options)
+    if (!this.shouldAbortSync()) {
+      const newJudgeIds = await this.discoverNewJudgeIds(options)
 
-    if (newJudgeIds.length > 0) {
-      logger.info('Discovered new judges to import', { count: newJudgeIds.length })
-      const newJudgeStats = await this.syncSpecificJudges(newJudgeIds, options)
-      stats.processed += newJudgeStats.processed
-      stats.updated += newJudgeStats.updated
-      stats.created += newJudgeStats.created
-      stats.enhanced += newJudgeStats.enhanced
-      stats.errors.push(...newJudgeStats.errors)
+      if (newJudgeIds.length > 0) {
+        logger.info('Discovered new judges to import', { count: newJudgeIds.length })
+        const newJudgeStats = await this.syncSpecificJudges(newJudgeIds, options)
+        stats.processed += newJudgeStats.processed
+        stats.updated += newJudgeStats.updated
+        stats.created += newJudgeStats.created
+        stats.enhanced += newJudgeStats.enhanced
+        stats.errors.push(...newJudgeStats.errors)
+      }
     }
 
     return stats
@@ -280,10 +356,18 @@ export class JudgeSyncManager {
     }
 
     for (const judge of judges) {
+      if (this.shouldAbortSync()) {
+        stats.errors.push('Run limits reached during judge batch processing')
+        break
+      }
+
       try {
         const result = await this.syncSingleJudge(judge.courtlistener_id, options)
         if (result.updated) stats.updated++
-        if (result.created) stats.created++
+        if (result.created) {
+          stats.created++
+          this.createdCount++
+        }
         if (result.enhanced) stats.enhanced++
         stats.processed++
       } catch (error) {
@@ -302,20 +386,36 @@ export class JudgeSyncManager {
   private async discoverNewJudgeIds(options: JudgeSyncOptions): Promise<string[]> {
     try {
       const existingIds = await this.getExistingCourtListenerIds(options)
-      const summaries = await this.fetchJudgeSummariesFromCourtListener(options)
+      const newIds: Set<string> = new Set()
+      const discoverCap = Math.max(50, options.discoverLimit || this.perRunJudgeLimit)
+      let cursor: string | null = null
+      const filters = this.buildCourtListenerJurisdictionFilters(options.jurisdiction)
 
-      const newJudgeIds: string[] = []
+      while (newIds.size < discoverCap && !this.shouldAbortSync()) {
+        const response = await this.courtListener.listJudges({
+          cursorUrl: cursor,
+          ordering: '-date_modified',
+          filters
+        })
 
-      for (const summary of summaries) {
-        const judgeId = summary.id.toString()
-        if (!existingIds.has(judgeId)) {
-          newJudgeIds.push(judgeId)
+        for (const judge of response.results || []) {
+          const judgeId = judge.id.toString()
+          if (!existingIds.has(judgeId)) {
+            newIds.add(judgeId)
+            if (newIds.size >= discoverCap) break
+          }
         }
+
+        if (!response.next) {
+          break
+        }
+
+        cursor = response.next
+        await sleep(750)
       }
 
-      // Limit per run to avoid API exhaustion/timeouts. A driver script can loop until empty.
-      const perRunLimit = Math.max(1, options.discoverLimit || (options.batchSize ? options.batchSize * 10 : 200))
-      return newJudgeIds.slice(0, perRunLimit)
+      const perRunLimit = Math.max(1, Math.min(options.discoverLimit || (options.batchSize ? options.batchSize * 5 : 150), this.perRunCreateLimit - this.createdCount))
+      return Array.from(newIds).slice(0, perRunLimit)
 
     } catch (error) {
       logger.error('Failed to discover new judges', { error })
@@ -323,76 +423,22 @@ export class JudgeSyncManager {
     }
   }
 
-  private async fetchJudgeSummariesFromCourtListener(options: JudgeSyncOptions) {
-    const apiToken = process.env.COURTLISTENER_API_KEY || process.env.COURTLISTENER_API_TOKEN
-
-    if (!apiToken) {
-      throw new Error('COURTLISTENER_API_KEY is required to fetch judge data')
-    }
-
-    const baseUrl = 'https://www.courtlistener.com/api/rest/v4/people/'
-    const results: Array<{ id: number | string }> = []
-    const requestedJurisdiction = (options.jurisdiction || 'CA').toUpperCase()
-
-    let nextUrl: string | null = `${baseUrl}?format=json&page_size=100&ordering=-date_modified`
-
-    const jurisdictionFilter = this.buildCourtListenerJurisdictionFilter(requestedJurisdiction)
-    if (jurisdictionFilter) {
-      nextUrl += `&${jurisdictionFilter}`
-    }
-
-    // Allow larger discovery when requested; otherwise default to a safe cap
-    const discoverCap = Math.max(50, options.discoverLimit || 500)
-
-    while (nextUrl && results.length < discoverCap) {
-      const response = await fetch(nextUrl, {
-        headers: {
-          'Authorization': `Token ${apiToken}`,
-          'Accept': 'application/json'
-        }
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`CourtListener judge list error ${response.status}: ${errorText}`)
-      }
-
-      const data = await response.json() as { results: Array<{ id: number | string }>; next: string | null }
-      results.push(...data.results)
-
-      nextUrl = data.next
-        ? data.next.startsWith('http')
-          ? data.next
-          : `https://www.courtlistener.com${data.next}`
-        : null
-
-      if (nextUrl) {
-        await sleep(800)
-      }
-    }
-
-    return results
-  }
-
-  private buildCourtListenerJurisdictionFilter(jurisdiction: string): string | null {
-    if (jurisdiction === 'ALL' || jurisdiction === '') {
-      return null
+  private buildCourtListenerJurisdictionFilters(jurisdiction?: string): Record<string, string> {
+    if (!jurisdiction || jurisdiction.toUpperCase() === 'ALL') {
+      return {}
     }
 
     const normalized = jurisdiction.toUpperCase()
 
-    // Federal requests map to the CourtListener jurisdiction code "F"
     if (['US', 'F', 'FEDERAL'].includes(normalized)) {
-      return 'positions__court__jurisdiction=F'
+      return { 'positions__court__jurisdiction': 'F' }
     }
 
-    // Two-letter state/territory codes map to the court state filter (CourtListener expects lowercase)
     if (/^[A-Z]{2}$/.test(normalized)) {
-      return `positions__court__state=${normalized.toLowerCase()}`
+      return { 'positions__court__state': normalized.toLowerCase() }
     }
 
-    // Fall back to the raw jurisdiction filter for any other valid CourtListener code (e.g., tribal, military)
-    return `positions__court__jurisdiction=${normalized}`
+    return { 'positions__court__jurisdiction': normalized }
   }
 
   private async getExistingCourtListenerIds(options: JudgeSyncOptions): Promise<Set<string>> {
@@ -455,8 +501,13 @@ export class JudgeSyncManager {
         return { updated, created: false, enhanced }
       } else {
         // Create new judge
+        if (this.shouldAbortSync()) {
+          return { updated: false, created: false, enhanced: false }
+        }
+
         const judgeId = await this.createJudge(judgeData)
         const enhanced = await this.enhanceJudgeProfile(judgeId, judgeData)
+        this.createdCount++
         return { updated: false, created: true, enhanced }
       }
 
@@ -471,24 +522,7 @@ export class JudgeSyncManager {
    */
   private async fetchJudgeFromCourtListener(judgeId: string): Promise<CourtListenerJudge | null> {
     try {
-      const response = await fetch(`https://www.courtlistener.com/api/rest/v4/people/${judgeId}/`, {
-        headers: {
-          'Authorization': `Token ${process.env.COURTLISTENER_API_KEY}`,
-          'Accept': 'application/json'
-        }
-      })
-
-      if (response.status === 404) {
-        return null
-      }
-
-      if (!response.ok) {
-        throw new Error(`CourtListener API error: ${response.status}`)
-      }
-
-      const data = await response.json()
-      return data as CourtListenerJudge
-
+      return await this.courtListener.getJudgeById(judgeId)
     } catch (error) {
       logger.error('Failed to fetch judge from CourtListener', { judgeId, error })
       throw error

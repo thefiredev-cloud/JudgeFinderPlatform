@@ -4,6 +4,8 @@ import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
 
+export const revalidate = 0
+
 export const runtime = 'nodejs'
 export const maxDuration = 600 // 10 minutes for decision sync (longer due to rate limits)
 

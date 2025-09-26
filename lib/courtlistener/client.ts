@@ -1,6 +1,6 @@
 import { sleep } from '@/lib/utils/helpers'
 
-interface CourtListenerOpinion {
+export interface CourtListenerOpinion {
   id: number
   cluster: number
   date_filed: string
@@ -38,6 +38,40 @@ export interface CourtListenerDocket {
   docket_entries_count?: number | null
 }
 
+export interface CourtListenerJudge {
+  id: string | number
+  name: string
+  name_full?: string
+  positions?: any[]
+  educations?: any[]
+  date_created?: string
+  date_modified?: string
+  fjc_id?: string
+  cl_id?: string
+  [key: string]: any
+}
+
+export interface CourtListenerCourt {
+  id: string
+  name: string
+  full_name: string
+  jurisdiction: string
+  url?: string
+  position?: string
+  date_created?: string
+  date_modified?: string
+  short_name?: string
+  citation_string?: string
+  in_use?: boolean
+  has_opinion_scraper?: boolean
+  has_oral_argument_scraper?: boolean
+  position_count?: number
+  start_date?: string
+  end_date?: string
+  location?: string
+  [key: string]: any
+}
+
 interface CourtListenerResponse<T> {
   count: number
   next: string | null
@@ -45,13 +79,18 @@ interface CourtListenerResponse<T> {
   results: T[]
 }
 
+interface RequestOptions {
+  allow404?: boolean
+}
+
 export class CourtListenerClient {
   private baseUrl = 'https://www.courtlistener.com/api/rest/v4'
   private apiToken: string
-  private requestDelay = 1000 // 1 second between requests to respect rate limits
+  private requestDelay = Math.max(250, parseInt(process.env.COURTLISTENER_REQUEST_DELAY_MS || '1000', 10))
   private maxRetries = Math.max(0, parseInt(process.env.COURTLISTENER_MAX_RETRIES || '5', 10))
   private requestTimeoutMs = Math.max(5000, parseInt(process.env.COURTLISTENER_REQUEST_TIMEOUT_MS || '30000', 10))
   private backoffCapMs = Math.max(2000, parseInt(process.env.COURTLISTENER_BACKOFF_CAP_MS || '15000', 10))
+  private retryJitterMaxMs = Math.max(1000, parseInt(process.env.COURTLISTENER_RETRY_JITTER_MAX_MS || '500', 10))
   private circuitOpenUntil = 0
   private circuitFailures = 0
   private circuitThreshold = Math.max(3, parseInt(process.env.COURTLISTENER_CIRCUIT_THRESHOLD || '5', 10))
@@ -69,7 +108,7 @@ export class CourtListenerClient {
     this.metricsReporter = reporter
   }
 
-  private async makeRequest<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
+  private async makeRequest<T>(endpoint: string, params: Record<string, string> = {}, options: RequestOptions = {}): Promise<T> {
     // Circuit breaker: short-circuit requests during cooldown window
     const now = Date.now()
     if (now < this.circuitOpenUntil) {
@@ -79,13 +118,23 @@ export class CourtListenerClient {
       throw err
     }
 
-    const url = new URL(`${this.baseUrl}${endpoint}`)
-    
-    // Add API token to params
-    params.format = 'json'
-    
+    const isAbsolute = endpoint.startsWith('http')
+    const url = new URL(isAbsolute ? endpoint : `${this.baseUrl}${endpoint}`)
+
+    if (!isAbsolute) {
+      params.format = params.format || 'json'
+    } else if (!url.searchParams.has('format')) {
+      url.searchParams.append('format', 'json')
+    }
+
     Object.entries(params).forEach(([key, value]) => {
-      if (value) url.searchParams.append(key, value)
+      if (value !== undefined && value !== null && value !== '') {
+        if (url.searchParams.has(key)) {
+          url.searchParams.set(key, value)
+        } else {
+          url.searchParams.append(key, value)
+        }
+      }
     })
 
     const headers: Record<string, string> = {
@@ -102,6 +151,8 @@ export class CourtListenerClient {
     const maxRetries = this.maxRetries
     let attempt = 0
     let lastError: any = null
+    let lastStatus: number | undefined
+    let lastRetryAfterMs: number | null = null
 
     while (attempt <= maxRetries) {
       try {
@@ -120,10 +171,15 @@ export class CourtListenerClient {
         if (!response.ok) {
           const status = response.status
           const errorText = await response.text().catch(() => '')
+          lastStatus = status
+          lastRetryAfterMs = this.parseRetryAfter(response.headers.get('retry-after'))
 
           // Handle 429/5xx with retry
           if (status === 429 || (status >= 500 && status < 600)) {
             lastError = new Error(`CourtListener API error ${status}: ${errorText}`)
+          } else if (status === 404 && options.allow404) {
+            try { await this.metricsReporter?.('courtlistener_404', 1, { url: url.pathname }) } catch {}
+            return null as unknown as T
           } else {
             throw new Error(`CourtListener API error ${status}: ${errorText}`)
           }
@@ -132,20 +188,23 @@ export class CourtListenerClient {
           await sleep(this.requestDelay)
           // reset failure counter on success
           this.circuitFailures = 0
+          lastStatus = undefined
+          lastRetryAfterMs = null
           return data
         }
       } catch (error) {
         lastError = error
+        lastStatus = undefined
+        lastRetryAfterMs = null
         // AbortError or network error should retry
       }
 
       // Backoff before next attempt
       attempt += 1
       if (attempt > maxRetries) break
-      const base = Math.min(1000 * 2 ** attempt, this.backoffCapMs)
-      const jitter = Math.floor(Math.random() * 500)
-      const backoff = base + jitter
-      console.warn(`CourtListener backoff attempt ${attempt}/${maxRetries} for ${backoff}ms`)
+      const backoff = this.computeBackoffDelay(attempt, lastStatus, lastRetryAfterMs)
+      console.warn(`CourtListener backoff attempt ${attempt}/${maxRetries} for ${backoff}ms (status=${lastStatus ?? 'n/a'})`)
+      try { await this.metricsReporter?.('courtlistener_retry', 1, { attempt, status: lastStatus, delayMs: backoff }) } catch {}
       await sleep(backoff)
     }
 
@@ -160,6 +219,48 @@ export class CourtListenerClient {
 
     console.error('CourtListener API request failed after retries:', lastError)
     throw lastError || new Error('CourtListener API request failed')
+  }
+
+  private computeBackoffDelay(attempt: number, lastStatus?: number, retryAfterMs: number | null = null): number {
+    if (retryAfterMs && retryAfterMs > 0) {
+      return retryAfterMs
+    }
+
+    const exponent = Math.min(attempt, 6)
+    const base = Math.min(1000 * 2 ** exponent, this.backoffCapMs)
+    const jitterUpperBound = this.retryJitterMaxMs
+    const jitter = Math.floor(Math.random() * jitterUpperBound)
+
+    if (lastStatus === 429) {
+      const throttledBase = Math.max(base * 1.5, base + 1000)
+      return Math.min(throttledBase + jitter, this.backoffCapMs + jitterUpperBound)
+    }
+
+    if (lastStatus && lastStatus >= 500 && lastStatus < 600) {
+      const serverBase = Math.max(base * 1.25, base + 500)
+      return Math.min(serverBase + jitter, this.backoffCapMs + jitterUpperBound)
+    }
+
+    return Math.min(base + jitter, this.backoffCapMs + jitterUpperBound)
+  }
+
+  private parseRetryAfter(headerValue: string | null): number | null {
+    if (!headerValue) {
+      return null
+    }
+
+    const numericValue = Number(headerValue)
+    if (Number.isFinite(numericValue)) {
+      return Math.max(0, numericValue * 1000)
+    }
+
+    const retryDate = new Date(headerValue)
+    if (!Number.isNaN(retryDate.getTime())) {
+      const delayMs = retryDate.getTime() - Date.now()
+      return delayMs > 0 ? delayMs : null
+    }
+
+    return null
   }
 
   /**
@@ -357,6 +458,58 @@ export class CourtListenerClient {
    */
   async getOpinionDetail(opinionId: string | number): Promise<any> {
     return this.makeRequest(`/opinions/${opinionId}/`)
+  }
+
+  /**
+   * Fetch a specific judge by CourtListener ID
+   */
+  async getJudgeById(judgeId: string): Promise<CourtListenerJudge | null> {
+    return this.makeRequest(`/people/${judgeId}/`, {}, { allow404: true })
+  }
+
+  /**
+   * List judges (CourtListener people endpoint) with optional filters and pagination support
+   */
+  async listJudges(options: {
+    pageSize?: number
+    ordering?: string
+    cursorUrl?: string | null
+    filters?: Record<string, string>
+  } = {}): Promise<CourtListenerResponse<CourtListenerJudge>> {
+    const { pageSize = 100, ordering = '-date_modified', cursorUrl, filters = {} } = options
+
+    const response = await this.makeRequest<CourtListenerResponse<CourtListenerJudge>>(
+      cursorUrl ?? '/people/',
+      cursorUrl ? {} : { page_size: pageSize.toString(), ordering, ...filters }
+    )
+
+    return {
+      ...response,
+      next: response.next ? new URL(response.next, this.baseUrl).toString() : null,
+      previous: response.previous ? new URL(response.previous, this.baseUrl).toString() : null
+    }
+  }
+
+  /**
+   * List courts with optional pagination
+   */
+  async listCourts(options: {
+    pageSize?: number
+    ordering?: string
+    cursorUrl?: string | null
+  } = {}): Promise<CourtListenerResponse<CourtListenerCourt>> {
+    const { pageSize = 100, ordering = '-date_modified', cursorUrl } = options
+
+    const response = await this.makeRequest<CourtListenerResponse<CourtListenerCourt>>(
+      cursorUrl ?? '/courts/',
+      cursorUrl ? {} : { page_size: pageSize.toString(), ordering }
+    )
+
+    return {
+      ...response,
+      next: response.next ? new URL(response.next, this.baseUrl).toString() : null,
+      previous: response.previous ? new URL(response.previous, this.baseUrl).toString() : null
+    }
   }
 
   /**

@@ -7,7 +7,8 @@ import { redisGetJSON, redisSetJSON } from '@/lib/cache/redis'
 // Import AI analytics pipeline
 const { generateJudicialAnalytics, generateAnalyticsWithOpenAI } = require('@/lib/ai/judicial-analytics')
 
-export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+export const revalidate = 0
 
 const LOOKBACK_YEARS = Math.max(1, parseInt(process.env.JUDGE_ANALYTICS_LOOKBACK_YEARS ?? '5', 10))
 const CASE_FETCH_LIMIT = Math.max(200, parseInt(process.env.JUDGE_ANALYTICS_CASE_LIMIT ?? '1000', 10))
