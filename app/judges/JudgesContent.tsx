@@ -48,6 +48,9 @@ interface FetchOptions {
   prefetch?: boolean
 }
 
+const INITIAL_VISIBLE_COUNT = 24
+const VISIBLE_INCREMENT = 12
+
 export default function JudgesContent({ initialData }: JudgesContentProps) {
   const currentYear = new Date().getFullYear()
   const [recentYearsFilter, setRecentYearsFilter] = useState(RECENT_JUDGE_YEARS)
@@ -61,6 +64,10 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
   const [searchInput, setSearchInput] = useState('')
   const [selectedJurisdiction, setSelectedJurisdiction] = useState('CA')
   const [judges, setJudges] = useState<JudgeWithDecisions[]>(initialData?.judges ?? [])
+  const [visibleCount, setVisibleCount] = useState(() => {
+    const initialLength = initialData?.judges?.length ?? 0
+    return Math.min(initialLength, INITIAL_VISIBLE_COUNT)
+  })
   const [loading, setLoading] = useState(!initialData)
   const [initialLoad, setInitialLoad] = useState(!initialData)
   const [totalCount, setTotalCount] = useState(initialData?.total_count ?? 0)
@@ -99,6 +106,12 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
     prefetchedPagesRef.current.clear()
     prefetchInFlightRef.current.clear()
     setFetchError(null)
+    setVisibleCount((previous) => {
+      if (previous <= INITIAL_VISIBLE_COUNT) {
+        return INITIAL_VISIBLE_COUNT
+      }
+      return previous
+    })
   }, [filtersSignature])
 
   const buildPrefetchKey = useCallback(
@@ -114,11 +127,22 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
       return Array.from(map.values())
     }
 
-    if (reset || data.page <= 1) {
-      setJudges(mergeUniqueById([], data.judges))
-    } else {
-      setJudges((prev) => mergeUniqueById(prev, data.judges))
-    }
+    setJudges((previous) => {
+      const base = reset || data.page <= 1 ? [] : previous
+      const nextJudges = mergeUniqueById(base, data.judges)
+
+      setVisibleCount((count) => {
+        if (reset) {
+          return Math.min(Math.max(nextJudges.length, INITIAL_VISIBLE_COUNT), INITIAL_VISIBLE_COUNT)
+        }
+        if (nextJudges.length < count) {
+          return nextJudges.length
+        }
+        return count
+      })
+
+      return nextJudges
+    })
 
     setTotalCount(data.total_count)
     setCurrentPage(data.page)
@@ -311,6 +335,7 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
   const filteredJudges = onlyWithDecisions 
     ? judges.filter(judge => judge.decision_summary?.total_recent && judge.decision_summary.total_recent > 0)
     : judges
+  const visibleJudges = filteredJudges.slice(0, visibleCount)
 
   const hasCachedResults = judges.length > 0
 
@@ -370,6 +395,13 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
     loading,
     queuePrefetch,
   ])
+
+  const loadMoreVisible = useCallback(() => {
+    setVisibleCount((count) => {
+      const nextCount = count + VISIBLE_INCREMENT
+      return Math.min(nextCount, filteredJudges.length)
+    })
+  }, [filteredJudges.length])
 
   const handleRetry = useCallback(() => {
     void fetchJudges(1, { reset: true })
@@ -957,7 +989,7 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                 variants={staggerContainer}
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
               >
-                {filteredJudges.map((judge, index) => (
+                {visibleJudges.map((judge, index) => (
                   <motion.div
                     key={judge.id}
                     variants={cardVariants}
@@ -1030,7 +1062,7 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
 
               {/* Load More Button */}
               <AnimatePresence>
-                {hasMore && (
+                {(visibleCount < filteredJudges.length || hasMore) && (
                   <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -1038,7 +1070,13 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                     className="text-center mt-12"
                   >
                     <motion.button
-                      onClick={handleLoadMore}
+                      onClick={() => {
+                        if (visibleCount < filteredJudges.length) {
+                          loadMoreVisible()
+                          return
+                        }
+                        handleLoadMore()
+                      }}
                       disabled={loading}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}

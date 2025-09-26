@@ -6,7 +6,7 @@ import { JudgeRulingPatterns } from '@/components/judges/JudgeRulingPatterns'
 import { RecentDecisions } from '@/components/judges/RecentDecisions'
 import { AdvertiserSlots } from '@/components/judges/AdvertiserSlots'
 import { JudgeFAQ } from '@/components/judges/JudgeFAQ'
-import AnalyticsSliders from '@/components/judges/AnalyticsSliders'
+import { AnalyticsSlidersShell } from '@/components/judges/AnalyticsSlidersShell'
 import { BookmarkButton } from '@/components/judges/BookmarkButton'
 import { ReportProfileIssueDialog } from '@/components/judges/ReportProfileIssueDialog'
 import { SEOBreadcrumbs } from '@/components/seo/SEOBreadcrumbs'
@@ -320,7 +320,7 @@ export default async function JudgePage({ params }: JudgePageProps) {
             
             {/* AI Analytics Section */}
             <section id="analytics" className="scroll-mt-32">
-              <AnalyticsSliders judgeId={judge.id} judgeName={safeName} />
+              <AnalyticsSlidersShell judgeId={judge.id} judgeName={safeName} />
             </section>
             
             {/* Recent Decisions */}

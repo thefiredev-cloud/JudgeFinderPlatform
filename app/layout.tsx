@@ -1,14 +1,17 @@
 import './globals.css'
+import { Inter } from 'next/font/google'
+import { Metadata } from 'next'
 import { Providers } from '@/components/providers/Providers'
 import { Header } from '@/components/ui/Header'
 import { Footer } from '@/components/ui/Footer'
 import BottomNavigation from '@/components/ui/BottomNavigation'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary'
-import { Metadata } from 'next'
 import { getBaseUrl } from '@/lib/utils/baseUrl'
 
 const BASE_URL = getBaseUrl()
+
+const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
 export const metadata: Metadata = {
   // Ensure absolute URLs for Open Graph/Twitter images
@@ -59,7 +62,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className="dark">
+    <html lang="en" suppressHydrationWarning className={`${inter.className} dark`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         {/* Performance: DNS Prefetch + Preconnect for common origins */}

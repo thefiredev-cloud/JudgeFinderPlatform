@@ -3,6 +3,8 @@ import HomePageClient from '@/components/home/HomePageClient'
 import { HomepageFAQ } from '@/components/seo/HomepageFAQ'
 import { getBaseUrl } from '@/lib/utils/baseUrl'
 
+export const revalidate = 300
+
 const BASE_URL = getBaseUrl()
 
 // Server-side metadata generation for SEO

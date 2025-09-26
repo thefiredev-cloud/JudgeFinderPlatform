@@ -7,6 +7,8 @@ import { TypewriterText } from '@/components/ui/TypewriterText'
 import { ScrollIndicator } from '@/components/ui/ScrollIndicator'
 import { getBaseUrl } from '@/lib/utils/baseUrl'
 
+export const revalidate = 300
+
 const BASE_URL = getBaseUrl()
 
 export const metadata: Metadata = {
