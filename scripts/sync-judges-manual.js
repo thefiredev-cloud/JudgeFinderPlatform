@@ -12,7 +12,12 @@ const supabase = createClient(
 )
 
 async function syncJudges() {
+  const batchSize = Math.max(1, Number(process.env.BATCH_SIZE || 10))
+  const discoverLimit = Math.max(1, Number(process.env.DISCOVER_LIMIT || 500))
+  const forceRefresh = process.env.FORCE_REFRESH === 'true'
+
   console.log('Starting California judges sync...')
+  console.log('  Options:', { batchSize, discoverLimit, forceRefresh })
   
   try {
     // Use existing sync script
@@ -22,7 +27,9 @@ async function syncJudges() {
     // Filter for California judges
     const results = await service.syncJudges({
       state: 'CA',
-      limit: 2000 // Get all CA judges
+      limit: discoverLimit,
+      batchSize,
+      forceRefresh
     })
     
     console.log('✅ Judge sync completed:', results)

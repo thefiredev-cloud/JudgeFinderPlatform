@@ -1,6 +1,26 @@
 require('dotenv').config({ path: '.env.local' })
 const { createClient } = require('@supabase/supabase-js')
 
+function parseArgs() {
+  const args = process.argv.slice(2)
+  const config = {
+    baseUrl: process.env.TEST_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3005',
+    limit: process.env.ANALYTICS_LIMIT ? Number(process.env.ANALYTICS_LIMIT) : undefined,
+  }
+  for (let i = 0; i < args.length; i += 1) {
+    const a = args[i]
+    if (a === '--base' && args[i + 1]) {
+      config.baseUrl = args[i + 1]
+      i += 1
+    } else if (a === '--limit' && args[i + 1]) {
+      const v = Number(args[i + 1])
+      if (!Number.isNaN(v) && v > 0) config.limit = v
+      i += 1
+    }
+  }
+  return config
+}
+
 // Initialize Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -10,6 +30,7 @@ const supabase = createClient(
 async function batchGenerateAnalytics() {
   try {
     console.log('🧮 Starting batch analytics generation for all California judges...')
+    const config = parseArgs()
     
     // Get all California judges with case counts
     const { data: judges, error: judgesError } = await supabase
@@ -42,7 +63,12 @@ async function batchGenerateAnalytics() {
     }
     
     // Start analytics generation
-    console.log(`\n🚀 Starting analytics generation for ${judgesWithCases.length} judges with case data...`)
+    if (typeof config.limit === 'number') {
+      console.log(`✂️  Limiting to first ${config.limit} judges for this run`)
+    }
+    const targetJudges = typeof config.limit === 'number' ? judgesWithCases.slice(0, config.limit) : judgesWithCases
+
+    console.log(`\n🚀 Starting analytics generation for ${targetJudges.length} judges with case data...`)
     
     let successCount = 0
     let errorCount = 0
@@ -50,10 +76,10 @@ async function batchGenerateAnalytics() {
     
     // Process in smaller batches to avoid overwhelming the system
     const batchSize = 10
-    for (let i = 0; i < judgesWithCases.length; i += batchSize) {
-      const judgeBatch = judgesWithCases.slice(i, i + batchSize)
+    for (let i = 0; i < targetJudges.length; i += batchSize) {
+      const judgeBatch = targetJudges.slice(i, i + batchSize)
       const batchNumber = Math.ceil((i + 1) / batchSize)
-      const totalBatches = Math.ceil(judgesWithCases.length / batchSize)
+      const totalBatches = Math.ceil(targetJudges.length / batchSize)
       
       console.log(`\n📦 Processing batch ${batchNumber}/${totalBatches} (${judgeBatch.length} judges)`)
       
@@ -61,7 +87,7 @@ async function batchGenerateAnalytics() {
       const batchPromises = judgeBatch.map(async (judge, index) => {
         try {
           const startTime = Date.now()
-          console.log(`   ${i + index + 1}/${judgesWithCases.length} - Generating analytics for ${judge.name}...`)
+          console.log(`   ${i + index + 1}/${targetJudges.length} - Generating analytics for ${judge.name}...`)
           
           // Check if analytics already exist and are recent
           const { data: existingCache } = await supabase
@@ -81,9 +107,7 @@ async function batchGenerateAnalytics() {
           }
           
           // Generate analytics by calling the API endpoint
-          const baseUrl = process.env.NODE_ENV === 'production' 
-            ? 'https://judgefinder.io'
-            : 'http://localhost:3005'
+          const baseUrl = config.baseUrl
           
           const response = await fetch(`${baseUrl}/api/judges/${judge.id}/analytics`, {
             method: 'GET',
