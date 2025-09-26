@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import CountyCourtsPage, { jurisdictionMap } from './ClientPage'
+import CountyCourtsPage from './ClientPage'
+import { jurisdictionMap } from './constants'
 import { getBaseUrl } from '@/lib/utils/baseUrl'
 
 export const dynamic = 'force-dynamic'
