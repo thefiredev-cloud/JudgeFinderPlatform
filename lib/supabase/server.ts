@@ -2,6 +2,7 @@ import { createServerClient as createSupabaseServerClient, type CookieOptions } 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { auth } from '@clerk/nextjs/server'
+import { createServiceRoleClient as createServiceRoleSupabaseClient } from '@/lib/supabase/service-role'
 
 export async function createServerClient(): Promise<SupabaseClient> {
   try {
@@ -62,18 +63,26 @@ export async function createClerkSupabaseServerClient(): Promise<SupabaseClient>
   )
 }
 
+export class SupabaseServiceRoleClient {
+  private client: SupabaseClient
+
+  constructor(private readonly url: string, private readonly serviceRoleKey: string) {
+    this.client = createServiceRoleSupabaseClient(url, serviceRoleKey)
+  }
+
+  getClient(): SupabaseClient {
+    return this.client
+  }
+}
+
 export async function createServiceRoleClient(): Promise<SupabaseClient> {
-  return createSupabaseServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        get() {
-          return ''
-        },
-        set() {},
-        remove() {},
-      },
-    }
-  )
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Missing Supabase service role environment variables')
+  }
+
+  const serviceRoleClient = new SupabaseServiceRoleClient(supabaseUrl, serviceRoleKey)
+  return serviceRoleClient.getClient()
 }

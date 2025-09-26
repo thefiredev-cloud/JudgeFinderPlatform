@@ -99,6 +99,48 @@ const ENV_VARIABLES: EnvVariable[] = [
     description: 'Google AI API key for primary analytics',
     validator: (value) => value.length > 20
   },
+  {
+    name: 'COURTLISTENER_REQUEST_DELAY_MS',
+    required: false,
+    description: 'Base delay between CourtListener requests (ms)',
+    validator: (value) => Number(value) >= 0,
+    transform: (value) => Number(value)
+  },
+  {
+    name: 'COURTLISTENER_MAX_RETRIES',
+    required: false,
+    description: 'Maximum retry attempts for CourtListener requests',
+    validator: (value) => Number(value) >= 0,
+    transform: (value) => Number(value)
+  },
+  {
+    name: 'COURTLISTENER_REQUEST_TIMEOUT_MS',
+    required: false,
+    description: 'Timeout for individual CourtListener requests (ms)',
+    validator: (value) => Number(value) >= 1000,
+    transform: (value) => Number(value)
+  },
+  {
+    name: 'COURTLISTENER_BACKOFF_CAP_MS',
+    required: false,
+    description: 'Maximum backoff delay when retrying CourtListener requests (ms)',
+    validator: (value) => Number(value) >= 0,
+    transform: (value) => Number(value)
+  },
+  {
+    name: 'COURTLISTENER_CIRCUIT_THRESHOLD',
+    required: false,
+    description: 'Error threshold before opening CourtListener circuit breaker',
+    validator: (value) => Number.isInteger(Number(value)) && Number(value) >= 0,
+    transform: (value) => Number(value)
+  },
+  {
+    name: 'COURTLISTENER_CIRCUIT_COOLDOWN_MS',
+    required: false,
+    description: 'Cooldown duration after circuit breaker opens (ms)',
+    validator: (value) => Number(value) >= 0,
+    transform: (value) => Number(value)
+  },
   
   // Application Configuration
   {
@@ -117,13 +159,13 @@ const ENV_VARIABLES: EnvVariable[] = [
   // Upstash Redis (for rate limiting)
   {
     name: 'UPSTASH_REDIS_REST_URL',
-    required: false,
+    required: true,
     description: 'Upstash Redis URL for rate limiting',
     validator: (value) => value.startsWith('https://')
   },
   {
     name: 'UPSTASH_REDIS_REST_TOKEN',
-    required: false,
+    required: true,
     description: 'Upstash Redis token',
     validator: (value) => value.length > 20
   },
@@ -180,10 +222,6 @@ export function validateEnvironment(): EnvValidationResult {
   // Add warnings for optional but recommended variables
   if (!process.env.OPENAI_API_KEY && !process.env.GOOGLE_AI_API_KEY) {
     warnings.push('No AI API keys configured. AI analytics features will be disabled.')
-  }
-  
-  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-    warnings.push('Upstash Redis not configured. Rate limiting will be disabled.')
   }
   
   if (!process.env.SENTRY_DSN) {

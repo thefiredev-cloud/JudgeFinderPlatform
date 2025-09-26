@@ -2,20 +2,40 @@
  * Safe auth wrapper that prevents build failures when Clerk is not configured
  */
 
+import { logger } from '@/lib/utils/logger'
+
+const hasConfiguredSecret = () => {
+  const secretKey = process.env.CLERK_SECRET_KEY || ''
+  return secretKey.startsWith('sk_')
+}
+
 const hasValidClerkKeys = () => {
   const pubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ''
+
+  if (process.env.NODE_ENV === 'production' && !hasConfiguredSecret()) {
+    throw new Error('Clerk secret key missing or invalid in production')
+  }
   
-  // Skip auth if explicitly disabled or if keys are not configured
   if (process.env.SKIP_AUTH_BUILD === 'true') {
+    logger.warn('Auth build skip enabled; Clerk auth disabled for this request context', {
+      scope: 'auth',
+      reason: 'SKIP_AUTH_BUILD'
+    })
     return false
   }
   
-  // Check if public key is an actual value (not placeholder)
-  // Note: We only check the public key here for client-side safety
-  // The secret key validation happens server-side only
   const isValidPubKey = pubKey.startsWith('pk_') && !pubKey.includes('YOUR') && !pubKey.includes('CONFIGURE')
+  const secretConfigured = hasConfiguredSecret()
+
+  if (!isValidPubKey || !secretConfigured) {
+    logger.warn('Clerk keys missing or invalid; returning anonymous auth context', {
+      scope: 'auth',
+      publishableConfigured: isValidPubKey,
+      secretConfigured
+    })
+  }
   
-  return isValidPubKey
+  return isValidPubKey && secretConfigured
 }
 
 export async function safeAuth() {
