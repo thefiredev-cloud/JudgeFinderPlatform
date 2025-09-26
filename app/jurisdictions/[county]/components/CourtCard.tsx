@@ -102,3 +102,5 @@ export function CourtCard(props: CourtCardProps): JSX.Element {
   return new CourtCardView(props).render()
 }
 
+export const renderCourtCard = (props: CourtCardProps): JSX.Element => CourtCard(props)
+

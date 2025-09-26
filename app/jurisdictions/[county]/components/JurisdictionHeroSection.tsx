@@ -69,3 +69,7 @@ export function JurisdictionHeroSection(props: JurisdictionHeroSectionProps): JS
   return new JurisdictionHeroSectionView(props).render()
 }
 
+export const renderJurisdictionHeroSection = (
+  props: JurisdictionHeroSectionProps
+): JSX.Element => JurisdictionHeroSection(props)
+

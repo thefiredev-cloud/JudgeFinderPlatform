@@ -48,3 +48,7 @@ export function JurisdictionQuickLinks(props: JurisdictionQuickLinksProps): JSX.
   return new JurisdictionQuickLinksView(props).render()
 }
 
+export const renderJurisdictionQuickLinks = (
+  props: JurisdictionQuickLinksProps
+): JSX.Element => JurisdictionQuickLinks(props)
+

@@ -89,3 +89,7 @@ export function CourtsGridSection(props: CourtsGridSectionProps): JSX.Element {
   return new CourtsGridSectionView(props).render()
 }
 
+export const renderCourtsGridSection = (
+  props: CourtsGridSectionProps
+): JSX.Element => CourtsGridSection(props)
+

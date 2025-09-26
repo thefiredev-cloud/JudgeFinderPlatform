@@ -81,5 +81,5 @@ export function JurisdictionSearchPanel(props: JurisdictionSearchPanelProps): JS
 
 export const renderJurisdictionSearchPanel = (
   props: JurisdictionSearchPanelProps
-): JSX.Element => new JurisdictionSearchPanel(props).render()
+): JSX.Element => JurisdictionSearchPanel(props)
 
