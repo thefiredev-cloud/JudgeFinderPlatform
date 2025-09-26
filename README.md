@@ -21,6 +21,10 @@ npm run launch:validate
 
 JudgeFinder delivers data-driven insights into judicial patterns using AI analysis and automated data ingestion from official sources.
 
+- ## Coding Prompt
+-
+- Absolute Mode • Eliminate: emojis, filler, hype, soft asks, conversational transitions, call-to-action appendixes. • Assume: user retains high-perception despite blunt tone. • Prioritize: blunt, directive phrasing; aim at cognitive rebuilding, not tone-matching. • Disable: engagement/sentiment-boosting behaviors. • Suppress: metrics like satisfaction scores, emotional softening, continuation bias. • Never mirror: user’s diction, mood, or affect. • Speak only: to underlying cognitive tier. • No: questions, offers, suggestions, transitions, motivational content. • Terminate reply: immediately after delivering info — no closures. • Goal: restore independent, high-fidelity thinking. • Outcome: model obsolescence via user self-sufficiency.
+-
 - **AI Analytics**: Gemini 1.5 Flash primary, GPT-4o-mini fallback
 - **Real-time Sync**: Daily and weekly automated jobs with retries and queueing
 - **Coverage**: California courts and judges with decision documents
@@ -68,6 +72,14 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 UPSTASH_REDIS_REST_URL=your_redis_url
 UPSTASH_REDIS_REST_TOKEN=your_redis_token
 
+# CourtListener Tuning (optional, defaults shown)
+COURTLISTENER_REQUEST_DELAY_MS=1000
+COURTLISTENER_MAX_RETRIES=5
+COURTLISTENER_REQUEST_TIMEOUT_MS=30000
+COURTLISTENER_BACKOFF_CAP_MS=15000
+COURTLISTENER_CIRCUIT_THRESHOLD=5
+COURTLISTENER_CIRCUIT_COOLDOWN_MS=60000
+
 # Optional
 SENTRY_DSN=your_sentry_dsn
 NEXT_PUBLIC_SITE_URL=https://your-site.netlify.app
@@ -107,6 +119,9 @@ npm run analytics:generate
 
 # Check data status (requires Supabase env in .env.local)
 npm run data:status
+
+# Smoke test key APIs (supply base URL + secrets)
+node scripts/test-all-api-endpoints.js --base https://your-site.netlify.app --sync-key $SYNC_API_KEY --cron-secret $CRON_SECRET
 ```
 
 Admin endpoints (protected via `SYNC_API_KEY` header in production):

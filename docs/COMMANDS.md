@@ -26,6 +26,9 @@ npm run assignments:update      # Automated assignment updater
 npm run launch:data             # Courts + judges
 npm run launch:analytics        # All analytics
 npm run launch:validate         # Relationship + integrity checks
+
+# API smoke test
+node scripts/test-all-api-endpoints.js --base https://<site> --sync-key $SYNC_API_KEY --cron-secret $CRON_SECRET
 ```
 
 ## Key Node Scripts

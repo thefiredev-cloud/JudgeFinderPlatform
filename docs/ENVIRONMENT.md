@@ -11,11 +11,17 @@ This project validates environment variables at startup (see `lib/utils/env-vali
 - `COURTLISTENER_API_KEY` – CourtListener API token (server)
 - `NEXT_PUBLIC_SITE_URL` – Public site URL (used for absolute links)
 
-## Optional
+## Optional / Recommended
 - `GOOGLE_AI_API_KEY` – Gemini primary analytics
 - `OPENAI_API_KEY` – OpenAI fallback analytics
-- `UPSTASH_REDIS_REST_URL` – Upstash Redis (rate limiting)
-- `UPSTASH_REDIS_REST_TOKEN` – Upstash Redis token
+- `UPSTASH_REDIS_REST_URL` – Upstash Redis REST endpoint (rate limiting cache)
+- `UPSTASH_REDIS_REST_TOKEN` – Upstash Redis token (keep secret!)
+- `COURTLISTENER_REQUEST_DELAY_MS` – Base delay between CourtListener requests (default 1000)
+- `COURTLISTENER_MAX_RETRIES` – Retry attempts for CourtListener errors (default 5)
+- `COURTLISTENER_REQUEST_TIMEOUT_MS` – Timeout per request (default 30000)
+- `COURTLISTENER_BACKOFF_CAP_MS` – Max exponential backoff delay (default 15000)
+- `COURTLISTENER_CIRCUIT_THRESHOLD` – Failures before circuit opens (default 5)
+- `COURTLISTENER_CIRCUIT_COOLDOWN_MS` – Cooldown after circuit opens (default 60000)
 - `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` – Sentry error tracking
 - `NODE_ENV` – `development|production|test`
 - `CRON_SECRET` – Bearer token for cron routes
