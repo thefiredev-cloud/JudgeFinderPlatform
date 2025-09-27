@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import HomeHero from '@/components/home/HomeHero'
-import dynamic from 'next/dynamic'
+import NextDynamic from 'next/dynamic'
 import { HomepageFAQ } from '@/components/seo/HomepageFAQ'
 import { getBaseUrl } from '@/lib/utils/baseUrl'
 
@@ -228,6 +228,6 @@ export default function HomePage() {
   )
 }
 
-const LazyHomeEnhancements = dynamic(() => import('@/components/home/HomeEnhancements'), {
+const LazyHomeEnhancements = NextDynamic(() => import('@/components/home/HomeEnhancements'), {
   loading: () => null,
 })
