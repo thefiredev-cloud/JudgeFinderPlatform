@@ -49,10 +49,16 @@ export function AILegalAssistant({ className, onJudgeSelect }: AILegalAssistantP
 
   // Auto-resize textarea
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.style.height = 'auto'
-      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`
+    if (!inputRef.current) return
+
+    const element = inputRef.current
+    const adjustHeight = () => {
+      element.style.height = 'auto'
+      element.style.height = `${element.scrollHeight}px`
     }
+
+    const frame = requestAnimationFrame(adjustHeight)
+    return () => cancelAnimationFrame(frame)
   }, [input])
 
   const handleSubmit = async (e: React.FormEvent) => {

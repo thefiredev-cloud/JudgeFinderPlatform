@@ -45,37 +45,40 @@ function TileRow({ tiles, direction = 'left' }: { tiles: TileData[], direction?:
   useEffect(() => {
     const scrollContainer = scrollRef.current
     if (!scrollContainer) return
-    
-    // Reduce animation on mobile for performance
-    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false
-    const scrollSpeed = isMobile ? 0.3 : 0.5
-    let scrollPosition = direction === 'left' ? 0 : scrollContainer.scrollWidth / 2
-    
-    const animate = () => {
-      if (!scrollContainer) return
-      
-      if (direction === 'left') {
-        scrollPosition += scrollSpeed
-        if (scrollPosition >= scrollContainer.scrollWidth / 2) {
-          scrollPosition = 0
-        }
-      } else {
-        scrollPosition -= scrollSpeed
-        if (scrollPosition <= 0) {
-          scrollPosition = scrollContainer.scrollWidth / 2
-        }
-      }
-      
-      scrollContainer.scrollLeft = scrollPosition
-      animationRef.current = requestAnimationFrame(animate)
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReducedMotion) {
+      scrollContainer.scrollLeft = 0
+      return
     }
-    
-    animationRef.current = requestAnimationFrame(animate)
-    
+
+    const isMobile = window.innerWidth < 768
+    const scrollSpeed = isMobile ? 0.3 : 0.5
+    const halfScrollWidth = scrollContainer.scrollWidth / 2
+    let scrollPosition = direction === 'left' ? 0 : halfScrollWidth
+
+    let frameHandle: number
+    const animate = () => {
+      frameHandle = requestAnimationFrame(() => {
+        const container = scrollRef.current
+        if (!container) return
+
+        const width = container.scrollWidth / 2
+        const delta = direction === 'left' ? scrollSpeed : -scrollSpeed
+        const nextPosition = scrollPosition + delta
+        scrollPosition = direction === 'left'
+          ? (nextPosition >= width ? 0 : nextPosition)
+          : (nextPosition <= 0 ? width : nextPosition)
+
+        container.scrollLeft = scrollPosition
+        animate()
+      })
+    }
+
+    animate()
+
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
-      }
+      if (frameHandle) cancelAnimationFrame(frameHandle)
     }
   }, [direction])
   

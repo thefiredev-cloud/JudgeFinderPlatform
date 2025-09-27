@@ -2,7 +2,7 @@ import { Redis } from '@upstash/redis'
 
 let redis: Redis | null = null
 
-export function getRedis(): Redis | null {
+function ensureRedis(): Redis | null {
   if (redis) return redis
   const url = process.env.UPSTASH_REDIS_REST_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
@@ -11,8 +11,12 @@ export function getRedis(): Redis | null {
   return redis
 }
 
+export function getRedis(): Redis | null {
+  return ensureRedis()
+}
+
 export async function redisGetJSON<T>(key: string): Promise<T | null> {
-  const client = getRedis()
+  const client = ensureRedis()
   if (!client) return null
   try {
     const raw = await client.get<string>(key)
@@ -24,7 +28,7 @@ export async function redisGetJSON<T>(key: string): Promise<T | null> {
 }
 
 export async function redisSetJSON<T>(key: string, value: T, ttlSeconds?: number): Promise<void> {
-  const client = getRedis()
+  const client = ensureRedis()
   if (!client) return
   try {
     const payload = JSON.stringify(value)
@@ -36,6 +40,30 @@ export async function redisSetJSON<T>(key: string, value: T, ttlSeconds?: number
   } catch {
     // ignore cache errors
   }
+}
+
+export function buildCacheKey(namespace: string, params: Record<string, unknown>): string {
+  const serialized = Object.entries(params)
+    .filter(([, value]) => value !== undefined && value !== null)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => `${key}:${typeof value === 'object' ? JSON.stringify(value) : value}`)
+    .join('|')
+  return `${namespace}:${serialized}`
+}
+
+export async function withRedisCache<T>(
+  key: string,
+  ttlSeconds: number,
+  compute: () => Promise<T>
+): Promise<{ data: T; cached: boolean }> {
+  const existing = await redisGetJSON<T>(key)
+  if (existing) {
+    return { data: existing, cached: true }
+  }
+
+  const data = await compute()
+  await redisSetJSON(key, data, ttlSeconds)
+  return { data, cached: false }
 }
 
 

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { validateSearchParams, judgeSearchParamsSchema, sanitizeSearchQuery } from '@/lib/utils/validation'
-import type { Judge, Court } from '@/types'
+import type { Judge } from '@/types'
+import { buildCacheKey, withRedisCache } from '@/lib/cache/redis'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'edge'
+export const revalidate = 120
 
 interface YearlyDecisionCount {
   year: number
@@ -17,10 +21,7 @@ interface JudgeDecisionSummary {
   total_recent: number
 }
 
-interface JudgeWithDecisions extends Judge {
-  decision_summary?: JudgeDecisionSummary
-  court?: Court
-}
+interface JudgeWithDecisions extends Judge {}
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
@@ -84,155 +85,90 @@ export async function GET(request: NextRequest) {
     const from = (page - 1) * limit
     const to = from + limit - 1
 
-    let queryBuilder = supabase
-      .from('judges')
-      .select(`
-        id, 
-        name, 
-        slug,
-        court_id,
-        court_name, 
-        jurisdiction, 
-        appointed_date,
-        total_cases, 
-        profile_image_url,
-        courtlistener_id,
-        courts:court_id (
+    const cacheKey = buildCacheKey('judges:list', {
+      q: sanitizedQuery,
+      limit,
+      page,
+      jurisdiction,
+      court_id,
+      onlyWithDecisions,
+      recentYears,
+      includeDecisions,
+    })
+
+    const ttlSeconds = sanitizedQuery.trim() ? 120 : 600
+
+    const { data: cachedResult } = await withRedisCache(cacheKey, ttlSeconds, async () => {
+      let queryBuilder = supabase
+        .from('judges')
+        .select(`
           id,
           name,
-          type,
+          slug,
+          court_id,
+          court_name,
           jurisdiction,
-          address
-        )
-      `, { count: 'exact' })
-      .order('name')
-      .range(from, to)
+          appointed_date,
+          total_cases,
+          profile_image_url,
+          courtlistener_id
+        `, { count: 'exact' })
+        .order('name')
+        .range(from, to)
 
-    // Apply filters
-    if (sanitizedQuery.trim()) {
-      queryBuilder = queryBuilder.ilike('name', `%${sanitizedQuery}%`)
-    }
-    
-    if (jurisdiction) {
-      queryBuilder = queryBuilder.eq('jurisdiction', jurisdiction)
-    }
-    
-    if (court_id) {
-      queryBuilder = queryBuilder.eq('court_id', court_id)
-    }
-
-    let decisionJudgeIds: string[] | null = null
-
-    if (onlyWithDecisions) {
-      try {
-        decisionJudgeIds = await fetchJudgeIdsWithRecentDecisions(supabase, recentYears)
-      } catch (error) {
-        logger.error('Failed to fetch judges with recent decisions', { error })
-        return NextResponse.json({
-          judges: [],
-          total_count: 0,
-          page,
-          per_page: limit,
-          has_more: false,
-          error: 'Unable to fetch judges with recent decisions at this time'
-        }, { status: 500 })
+      if (sanitizedQuery.trim()) {
+        queryBuilder = queryBuilder.ilike('name', `%${sanitizedQuery}%`)
       }
 
-      if (!decisionJudgeIds || decisionJudgeIds.length === 0) {
-        const emptyResult = {
-          judges: [],
-          total_count: 0,
-          page,
-          per_page: limit,
-          has_more: false,
-          rate_limit_remaining: remaining
+      if (jurisdiction) {
+        queryBuilder = queryBuilder.eq('jurisdiction', jurisdiction)
+      }
+
+      if (court_id) {
+        queryBuilder = queryBuilder.eq('court_id', court_id)
+      }
+
+      let decisionJudgeIds: string[] | null = null
+
+      if (onlyWithDecisions) {
+        decisionJudgeIds = await fetchJudgeIdsWithRecentDecisions(supabase, recentYears)
+
+        if (!decisionJudgeIds || decisionJudgeIds.length === 0) {
+          return {
+            judges: [],
+            total_count: 0,
+            page,
+            per_page: limit,
+            has_more: false,
+            rate_limit_remaining: remaining,
+          }
         }
 
-        return NextResponse.json(emptyResult)
+        queryBuilder = queryBuilder.in('id', decisionJudgeIds)
       }
 
-      queryBuilder = queryBuilder.in('id', decisionJudgeIds)
-    }
+      const { data: judgesData, error: judgesError, count } = await queryBuilder
 
-    // Execute judges query
-    const { data: judgesData, error: judgesError, count } = await queryBuilder
+      if (judgesError) {
+        throw judgesError
+      }
 
-    if (judgesError) {
-      logger.error('Supabase error in judges list', { 
-        query: sanitizedQuery,
-        jurisdiction,
-        court_id,
-        error: judgesError.message,
-        code: judgesError.code,
-        details: judgesError.details
-      })
-      
-      // Return empty result set instead of error for better UX
-      return NextResponse.json({
-        judges: [],
-        total_count: 0,
+      const judges = (judgesData || []).map((rawJudge: any) => rawJudge as Judge)
+
+      const totalCount = count || 0
+      const hasMore = from + (judges.length || 0) < totalCount
+
+      return {
+        judges,
+        total_count: totalCount,
         page,
         per_page: limit,
-        has_more: false,
-        error: 'Unable to fetch judges at this time',
-        errorDetails: process.env.NODE_ENV === 'development' ? judgesError.message : undefined
-      })
-    }
-
-    // Transform raw data to include court information
-    const judges = (judgesData || []).map((rawJudge: any) => {
-      const { courts, ...judgeData } = rawJudge
-      const judge: Judge = judgeData as Judge
-      
-      // Add court information if available
-      const court: Court | undefined = courts ? {
-        id: courts.id,
-        name: courts.name,
-        type: courts.type,
-        jurisdiction: courts.jurisdiction,
-        address: courts.address || '',
-        phone: '', // Not selected in query
-        website: '', // Not selected in query  
-        judge_count: 0, // Not selected in query
-        created_at: '', // Not selected in query
-        updated_at: '' // Not selected in query
-      } : undefined
-      
-      return { ...judge, court }
-    })
-    
-    let judgesWithDecisions: JudgeWithDecisions[] = judges
-
-    // Fetch decision summaries in parallel if requested
-    if (includeDecisions && judges.length > 0) {
-      try {
-        const decisionSummaries = await fetchDecisionSummaries(supabase, judges.map(j => j.id), recentYears)
-        
-        // Merge decision summaries with judges
-        judgesWithDecisions = judges.map(judge => ({
-          ...judge,
-          decision_summary: decisionSummaries.get(judge.id)
-        }))
-      } catch (decisionError) {
-        // If decision fetching fails, continue without it
-        logger.error('Failed to fetch decision summaries', { error: decisionError })
+        has_more: hasMore,
+        rate_limit_remaining: remaining,
       }
-    }
+    })
 
-    const totalCount = count || 0
-    const hasMore = from + (judges.length || 0) < totalCount
-
-    const result = {
-      judges: judgesWithDecisions,
-      total_count: totalCount,
-      page,
-      per_page: limit,
-      has_more: hasMore,
-      rate_limit_remaining: remaining,
-    }
-
-    // Set cache headers for better performance
-    const response = NextResponse.json(result)
+    const response = NextResponse.json(cachedResult)
     
     // Different caching strategies based on search vs browsing
     if (sanitizedQuery.trim()) {
@@ -248,8 +184,8 @@ export async function GET(request: NextRequest) {
     
     const duration = Date.now() - startTime
     logger.apiResponse('GET', '/api/judges/list', 200, duration, {
-      resultsCount: judges.length,
-      totalCount,
+      resultsCount: cachedResult.judges.length,
+      totalCount: cachedResult.total_count,
       hasQuery: !!sanitizedQuery.trim(),
       hasCourtFilter: !!court_id,
       includedDecisions: includeDecisions,
@@ -276,7 +212,7 @@ export async function GET(request: NextRequest) {
  * Fetch judge IDs that have recent decisions within the provided window.
  */
 async function fetchJudgeIdsWithRecentDecisions(
-  supabase: any,
+  supabase: SupabaseClient,
   yearsBack: number
 ): Promise<string[]> {
   const years = Math.min(Math.max(yearsBack, 1), 10)
@@ -285,7 +221,7 @@ async function fetchJudgeIdsWithRecentDecisions(
 
   const { data, error } = await supabase
     .from('cases')
-    .select('judge_id', { distinct: true })
+    .select('judge_id')
     .not('judge_id', 'is', null)
     .not('decision_date', 'is', null)
     .gte('decision_date', `${startYear}-01-01`)

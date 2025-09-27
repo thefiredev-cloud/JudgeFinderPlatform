@@ -11,12 +11,21 @@ const JudgeFinderNavLogo = () => {
   const rotateY = useSpring(useTransform(mouseX, [-10, 10], [-5, 5]), { stiffness: 400, damping: 30 });
 
   const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    mouseX.set((e.clientX - centerX) / 5);
-    mouseY.set((e.clientY - centerY) / 5);
-  };
+    const element = e.currentTarget
+    if (!element) return
+
+    const update = () => {
+      const rect = element.getBoundingClientRect()
+      const centerX = rect.left + rect.width / 2
+      const centerY = rect.top + rect.height / 2
+      mouseX.set((e.clientX - centerX) / 5)
+      mouseY.set((e.clientY - centerY) / 5)
+    }
+
+    if (typeof window !== 'undefined') {
+      window.requestAnimationFrame(update)
+    }
+  }
 
   return (
     <div className="flex items-center h-16 px-6 bg-slate-900/95 backdrop-blur-md border-b border-slate-800/50">
@@ -26,8 +35,12 @@ const JudgeFinderNavLogo = () => {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {
           setIsHovered(false);
-          mouseX.set(0);
-          mouseY.set(0);
+          if (typeof window !== 'undefined') {
+            window.requestAnimationFrame(() => {
+              mouseX.set(0);
+              mouseY.set(0);
+            })
+          }
         }}
         style={{
           rotateX,

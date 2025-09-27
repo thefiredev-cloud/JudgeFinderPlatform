@@ -120,9 +120,6 @@ export async function GET(request: NextRequest) {
       cleanupScheduleTime
     )
 
-    // Start queue processing if not already running
-    queueManager.startProcessing(30000) // Check every 30 seconds
-
     const duration = Date.now() - startTime
 
     logger.info('Weekly sync jobs queued successfully', {

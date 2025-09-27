@@ -1,0 +1,17 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/daily-sync",
+      "schedule": "0 2,14 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-sync",
+      "schedule": "0 3 * * 0"
+    },
+    {
+      "path": "/api/sync/queue/process",
+      "schedule": "*/5 * * * *"
+    }
+  ]
+}
+

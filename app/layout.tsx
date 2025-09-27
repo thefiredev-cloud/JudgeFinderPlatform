@@ -73,6 +73,10 @@ export default function RootLayout({
             <link rel="preconnect" href={new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin} crossOrigin="anonymous" />
           </>
         )}
+        <link rel="dns-prefetch" href="https://clerk.judgefinder.io" />
+        <link rel="preconnect" href="https://clerk.judgefinder.io" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://cdn.clerk.com" />
+        <link rel="preconnect" href="https://cdn.clerk.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://www.courtlistener.com" />
         <link rel="preconnect" href="https://www.courtlistener.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />

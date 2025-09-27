@@ -229,6 +229,14 @@ export class SyncQueueManager {
           result = await decisionSync.syncDecisions(job.options)
           break
 
+        case 'cleanup':
+          const deletedCount = await this.cleanupOldJobs(job.options?.olderThanDays || 7)
+          result = {
+            success: true,
+            deleted: deletedCount
+          }
+          break
+
         case 'full':
           // Full sync - run all sync types in sequence
           result = await this.runFullSync(job.options)

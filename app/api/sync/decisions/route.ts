@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { DecisionSyncManager } from '@/lib/sync/decision-sync'
+import { SyncQueueManager } from '@/lib/sync/queue-manager'
 import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export const runtime = 'nodejs'
-export const maxDuration = 600 // 10 minutes for decision sync (longer due to rate limits)
+export const maxDuration = 60 // enqueue job quickly; processing handled by queue worker
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
@@ -35,42 +35,24 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Initialize sync manager and run sync
-    const syncManager = new DecisionSyncManager()
-    const result = await syncManager.syncDecisions(options)
+    const queueManager = new SyncQueueManager()
+    const jobId = await queueManager.addJob('decision', options, 100)
 
     const duration = Date.now() - startTime
 
-    logger.info('Decision sync API completed', { 
-      result: {
-        ...result,
-        errors: result.errors.length
-      },
-      duration 
+    logger.info('Decision sync job queued via API', {
+      jobId,
+      duration
     })
 
-    // Return detailed result
-    const response = {
-      success: result.success,
-      data: {
-        judgesProcessed: result.judgesProcessed,
-        decisionsProcessed: result.decisionsProcessed,
-        decisionsCreated: result.decisionsCreated,
-        decisionsUpdated: result.decisionsUpdated,
-        duplicatesSkipped: result.duplicatesSkipped,
-        filingsProcessed: result.filingsProcessed,
-        filingsCreated: result.filingsCreated,
-        filingsUpdated: result.filingsUpdated,
-        filingsSkipped: result.filingsSkipped,
-        duration: result.duration,
-        apiDuration: duration
-      },
-      errors: result.errors,
-      timestamp: new Date().toISOString()
-    }
-
-    return NextResponse.json(response, {
-      status: result.success ? 200 : 207 // 207 for partial success
+    return NextResponse.json({
+      success: true,
+      queued: true,
+      jobId,
+      options,
+      duration
+    }, {
+      status: 202
     })
 
   } catch (error) {
@@ -81,7 +63,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Decision sync failed',
+        error: 'Failed to queue decision sync',
         message: error instanceof Error ? error.message : 'Unknown error',
         duration,
         timestamp: new Date().toISOString()

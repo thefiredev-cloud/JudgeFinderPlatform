@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import type { Judge, SearchResult } from '@/types'
 import { sanitizeSearchQuery, normalizeJudgeSearchQuery } from '@/lib/utils/validation'
+import { buildCacheKey, withRedisCache } from '@/lib/cache/redis'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'edge'
+export const revalidate = 60
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,74 +33,69 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createServerClient()
-    const offset = (page - 1) * limit
-
-    // Build the query - if no query, show popular judges
-    let queryBuilder = supabase
-      .from('judges')
-      .select('id, name, court_id, court_name, jurisdiction, profile_image_url, total_cases, appointed_date, slug, created_at')
-    
-    if (normalizedQuery.trim().length >= 2) {
-      // Search by name if query provided
-      queryBuilder = queryBuilder.ilike('name', `%${normalizedQuery}%`)
-        .order('name')
-    } else {
-      // Show judges with most cases if no query
-      queryBuilder = queryBuilder
-        .order('total_cases', { ascending: false, nullsFirst: false })
-    }
-    
-    queryBuilder = queryBuilder.range(offset, offset + limit - 1)
-
-    // Add optional filters
-    if (jurisdiction) {
-      queryBuilder = queryBuilder.eq('jurisdiction', jurisdiction)
-    }
-
-    if (courtType) {
-      queryBuilder = queryBuilder.eq('court_type', courtType)
-    }
-
-    const { data: judges, error } = await queryBuilder
-
-    if (error) {
-      console.error('Supabase error:', {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code
-      })
-      return NextResponse.json(
-        { error: 'Failed to search judges' },
-        { status: 500 }
-      )
-    }
-
-    const hasMore = (judges?.length || 0) === limit
-    const totalCount = judges?.length || 0
-
-    // Transform judges to search results format
-    const results = (judges || []).map((judge: any) => ({
-      id: judge.id,
-      type: 'judge' as const,
-      title: judge.name,
-      subtitle: judge.court_name || '',
-      description: `${judge.jurisdiction || 'California'} • ${judge.total_cases || 0} cases`,
-      url: `/judges/${judge.slug || judge.id}`
-    }))
-
-    const result = {
-      results,
-      total_count: totalCount,
+    const cacheKey = buildCacheKey('judges:search', {
+      q: normalizedQuery,
+      limit,
       page,
-      per_page: limit,
-      has_more: hasMore
-    }
+      jurisdiction,
+      courtType,
+    })
+    const isSearchQuery = normalizedQuery.trim().length >= 2
+    const ttlSeconds = isSearchQuery ? 60 : 180
 
-    // Set cache headers
-    const response = NextResponse.json({ ...result, rate_limit_remaining: remaining })
+    const { data: cachedResult } = await withRedisCache(cacheKey, ttlSeconds, async () => {
+      const offset = (page - 1) * limit
+
+      let queryBuilder = supabase
+        .from('judges')
+        .select('id, name, court_name, jurisdiction, total_cases, slug')
+
+      if (isSearchQuery) {
+        queryBuilder = queryBuilder.ilike('name', `%${normalizedQuery}%`).order('name')
+      } else {
+        queryBuilder = queryBuilder.order('total_cases', { ascending: false, nullsFirst: false })
+      }
+
+      queryBuilder = queryBuilder.range(offset, offset + limit - 1)
+
+      if (jurisdiction) {
+        queryBuilder = queryBuilder.eq('jurisdiction', jurisdiction)
+      }
+
+      if (courtType) {
+        queryBuilder = queryBuilder.eq('court_type', courtType)
+      }
+
+      const { data: judges, error } = await queryBuilder
+
+      if (error) {
+        throw error
+      }
+
+      const hasMore = (judges?.length || 0) === limit
+      const totalCount = judges?.length || 0
+
+      const results = (judges || []).map((judge: any) => ({
+        id: judge.id,
+        type: 'judge' as const,
+        title: judge.name,
+        subtitle: judge.court_name || '',
+        description: `${judge.jurisdiction || 'California'} • ${judge.total_cases || 0} cases`,
+        url: `/judges/${judge.slug || judge.id}`
+      }))
+
+      return {
+        results,
+        total_count: totalCount,
+        page,
+        per_page: limit,
+        has_more: hasMore
+      }
+    })
+
+    const response = NextResponse.json({ ...cachedResult, rate_limit_remaining: remaining })
     response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=60')
-    
+
     return response
 
   } catch (error) {
@@ -125,7 +123,7 @@ export async function POST(request: NextRequest) {
     // Build query for search
     let queryBuilder = supabase
       .from('judges')
-      .select('id, name, court_id, court_name, jurisdiction, profile_image_url, total_cases, appointed_date, slug, created_at')
+      .select('id, name, court_name, jurisdiction, total_cases, slug')
 
     if (query?.trim()) {
       // Search by name if query provided
