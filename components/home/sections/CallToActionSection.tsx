@@ -24,8 +24,8 @@ export function CallToActionSection(): JSX.Element {
 
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              href="#judge-search"
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+              href="/search"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition hover:from-blue-700 hover:via-blue-800 hover:to-purple-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
             >
               <MessageSquare className="h-5 w-5" />
               Search for Your Judge
