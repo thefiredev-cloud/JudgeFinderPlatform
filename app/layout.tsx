@@ -8,6 +8,7 @@ import BottomNavigation from '@/components/ui/BottomNavigation'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary'
 import { getBaseUrl } from '@/lib/utils/baseUrl'
+import { DonationButton } from '@/components/fundraising/DonationButton'
 
 const BASE_URL = getBaseUrl()
 
@@ -104,6 +105,9 @@ export default function RootLayout({
             <ServiceWorkerRegistration />
             <div className="relative flex min-h-screen flex-col">
               <Header />
+              <div className="mx-auto hidden w-full max-w-6xl items-center justify-end px-4 py-3 md:flex">
+                <DonationButton amount={25} variant="header" />
+              </div>
               <main id="main-content" className="flex-1 pb-16 md:pb-0">
                 {children}
               </main>

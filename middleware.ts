@@ -1,6 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { ensureCurrentAppUser } from '@/lib/auth/user-mapping'
-import * as Sentry from '@sentry/nextjs'
 import { NextResponse } from 'next/server'
 import type { NextFetchEvent, NextRequest } from 'next/server'
 import { handleJudgeRedirects } from '@/lib/middleware/judge-redirects'
@@ -94,16 +93,8 @@ const middlewareHandler = clerkWrappedHandler
       return baseMiddleware(request)
     }
 
-const sentryWrapper = typeof (Sentry as any)?.withSentryMiddleware === 'function'
-  ? (Sentry as any).withSentryMiddleware.bind(Sentry)
-  : null
-
-const sentryWrappedHandler = (process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN)
-  ? (sentryWrapper ? sentryWrapper(middlewareHandler) : middlewareHandler)
-  : middlewareHandler
-
 export default function handler(request: NextRequest, event: NextFetchEvent) {
-  return sentryWrappedHandler(request, event)
+  return middlewareHandler(request, event)
 }
 
 function baseMiddleware(request: NextRequest) {

@@ -19,6 +19,7 @@ import { generateJudgeMetadata } from '@/lib/seo/metadata-generator'
 import { generateJudgeStructuredData } from '@/lib/seo/structured-data'
 import type { Judge, JudgeLookupResult } from '@/types'
 import { getBaseUrl } from '@/lib/utils/baseUrl'
+import { DonationButton } from '@/components/fundraising/DonationButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -335,7 +336,15 @@ export default async function JudgePage({ params }: JudgePageProps) {
             <div id="advertiser-slots">
               <AdvertiserSlots judgeId={judge.id} judgeName={safeName} />
             </div>
-            
+
+            <div className="rounded-2xl border border-border/60 bg-[hsl(var(--bg-2))] p-4">
+              <h3 className="text-sm font-semibold text-[color:hsl(var(--text-1))]">Keep research free</h3>
+              <p className="mt-1 text-xs text-[color:hsl(var(--text-3))]">
+                Support our mission to keep every California judge profile open to the public.
+              </p>
+              <DonationButton amount={25} className="mt-3" />
+            </div>
+
             {/* Related Content System for Internal Linking */}
             <RelatedContent 
               currentJudge={judge}

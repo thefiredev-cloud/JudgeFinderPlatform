@@ -13,7 +13,15 @@ const bodySchema = z.object({
     .number({ invalid_type_error: 'Months must be a number' })
     .int('Months must be a whole number')
     .min(1, 'Months must be at least 1')
-    .max(36, 'Maximum supported duration is 36 months')
+    .max(36, 'Maximum supported duration is 36 months'),
+  exclusive: z.boolean().optional().default(false),
+  bundleSize: z.coerce
+    .number({ invalid_type_error: 'Bundle size must be a number' })
+    .int('Bundle size must be a whole number')
+    .min(1, 'Bundle size must be at least 1')
+    .max(50, 'Bundle size exceeds supported maximum')
+    .optional()
+    .default(1)
 })
 
 export async function POST(request: NextRequest) {
@@ -56,14 +64,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 400 })
   }
 
-  const { tier, months } = parsed.data
-  logger.apiRequest('POST', '/api/ads/price', { tier, months })
+  const { tier, months, exclusive, bundleSize } = parsed.data
+  logger.apiRequest('POST', '/api/ads/price', { tier, months, exclusive, bundleSize })
 
   try {
     const supabase = await createServerClient()
     const { data, error } = await supabase.rpc('calculate_ad_pricing', {
       p_tier_name: tier,
-      p_months: months
+      p_months: months,
+      p_is_exclusive: exclusive,
+      p_bundle_size: bundleSize,
     })
 
     if (error) {
@@ -81,10 +91,13 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({
       tier,
       months,
+      exclusive,
+      bundleSize,
       pricing: pricing ?? {
         total_price: null,
         monthly_rate: null,
-        savings: null
+        savings: null,
+        applied_discounts: null,
       }
     })
 

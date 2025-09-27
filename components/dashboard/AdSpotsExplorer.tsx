@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { Search, Filter, MapPin, Users, TrendingUp, Calendar, ChevronRight, Star } from 'lucide-react'
 import AdSpotBookingModal from './AdSpotBookingModal'
 import type { AdSpotWithDetails } from '@/types/advertising'
+import { BookingForm, BookingOptions } from './Booking/BookingForm'
+import { usePricingQuote } from './Booking/pricing'
 
 interface AdSpotsExplorerProps {
   advertiserId: string
@@ -26,6 +28,21 @@ export default function AdSpotsExplorer({ advertiserId, preselectedPlan, showPla
   const [jurisdiction, setJurisdiction] = useState<string>('all')
   const [selectedSpot, setSelectedSpot] = useState<AdSpotWithDetails | null>(null)
   const [showBookingModal, setShowBookingModal] = useState(false)
+  const [bookingOptions, setBookingOptions] = useState<BookingOptions>({
+    startDate: '',
+    durationMonths: 1,
+    exclusive: false,
+    bundleSize: 1,
+  })
+
+  const pricingTier = selectedSpot?.pricing_tier
+  const { quote: selectedQuote } = usePricingQuote({
+    tier: pricingTier && pricingTier.length > 0 ? pricingTier : '',
+    months: bookingOptions.durationMonths,
+    exclusive: bookingOptions.exclusive,
+    bundleSize: bookingOptions.bundleSize,
+    debounceMs: 0,
+  })
 
   const fetchAdSpots = useCallback(async () => {
     try {
@@ -295,21 +312,75 @@ export default function AdSpotsExplorer({ advertiserId, preselectedPlan, showPla
         </div>
       </div>
 
-      {/* Booking Modal */}
       {showBookingModal && selectedSpot && (
-        <AdSpotBookingModal
-          spot={selectedSpot}
-          advertiserId={advertiserId}
-          onClose={() => {
-            setShowBookingModal(false)
-            setSelectedSpot(null)
-          }}
-          onSuccess={() => {
-            setShowBookingModal(false)
-            setSelectedSpot(null)
-            fetchAdSpots() // Refresh the list
-          }}
-        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl bg-white shadow-xl">
+            <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Book {selectedSpot.entity_name}</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Judge sponsorships renew automatically monthly with ACH-first invoicing. Annual billing available at 10× monthly.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowBookingModal(false)
+                }}
+                className="text-gray-400 hover:text-gray-600"
+                aria-label="Close booking modal"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="grid gap-6 p-6 md:grid-cols-[2fr_1fr]">
+              <div>
+                <BookingForm
+                  spot={selectedSpot}
+                  bookingOptions={bookingOptions}
+                  onChange={setBookingOptions}
+                />
+              </div>
+
+              <div className="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900">Summary</h3>
+                  <p className="mt-1 text-xs text-gray-600">
+                    We will generate an ACH-first invoice for {bookingOptions.bundleSize} judge(s). Cards remain available for solo placements.
+                  </p>
+                </div>
+
+                <dl className="space-y-2 text-sm text-gray-700">
+                  <div className="flex justify-between">
+                    <dt>Billing Term</dt>
+                    <dd>{bookingOptions.durationMonths >= 12 ? 'Annual (10×)' : 'Monthly'}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt>Exclusive</dt>
+                    <dd>{bookingOptions.exclusive ? 'Yes (Exclusive rotation)' : 'Standard rotation'}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt>Bundle Size</dt>
+                    <dd>{bookingOptions.bundleSize} judge(s)</dd>
+                  </div>
+                  <div className="flex justify-between font-semibold text-gray-900">
+                    <dt>Total due at checkout</dt>
+                    <dd>
+                      {selectedQuote?.total_price != null ? `$${selectedQuote.total_price.toLocaleString()}` : '—'}
+                    </dd>
+                  </div>
+                </dl>
+
+                <button
+                  className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                  disabled={!bookingOptions.startDate || !selectedQuote?.total_price}
+                >
+                  Continue to Checkout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   )

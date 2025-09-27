@@ -11,6 +11,8 @@ import type {
   SearchSuggestionsResponse,
   SearchSuggestion
 } from '@/types/search'
+import { fetchSponsoredTiles } from '@/lib/search/sponsored'
+import type { SponsoredSearchResult } from '@/types/search'
 
 export const dynamic = 'force-dynamic'
 
@@ -148,18 +150,22 @@ export async function GET(request: NextRequest) {
       
       const allResults = [...judgeResults, ...topJurisdictions]
       
+      const emptySponsored: SponsoredSearchResult[] = []
+
       return NextResponse.json({
         results: allResults,
         total_count: allResults.length,
         results_by_type: { 
           judges: judgeResults, 
           courts: [], 
-          jurisdictions: topJurisdictions 
+          jurisdictions: topJurisdictions,
+          sponsored: emptySponsored
         },
         counts_by_type: { 
           judges: judgeResults.length, 
           courts: 0, 
-          jurisdictions: topJurisdictions.length 
+          jurisdictions: topJurisdictions.length,
+          sponsored: 0
         },
         query: q,
         took_ms: Date.now() - startTime,
@@ -225,18 +231,22 @@ export async function GET(request: NextRequest) {
     const courts = sortedResults.filter(r => r.type === 'court') as CourtSearchResult[]
     const jurisdictions = sortedResults.filter(r => r.type === 'jurisdiction') as JurisdictionSearchResult[]
 
+    const sponsoredResults = await fetchSponsoredTiles({ query: sanitizedQuery, limit })
+
     const response: SearchResponse = {
       results: sortedResults.slice(0, limit),
       total_count: sortedResults.length,
       results_by_type: {
         judges: judges.slice(0, limit),  // Give full limit to each type
         courts: courts.slice(0, limit),  // Give full limit to each type
-        jurisdictions: jurisdictions.slice(0, limit)  // Give full limit to each type
+        jurisdictions: jurisdictions.slice(0, limit),  // Give full limit to each type
+        sponsored: sponsoredResults
       },
       counts_by_type: {
         judges: judges.length,
         courts: courts.length,
-        jurisdictions: jurisdictions.length
+        jurisdictions: jurisdictions.length,
+        sponsored: sponsoredResults.length
       },
       query: q,
       took_ms: Date.now() - startTime

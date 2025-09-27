@@ -51,13 +51,19 @@ export async function listAvailableAdSpots(limit = 5): Promise<AdSpot[]> {
   }
 }
 
+const MAX_JUDGE_ROTATIONS = 2
+
+export function getMaxJudgeRotations(): number {
+  return MAX_JUDGE_ROTATIONS
+}
+
 async function fetchAdSpots(
   entityType: 'court' | 'judge',
   entityId: string
 ): Promise<AdSpotWithRelations[]> {
   const supabase = await createServerClient()
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('ad_spots')
     .select(`
       id,
@@ -98,7 +104,12 @@ async function fetchAdSpots(
     `)
     .eq('entity_type', entityType)
     .eq('entity_id', entityId)
-    .order('position', { ascending: true })
+
+  if (entityType === 'judge') {
+    query = query.lte('position', MAX_JUDGE_ROTATIONS)
+  }
+
+  const { data, error } = await query.order('position', { ascending: true })
 
   if (error) {
     logger.warn('Failed to load ad spots for entity', {

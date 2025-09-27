@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
-import { getJudgeAdSpots } from '@/lib/ads/service'
+import { getJudgeAdSpots, getMaxJudgeRotations } from '@/lib/ads/service'
 import { logger } from '@/lib/utils/logger'
 
 export const dynamic = 'force-dynamic'
@@ -42,6 +42,7 @@ export async function GET(
       court_level: spot.court_level,
       impressions_total: spot.impressions_total,
       clicks_total: spot.clicks_total,
+      max_rotations: getMaxJudgeRotations(),
       advertiser: spot.advertiser
         ? {
             id: spot.advertiser.id,
@@ -60,7 +61,8 @@ export async function GET(
 
     const response = NextResponse.json({
       slots: serialized,
-      count: serialized.length
+      count: serialized.length,
+      max_rotations: getMaxJudgeRotations()
     })
 
     response.headers.set('Cache-Control', 'public, s-maxage=900, stale-while-revalidate=300')

@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { Search, Filter, Scale, Building, MapPin, Users, ChevronLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import type { SearchResponse, SearchResult } from '@/types/search'
+import { SponsoredTile } from '@/components/search/SponsoredTile'
 
 function SearchResults() {
   const searchParams = useSearchParams()
@@ -29,8 +30,8 @@ function SearchResults() {
       setSearchData({
         results: [],
         total_count: 0,
-        results_by_type: { judges: [], courts: [], jurisdictions: [] },
-        counts_by_type: { judges: 0, courts: 0, jurisdictions: 0 },
+        results_by_type: { judges: [], courts: [], jurisdictions: [], sponsored: [] },
+        counts_by_type: { judges: 0, courts: 0, jurisdictions: 0, sponsored: 0 },
         query: '',
         took_ms: 0
       })
@@ -54,8 +55,8 @@ function SearchResults() {
         setSearchData({
           results: [],
           total_count: 0,
-          results_by_type: { judges: [], courts: [], jurisdictions: [] },
-          counts_by_type: { judges: 0, courts: 0, jurisdictions: 0 },
+          results_by_type: { judges: [], courts: [], jurisdictions: [], sponsored: [] },
+          counts_by_type: { judges: 0, courts: 0, jurisdictions: 0, sponsored: 0 },
           query: query,
           took_ms: 0
         })
@@ -66,8 +67,8 @@ function SearchResults() {
       setSearchData({
         results: [],
         total_count: 0,
-        results_by_type: { judges: [], courts: [], jurisdictions: [] },
-        counts_by_type: { judges: 0, courts: 0, jurisdictions: 0 },
+        results_by_type: { judges: [], courts: [], jurisdictions: [], sponsored: [] },
+        counts_by_type: { judges: 0, courts: 0, jurisdictions: 0, sponsored: 0 },
         query: query,
         took_ms: 0
       })
@@ -138,6 +139,7 @@ function SearchResults() {
   }
 
   const filteredResults = getFilteredResults()
+  const sponsoredResults = searchData?.results_by_type.sponsored ?? []
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
@@ -331,6 +333,14 @@ function SearchResults() {
                     </div>
                   </Link>
                 ))}
+
+                {sponsoredResults.length > 0 && (
+                  <div className="space-y-4 pt-4">
+                    {sponsoredResults.slice(0, 2).map((tile) => (
+                      <SponsoredTile key={tile.id} tile={tile} />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

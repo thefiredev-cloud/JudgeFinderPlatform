@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/server'
 import { chunkArray } from '@/lib/utils/helpers'
 import { buildRateLimiter, getClientIp } from '@/lib/security/rate-limit'
 import { redisGetJSON, redisSetJSON } from '@/lib/cache/redis'
@@ -8,6 +8,7 @@ import { redisGetJSON, redisSetJSON } from '@/lib/cache/redis'
 const { generateJudicialAnalytics, generateAnalyticsWithOpenAI } = require('@/lib/ai/judicial-analytics')
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 const LOOKBACK_YEARS = Math.max(1, parseInt(process.env.JUDGE_ANALYTICS_LOOKBACK_YEARS ?? '5', 10))
@@ -98,7 +99,7 @@ export async function GET(
     }
 
     const resolvedParams = await params
-    const supabase = await createServerClient()
+    const supabase = await createServiceRoleClient()
     
     // Get judge data
     const { data: judge, error: judgeError } = await supabase
@@ -908,7 +909,7 @@ export async function POST(
       )
     }
 
-    const supabase = await createServerClient()
+    const supabase = await createServiceRoleClient()
     
     // Clear existing cache
     await supabase

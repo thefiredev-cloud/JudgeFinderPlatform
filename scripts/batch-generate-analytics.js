@@ -1,11 +1,17 @@
 require('dotenv').config({ path: '.env.local' })
 const { createClient } = require('@supabase/supabase-js')
+const fetch = require('node-fetch')
+const pLimit = require('p-limit')
 
 function parseArgs() {
   const args = process.argv.slice(2)
   const config = {
     baseUrl: process.env.TEST_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3005',
     limit: process.env.ANALYTICS_LIMIT ? Number(process.env.ANALYTICS_LIMIT) : undefined,
+    concurrency: process.env.ANALYTICS_CONCURRENCY ? Number(process.env.ANALYTICS_CONCURRENCY) : 2,
+    delayMs: process.env.ANALYTICS_BATCH_DELAY_MS ? Number(process.env.ANALYTICS_BATCH_DELAY_MS) : 2000,
+    judgeIds: [],
+    retries: process.env.ANALYTICS_RETRIES ? Number(process.env.ANALYTICS_RETRIES) : 2
   }
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i]
@@ -15,6 +21,21 @@ function parseArgs() {
     } else if (a === '--limit' && args[i + 1]) {
       const v = Number(args[i + 1])
       if (!Number.isNaN(v) && v > 0) config.limit = v
+      i += 1
+    } else if (a === '--concurrency' && args[i + 1]) {
+      const v = Number(args[i + 1])
+      if (!Number.isNaN(v) && v > 0) config.concurrency = v
+      i += 1
+    } else if (a === '--delay' && args[i + 1]) {
+      const v = Number(args[i + 1])
+      if (!Number.isNaN(v) && v >= 0) config.delayMs = v
+      i += 1
+    } else if (a === '--ids' && args[i + 1]) {
+      config.judgeIds = args[i + 1].split(',').map(id => id.trim()).filter(Boolean)
+      i += 1
+    } else if (a === '--retries' && args[i + 1]) {
+      const v = Number(args[i + 1])
+      if (!Number.isNaN(v) && v >= 0) config.retries = v
       i += 1
     }
   }
@@ -31,6 +52,15 @@ async function batchGenerateAnalytics() {
   try {
     console.log('🧮 Starting batch analytics generation for all California judges...')
     const config = parseArgs()
+
+    console.log('⚙️  Config:', {
+      baseUrl: config.baseUrl,
+      limit: config.limit,
+      concurrency: config.concurrency,
+      delayMs: config.delayMs,
+      judgeIds: config.judgeIds.length,
+      retries: config.retries
+    })
     
     // Get all California judges with case counts
     const { data: judges, error: judgesError } = await supabase
@@ -66,7 +96,17 @@ async function batchGenerateAnalytics() {
     if (typeof config.limit === 'number') {
       console.log(`✂️  Limiting to first ${config.limit} judges for this run`)
     }
-    const targetJudges = typeof config.limit === 'number' ? judgesWithCases.slice(0, config.limit) : judgesWithCases
+    let targetJudges = judgesWithCases
+
+    if (config.judgeIds.length > 0) {
+      targetJudges = targetJudges.filter(judge => config.judgeIds.includes(judge.id))
+      console.log(`🎯 Filtered to ${targetJudges.length} judges listed via --ids`)
+    }
+
+    if (typeof config.limit === 'number') {
+      targetJudges = targetJudges.slice(0, config.limit)
+      console.log(`✂️  Limiting to first ${config.limit} judges for this run`)
+    }
 
     console.log(`\n🚀 Starting analytics generation for ${targetJudges.length} judges with case data...`)
     
@@ -75,7 +115,8 @@ async function batchGenerateAnalytics() {
     let skippedCount = 0
     
     // Process in smaller batches to avoid overwhelming the system
-    const batchSize = 10
+    const batchSize = Math.max(1, Math.floor(config.concurrency))
+    const limiter = pLimit(Math.max(1, config.concurrency))
     for (let i = 0; i < targetJudges.length; i += batchSize) {
       const judgeBatch = targetJudges.slice(i, i + batchSize)
       const batchNumber = Math.ceil((i + 1) / batchSize)
@@ -84,7 +125,7 @@ async function batchGenerateAnalytics() {
       console.log(`\n📦 Processing batch ${batchNumber}/${totalBatches} (${judgeBatch.length} judges)`)
       
       // Process batch concurrently but with timeout
-      const batchPromises = judgeBatch.map(async (judge, index) => {
+      const batchPromises = judgeBatch.map((judge, index) => limiter(async () => {
         try {
           const startTime = Date.now()
           console.log(`   ${i + index + 1}/${targetJudges.length} - Generating analytics for ${judge.name}...`)
@@ -109,19 +150,7 @@ async function batchGenerateAnalytics() {
           // Generate analytics by calling the API endpoint
           const baseUrl = config.baseUrl
           
-          const response = await fetch(`${baseUrl}/api/judges/${judge.id}/analytics`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            timeout: 30000 // 30 second timeout
-          })
-          
-          if (!response.ok) {
-            throw new Error(`API responded with status ${response.status}`)
-          }
-          
-          const analyticsData = await response.json()
+          const analyticsData = await fetchWithRetry(`${baseUrl}/api/judges/${judge.id}/analytics`, config.retries)
           const duration = Date.now() - startTime
           
           console.log(`   ✅ Generated analytics for ${judge.name} (${duration}ms, ${analyticsData.analytics.total_cases_analyzed} cases, ${analyticsData.analytics.overall_confidence}% confidence)`)
@@ -139,7 +168,7 @@ async function batchGenerateAnalytics() {
           console.log(`   ❌ Failed to generate analytics for ${judge.name}: ${error.message}`)
           return { status: 'error', judge: judge.name, error: error.message }
         }
-      })
+      }))
       
       // Wait for batch to complete
       const batchResults = await Promise.all(batchPromises)
@@ -156,9 +185,9 @@ async function batchGenerateAnalytics() {
       console.log(`   📊 Batch ${batchNumber} completed: ${batchResults.filter(r => r.status === 'success').length} success, ${batchResults.filter(r => r.status === 'error').length} errors, ${batchResults.filter(r => r.status === 'skipped').length} skipped`)
       
       // Small delay between batches to avoid overwhelming the system
-      if (i + batchSize < judgesWithCases.length) {
-        console.log('   ⏳ Waiting 3 seconds before next batch...')
-        await new Promise(resolve => setTimeout(resolve, 3000))
+      if (i + batchSize < targetJudges.length && config.delayMs > 0) {
+        console.log(`   ⏳ Waiting ${config.delayMs}ms before next batch...`)
+        await new Promise(resolve => setTimeout(resolve, config.delayMs))
       }
     }
     
@@ -208,6 +237,39 @@ async function batchGenerateAnalytics() {
   } catch (error) {
     console.error('💥 Error during batch analytics generation:', error.message)
     process.exit(1)
+  }
+}
+
+async function fetchWithRetry(url, retries = 2, attempt = 0) {
+  const maxAttempts = retries + 1
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 30000)
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      signal: controller.signal
+    })
+
+    clearTimeout(timeout)
+
+    if (!response.ok) {
+      throw new Error(`API responded with status ${response.status}`)
+    }
+
+    return await response.json()
+  } catch (error) {
+    if (attempt + 1 >= maxAttempts) {
+      throw error
+    }
+
+    const backoff = Math.min(2000 * (attempt + 1), 10000)
+    console.warn(`     Retry ${attempt + 1}/${retries} after ${backoff}ms for ${url}: ${error.message}`)
+    await new Promise(resolve => setTimeout(resolve, backoff))
+    return fetchWithRetry(url, retries, attempt + 1)
   }
 }
 

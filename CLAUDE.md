@@ -1,7 +1,9 @@
 # JudgeFinder Platform - AI-Powered Judicial Transparency Tool
 
 ## Claude Code Environment Configuration
+
 **Global MCP Tools Available:** Full-stack app development support with MCP integrations for:
+
 - **Clerk Authentication** - User management and authentication
 - **Stripe Payments** - Payment processing and subscription management  
 - **Supabase Database** - Real-time database and storage
@@ -18,9 +20,11 @@
 ## 🚀 LAUNCH ACTION PLAN - Complete in 5 Days
 
 ### Phase 1: Data Population (Priority 1 - 2 days)
+
 **Goal:** Ensure every active California judge has sufficient case coverage for analytics
 
 1. **Sync Historical Case Data**
+
    ```bash
    npm run sync:judges          # Pull all CA judges
    npm run sync:decisions       # Ingest recent decisions for each judge
@@ -28,6 +32,7 @@
    ```
 
 2. **Generate AI Analytics for All Judges**
+
    ```bash
    npm run analytics:generate   # Process bias analysis for each judge
    npm run bias:analyze        # Run comprehensive bias detection
@@ -64,10 +69,12 @@
    - Set up Sentry error tracking
 
 2. **Deploy to Netlify**
+
    ```bash
    netlify deploy --dir=.next    # Deploy to draft URL
    netlify deploy --prod         # Deploy to production
    ```
+
    - GitHub repository already connected for continuous deployment
    - Configure environment variables in Netlify dashboard
    - Custom domain configuration (judgefinder.io)
@@ -76,6 +83,7 @@
 ### Phase 4: Final Validation (Priority 4 - 1 day)
 
 1. **Data Completeness Check**
+
    ```bash
    npm run integrity:full      # Verify all data relationships
    npm run validate:relationships  # Check court-judge assignments
@@ -94,6 +102,7 @@
    - Monitor error rates
 
 ### ✅ Success Metrics
+
 - [ ] Complete statewide judge coverage with healthy case volumes
 - [ ] Analytics available for every active judge profile
 - [ ] Court statistics generated for all tracked jurisdictions
@@ -102,6 +111,7 @@
 - [ ] <3 second load times
 
 ### 🚀 Quick Start Commands
+
 ```bash
 # Today's Priority - Data Population
 npm run sync:judges && npm run sync:decisions && npm run analytics:generate
@@ -117,24 +127,28 @@ netlify deploy --prod
 ```
 
 ### Platform Overview
+
 Advanced judicial transparency and AI-powered bias detection platform for citizens, attorneys, and litigants researching judicial patterns across California's court system.
 
 **Mission:** Promote judicial transparency through AI-powered bias detection and automated data analysis
 
 ### Key Platform Data
+
 - **Statewide California Judges** - Comprehensive judicial directory with AI analytics
 - **California Courts** - Broad coverage with relationship mapping
 - **Extensive Case Library** - Continuously updated decision data feeding analytics
 
 ### Deployment URLs
-- **Production (Netlify):** https://olms-4375-tw501-x421.netlify.app/
-- **Local Development:** http://localhost:3005
+
+- **Production (Netlify):** `https://olms-4375-tw501-x421.netlify.app/`
+- **Local Development:** `http://localhost:3005`
 - **Continuous Deployment:** GitHub → Netlify (automatic on push to main)
 - **Testing:** Use Playwright to test deployed version via production URL
 
 ### Major Platform Features
 
 #### AI-Powered Bias Analysis System
+
 - **Primary Agent:** Google Gemini 1.5 Flash for comprehensive judicial analytics
 - **Fallback Agent:** GPT-4o-mini for backup processing
 - **Analytics Engine:** `/api/judges/[id]/bias-analysis` - 5-metric scoring system
@@ -142,6 +156,7 @@ Advanced judicial transparency and AI-powered bias detection platform for citize
 - **Bias Indicators:** Consistency, Speed, Settlement Preference, Risk Tolerance, Predictability
 
 #### Judge Comparison Tool
+
 - **Location:** `/compare` page with side-by-side analysis
 - **Features:** Compare up to 3 judges simultaneously with key metrics
 - **Analytics Integration:** Decision times, reversal rates, case type distributions
@@ -149,12 +164,14 @@ Advanced judicial transparency and AI-powered bias detection platform for citize
 - **Summary Analysis:** Automated comparison insights and recommendations
 
 #### Advanced Search & Discovery
+
 - **Enhanced Search:** `/api/judges/advanced-search` with multiple filters
 - **Smart Filtering:** Jurisdiction, court type, experience, case specialization
 - **County-Specific Pages:** `/jurisdictions/[county]` for localized browsing
 - **Intelligent Suggestions:** AI-powered search recommendations
 
 #### Production Security Infrastructure
+
 - **Security Headers:** Comprehensive CSP, HSTS, XSS protection via `lib/security/headers.ts`
 - **Content Security Policy:** Environment-specific CSP with external service integration
 - **Rate Limiting:** Redis-powered rate limiting with Upstash integration
@@ -164,7 +181,8 @@ Advanced judicial transparency and AI-powered bias detection platform for citize
 ### Comprehensive API Architecture
 
 #### Judge APIs (25 endpoints)
-```
+
+```text
 /api/judges/
 ├── list - Complete directory with pagination
 ├── search - Real-time search functionality  
@@ -186,7 +204,8 @@ Advanced judicial transparency and AI-powered bias detection platform for citize
 ```
 
 #### Court APIs (5 endpoints)
-```
+
+```text
 /api/courts/
 ├── route.ts - Court directory with filtering
 ├── [id]/judges - Judges assigned to specific court
@@ -195,7 +214,8 @@ Advanced judicial transparency and AI-powered bias detection platform for citize
 ```
 
 #### Administrative APIs (6 endpoints)
-```
+
+```text
 /api/admin/
 ├── bias-analytics - Platform-wide bias analytics
 ├── migrate - Database migration tools
@@ -206,7 +226,8 @@ Advanced judicial transparency and AI-powered bias detection platform for citize
 ```
 
 #### Automation & Cron APIs (12 endpoints)
-```
+
+```text
 /api/cron/
 ├── daily-sync - Automated daily updates
 └── weekly-sync - Comprehensive weekly sync
@@ -221,7 +242,8 @@ Advanced judicial transparency and AI-powered bias detection platform for citize
 ```
 
 #### Security & Monitoring APIs (8 endpoints)
-```
+
+```text
 /api/security/
 ├── csp-report - Content Security Policy reporting
 └── ct-report - Certificate Transparency reporting
@@ -236,7 +258,8 @@ Advanced judicial transparency and AI-powered bias detection platform for citize
 ```
 
 #### User & Authentication APIs (12 endpoints)
-```
+
+```text
 /api/auth/
 ├── callback - Authentication callbacks
 └── test - Authentication testing
@@ -251,18 +274,21 @@ Advanced judicial transparency and AI-powered bias detection platform for citize
 ### AI Automation Systems
 
 #### Scheduled Automation
+
 - **Daily Sync:** Court and judge data updates (2:00 AM, 2:00 PM)
 - **Weekly Sync:** Comprehensive data refresh (Sundays 3:00 AM)
 - **Decision Updates:** Real-time judicial decision monitoring
 - **Assignment Tracking:** Automated judge-court assignment monitoring
 
 #### AI Analytics Pipeline
+
 - **Bias Detection:** 50+ case document analysis per judge
 - **Pattern Recognition:** 6-category judicial tendency analysis
 - **Confidence Scoring:** 60-95% accuracy ratings with fallback systems
 - **Cost Optimization:** Token usage tracking and caching strategies
 
 #### Data Quality Systems
+
 - **Integrity Validation:** Automated relationship verification
 - **Error Recovery:** Continuous processing despite failures
 - **Performance Monitoring:** Real-time sync operation tracking
@@ -271,18 +297,21 @@ Advanced judicial transparency and AI-powered bias detection platform for citize
 ### Technical Infrastructure
 
 #### Database Architecture
+
 - **Complete Judicial Database:** Courts, judges, cases, decisions
 - **Relationship Mapping:** Court-judge assignments with history
 - **Geographic Coverage:** All California jurisdictions
 - **Performance Optimization:** Proper indexing and query optimization
 
 #### Security Implementation
+
 - **Production Headers:** HSTS, CSP, XSS, CSRF protection
 - **API Authentication:** Secure cron job authentication
 - **Rate Limiting:** Request throttling with Redis
 - **Monitoring:** Comprehensive error tracking and alerting
 
 #### Performance Features
+
 - **Caching Strategy:** Multi-layer caching for analytics and API responses
 - **Lazy Loading:** Efficient data loading with pagination
 - **Background Processing:** Async operations for heavy computations
@@ -291,7 +320,8 @@ Advanced judicial transparency and AI-powered bias detection platform for citize
 ### Platform Architecture
 
 #### Frontend Components
-```
+
+```text
 app/
 ├── compare/page.tsx - Judge comparison tool
 ├── judges/page.tsx - Enhanced judge directory
@@ -309,7 +339,8 @@ components/
 ```
 
 #### Backend Systems
-```
+
+```text
 lib/
 ├── ai/judicial-analytics.js - AI analysis engine
 ├── sync/ - Data synchronization systems
@@ -325,7 +356,8 @@ scripts/
 ```
 
 #### Configuration Files
-```
+
+```text
 ├── instrumentation.ts - Sentry error monitoring
 ├── middleware.ts - Request processing and security
 ├── next.config.js - Next.js configuration
@@ -335,7 +367,9 @@ scripts/
 ```
 
 ### Revenue System (Built but Inactive)
+
 Complete $78.5K/month revenue pipeline built but platform operates as free public service:
+
 - 10 revenue tracking database tables implemented
 - Email automation sequences configured
 - Analytics dashboard operational
@@ -345,6 +379,7 @@ Complete $78.5K/month revenue pipeline built but platform operates as free publi
 ### Development Workflow
 
 #### Essential Commands
+
 ```bash
 # Development
 npx next dev -p 3005                    # Start development server (keep running for Claude Code)
@@ -378,12 +413,14 @@ netlify open                          # Open Netlify dashboard
 ```
 
 #### Quality Assurance
+
 - **Automated Testing:** Comprehensive endpoint testing
 - **Data Validation:** Multi-layer integrity checks
 - **Performance Monitoring:** Real-time metrics tracking
 - **Security Scanning:** Continuous vulnerability assessment
 
 ### Platform Positioning
+
 - **For Citizens:** Research judges handling your case with AI-powered insights
 - **For Attorneys:** Advanced judicial analytics for case strategy optimization
 - **For Litigants:** Transparent access to judicial patterns and bias analysis
@@ -391,12 +428,14 @@ netlify open                          # Open Netlify dashboard
 - **For Transparency Organizations:** Free access to judicial accountability data
 
 ### Monitoring & Health
+
 - **Health Endpoints:** `/api/health` - System status monitoring
 - **Admin Dashboard:** Real-time platform statistics and sync status
 - **Error Tracking:** Sentry integration for production monitoring
 - **Performance Metrics:** Response times, success rates, cache efficiency
 
 ### External Integrations
+
 - **CourtListener API:** Official court data synchronization
 - **OpenAI API:** AI analytics generation (fallback)
 - **Google Gemini:** Primary AI analytics engine
@@ -406,7 +445,7 @@ netlify open                          # Open Netlify dashboard
 
 **Platform Status:** Live production deployment on Netlify with continuous integration from GitHub. AI-powered judicial transparency platform with comprehensive California coverage, advanced bias detection, and automated data processing capabilities. The platform represents the most advanced judicial transparency tool available, combining real-time data updates with sophisticated AI analysis for unprecedented insight into judicial patterns and potential bias indicators.
 
-**Live Production URL:** https://olms-4375-tw501-x421.netlify.app/
+**Live Production URL:** `https://olms-4375-tw501-x421.netlify.app/`
 **Deployment Method:** Continuous deployment via GitHub → Netlify pipeline
 
 For detailed information about AI agents and automation systems, see `agents.md`.

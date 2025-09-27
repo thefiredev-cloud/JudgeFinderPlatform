@@ -78,8 +78,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 }
 
+class AdminSyncLimiterManager {
+  private static limiters = new Map<string, ReturnType<typeof buildRateLimiter>>()
+
+  static getLimiter(prefix: string, tokens: number) {
+    if (!this.limiters.has(prefix)) {
+      this.limiters.set(prefix, buildRateLimiter({ tokens, window: '1 m', prefix }))
+    }
+    return this.limiters.get(prefix)!
+  }
+}
+
 async function enforceRateLimit(request: NextRequest, prefix: string, tokens: number): Promise<void> {
-  const rateLimiter = buildRateLimiter({ tokens, window: '1 m', prefix })
+  const rateLimiter = AdminSyncLimiterManager.getLimiter(prefix, tokens)
   const { success } = await rateLimiter.limit(`${getClientIp(request)}:admin`)
   if (!success) {
     throw new RateLimitError()

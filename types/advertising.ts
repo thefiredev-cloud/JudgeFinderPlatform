@@ -35,6 +35,8 @@ export interface AdSpot {
   clicks_total: number
   court_level?: 'federal' | 'state'
   pricing_tier?: string | null
+  stripe_product_lookup_key?: string | null
+  stripe_price_lookup_key?: string | null
   created_at: string
   updated_at: string
 }
@@ -164,6 +166,7 @@ export interface AdSpotWithDetails extends AdSpot {
     date: string
     available: boolean
   }[]
+  pricing_quote?: PricingQuote
 }
 
 // Pricing tier interface
@@ -181,9 +184,18 @@ export interface PricingTier {
     support: string
     visibility: string
   }
+  tier_group?: string
+  purchase_type?: 'subscription' | 'one_time'
   is_active: boolean
   created_at: string
   updated_at: string
+}
+
+export interface PricingQuote {
+  total_price: number | null
+  monthly_rate: number | null
+  savings: number | null
+  applied_discounts?: Record<string, unknown>
 }
 
 // Campaign with advertiser details

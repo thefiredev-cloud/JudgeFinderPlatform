@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import type { AdSpotWithDetails } from '@/types/advertising'
 import { logger } from '@/lib/utils/logger'
+import { getMaxJudgeRotations } from '@/lib/ads/service'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,6 +42,10 @@ export async function GET(request: NextRequest) {
     if (status) query = query.eq('status', status)
     if (entity_type) query = query.eq('entity_type', entity_type)
     if (court_level) query = query.eq('court_level', court_level)
+
+    if (!entity_type || entity_type === 'judge') {
+      query = query.lte('position', getMaxJudgeRotations())
+    }
 
     // Coarse price filters aligned with AdSpotsExplorer hints
     if (price_range === 'budget') query = query.lte('base_price_monthly', 200)

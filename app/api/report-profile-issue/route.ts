@@ -24,17 +24,36 @@ const issueSchema = z.object({
   turnstileToken: z.string().min(10).max(1000).optional(),
 })
 
-const limiter = buildRateLimiter({
-  tokens: Number(process.env.CORRECTIONS_LIMIT_BURST ?? '5'),
-  window: process.env.CORRECTIONS_LIMIT_WINDOW ?? '5 m',
-  prefix: 'profile-issue'
-})
+type RateLimiterInstance = ReturnType<typeof buildRateLimiter>
 
-const dailyLimiter = buildRateLimiter({
-  tokens: Number(process.env.CORRECTIONS_LIMIT_DAILY ?? '20'),
-  window: process.env.CORRECTIONS_LIMIT_DAILY_WINDOW ?? '1 d',
-  prefix: 'profile-issue:daily'
-})
+class ProfileIssueLimiterManager {
+  private static burstLimiter: RateLimiterInstance | null = null
+  private static dailyLimiter: RateLimiterInstance | null = null
+
+  static getBurstLimiter(): RateLimiterInstance {
+    if (!this.burstLimiter) {
+      this.burstLimiter = buildRateLimiter({
+        tokens: Number(process.env.CORRECTIONS_LIMIT_BURST ?? '5'),
+        window: process.env.CORRECTIONS_LIMIT_WINDOW ?? '5 m',
+        prefix: 'profile-issue',
+      })
+    }
+
+    return this.burstLimiter
+  }
+
+  static getDailyLimiter(): RateLimiterInstance {
+    if (!this.dailyLimiter) {
+      this.dailyLimiter = buildRateLimiter({
+        tokens: Number(process.env.CORRECTIONS_LIMIT_DAILY ?? '20'),
+        window: process.env.CORRECTIONS_LIMIT_DAILY_WINDOW ?? '1 d',
+        prefix: 'profile-issue:daily',
+      })
+    }
+
+    return this.dailyLimiter
+  }
+}
 
 type IssueType = (typeof ISSUE_TYPE_VALUES)[number]
 type Severity = 'high' | 'medium' | 'low'
@@ -147,7 +166,7 @@ async function dispatchCorrectionsWebhook(payload: {
 export async function POST(request: NextRequest) {
   const clientIp = getClientIp(request)
   const rateKey = `profile-issue:${clientIp}`
-  const rateResult = await limiter.limit(rateKey)
+  const rateResult = await ProfileIssueLimiterManager.getBurstLimiter().limit(rateKey)
 
   if (!rateResult.success) {
     logger.warn('Profile issue rate limited', { clientIp })
@@ -211,7 +230,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const dailyResult = await dailyLimiter.limit(`${clientIp}:${data.judgeSlug}`)
+  const dailyResult = await ProfileIssueLimiterManager.getDailyLimiter().limit(`${clientIp}:${data.judgeSlug}`)
   if (!dailyResult.success) {
     logger.warn('Profile issue daily rate limited', { clientIp, judgeSlug: data.judgeSlug })
     return NextResponse.json(

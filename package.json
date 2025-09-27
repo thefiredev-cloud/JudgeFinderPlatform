@@ -31,6 +31,7 @@
     "launch:analytics": "npm run analytics:generate",
     "launch:data": "npm run sync:courts && npm run sync:judges",
     "launch:validate": "npm run validate:relationships && npm run integrity:full",
+    "stripe:sync-catalog": "ts-node --project tsconfig.json scripts/stripe/sync-catalog.ts",
     "template:api": "node scripts/template-copy.mjs api",
     "template:component": "node scripts/template-copy.mjs component",
     "template:sync": "node scripts/template-copy.mjs sync"

@@ -1,4 +1,4 @@
-export type SearchResultType = 'judge' | 'court' | 'jurisdiction'
+export type SearchResultType = 'judge' | 'court' | 'jurisdiction' | 'sponsored'
 
 export interface BaseSearchResult {
   id: string
@@ -37,7 +37,23 @@ export interface JurisdictionSearchResult extends BaseSearchResult {
   judge_count?: number
 }
 
-export type SearchResult = JudgeSearchResult | CourtSearchResult | JurisdictionSearchResult
+export interface SponsoredSearchResult extends BaseSearchResult {
+  type: 'sponsored'
+  advertiser_id: string
+  bar_number: string
+  verified: boolean
+  pricing_tier?: string | null
+  promo_badge?: string
+  contact_email?: string
+  contact_phone?: string
+  website?: string
+}
+
+export type SearchResult =
+  | JudgeSearchResult
+  | CourtSearchResult
+  | JurisdictionSearchResult
+  | SponsoredSearchResult
 
 export interface SearchResponse {
   results: SearchResult[]
@@ -46,11 +62,13 @@ export interface SearchResponse {
     judges: JudgeSearchResult[]
     courts: CourtSearchResult[]
     jurisdictions: JurisdictionSearchResult[]
+    sponsored: SponsoredSearchResult[]
   }
   counts_by_type: {
     judges: number
     courts: number
     jurisdictions: number
+    sponsored: number
   }
   query: string
   took_ms: number

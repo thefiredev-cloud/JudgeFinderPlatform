@@ -17,6 +17,11 @@ export class SupabaseServiceRoleFactory {
       auth: {
         autoRefreshToken: false,
         persistSession: false
+      },
+      global: {
+        headers: {
+          Authorization: `Bearer ${this.config.serviceRoleKey}`
+        }
       }
     })
   }

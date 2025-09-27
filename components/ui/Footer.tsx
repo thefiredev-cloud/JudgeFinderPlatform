@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { DonationButton } from '@/components/fundraising/DonationButton'
 
 export function Footer() {
   const popularCounties = [
@@ -98,7 +99,8 @@ export function Footer() {
         </div>
         
         {/* SEO Description */}
-        <div className="text-center py-3 border-t border-border/50">
+        <div className="text-center py-3 border-t border-border/50 space-y-3">
+          <DonationButton amount={25} variant="footer" className="mx-auto max-w-xs" />
           <p className="text-xs text-muted-foreground mb-2">
             JudgeFinder.io - Research California judges with AI-powered analytics and bias detection
           </p>

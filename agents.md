@@ -6,9 +6,15 @@ See `docs/LAUNCH_PLAN.md` for the complete deployment strategy
 
 ## Overview
 
-The JudgeFinder Platform employs a sophisticated network of AI agents and automation systems to provide transparent judicial analytics and bias detection across California's judicial system. This document outlines all intelligent agents, automated processes, and data pipelines that power the platform's 24/7 judicial monitoring capabilities.
+The JudgeFinder Platform employs a sophisticated network of AI agents and automation
+systems to provide transparent judicial analytics and bias detection across
+California's judicial system.
+This document outlines all intelligent agents and automated processes.
+It also details the data pipelines that power the platform's 24/7 judicial
+monitoring capabilities.
 
-**Platform Mission:** Promote judicial transparency through AI-powered bias detection and automated data analysis.
+**Platform Mission:** Promote judicial transparency through AI-powered
+bias detection and automated data analysis.
 
 ### Quick Launch Commands
 
@@ -31,7 +37,7 @@ npm run launch:validate
 **Location:** `lib/ai/judicial-analytics.js`  
 **Purpose:** Generates comprehensive judicial bias and pattern analysis
 
-#### Capabilities
+#### Core Capabilities
 
 - **Case Document Analysis**: Processes up to 50 case documents per judge
 - **Pattern Recognition**: Identifies judicial tendencies across 6 key categories:
@@ -69,7 +75,7 @@ npm run launch:validate
 **Location:** `lib/ai/judicial-analytics.js`  
 **Purpose:** Backup analytics generation when Gemini fails
 
-#### Features
+#### Core Features
 
 - Simplified analytics generation with reduced token limits
 - Error-resistant processing for edge cases
@@ -80,10 +86,10 @@ npm run launch:validate
 
 ### 3. Court Data Synchronization Manager
 
-**Location:** `lib/sync/court-sync.ts`  
+**Location:** `lib/sync/court-sync.ts`
 **Purpose:** Automated court data updates from CourtListener API
 
-#### Features
+#### Sync Capabilities
 
 - **Batch Processing**: Handles court updates in configurable batches (default: 20)
 - **Rate Limiting**: Built-in delays to respect API limits
@@ -104,7 +110,7 @@ await courtSyncManager.syncCourts({
 
 ### 4. Judge Profile Sync System
 
-**Location:** `lib/sync/judge-sync.ts`  
+**Location:** `lib/sync/judge-sync.ts`
 **Purpose:** Maintains up-to-date judge information
 
 #### Capabilities
@@ -116,10 +122,10 @@ await courtSyncManager.syncCourts({
 
 ### 5. Decision Document Sync
 
-**Location:** `lib/sync/decision-sync.ts`  
+**Location:** `lib/sync/decision-sync.ts`
 **Purpose:** Fetches and processes recent judicial decisions
 
-#### Features
+#### Key Functions
 
 - **Real-time Updates**: Daily sync of new decisions
 - **Text Processing**: Extracts analyzable content from court documents
@@ -128,7 +134,7 @@ await courtSyncManager.syncCourts({
 
 ### 6. Automated Assignment Updater
 
-**Location:** `scripts/automated-assignment-updater.js`  
+**Location:** `scripts/automated-assignment-updater.js`
 **Purpose:** Monitors and updates judge-court assignments
 
 #### Intelligence Features
@@ -151,7 +157,7 @@ await courtSyncManager.syncCourts({
 **Location:** `app/api/cron/daily-sync/route.ts`  
 **Schedule:** Every day at 2:00 AM and 2:00 PM
 
-#### Tasks
+#### Daily Cron Tasks
 
 - Queue decision document sync (high priority)
 - Queue judge profile updates (medium priority)
@@ -163,7 +169,7 @@ await courtSyncManager.syncCourts({
 **Location:** `app/api/cron/weekly-sync/route.ts`  
 **Schedule:** Sundays at 3:00 AM
 
-#### Tasks
+#### Weekly Cron Tasks
 
 - Comprehensive court data refresh
 - Full analytics regeneration
@@ -174,7 +180,7 @@ await courtSyncManager.syncCourts({
 
 **Schedule:** Daily at 2:00 AM and 2:00 PM + Weekly Monday 3:00 AM
 
-#### Features
+#### Scheduler Features
 
 ```javascript
 // Twice daily updates
@@ -192,10 +198,10 @@ cron.schedule('0 3 * * 1', async () => {
 
 ### 10. Queue Management System
 
-**Location:** `lib/sync/queue-manager.ts`  
+**Location:** `lib/sync/queue-manager.ts`
 **Purpose:** Manages async processing of sync operations
 
-#### Features
+#### Queue Features
 
 - Priority-based job scheduling
 - Failure recovery and retry logic
@@ -222,10 +228,10 @@ cron.schedule('0 3 * * 1', async () => {
 
 ### 12. CourtListener API Client
 
-**Location:** `lib/courtlistener/client.ts`  
+**Location:** `lib/courtlistener/client.ts`
 **Purpose:** Official court data integration
 
-#### Features
+#### Focus Areas
 
 - Authentication handling
 - Rate limiting compliance
@@ -236,7 +242,7 @@ cron.schedule('0 3 * * 1', async () => {
 
 **Purpose:** Performance optimization for complex analytics
 
-#### Features
+#### Cache Features
 
 - Redis-based caching for analytics results
 - Automatic cache invalidation on data updates
@@ -422,4 +428,4 @@ node scripts/test-courtlistener.js
 
 ---
 
-*This document is maintained alongside the platform codebase. Last updated: August 2025*
+**Document Maintenance:** Updated August 2025 alongside the platform codebase.

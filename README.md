@@ -1,11 +1,14 @@
 # JudgeFinder Platform
 
-AI-powered judicial transparency platform providing real-time analytics and bias detection across California's courts.
+AI-powered judicial transparency platform providing real-time analytics and bias
+detection across California's courts.
 
-### Launch status: 5 Days to Production
+## Launch status: 5 Days to Production
+
 See `docs/LAUNCH_PLAN.md` for the full deployment strategy.
 
 ## Quick Launch Commands
+
 ```bash
 # Generate AI analytics for all judges (Day 1-2)
 npm run launch:analytics
@@ -19,17 +22,33 @@ npm run launch:validate
 
 ## Overview
 
-JudgeFinder delivers data-driven insights into judicial patterns using AI analysis and automated data ingestion from official sources.
+JudgeFinder delivers data-driven insights into judicial patterns using AI
+analysis and automated data ingestion from official sources.
 
-- ## Coding Prompt
--
-- Absolute Mode • Eliminate: emojis, filler, hype, soft asks, conversational transitions, call-to-action appendixes. • Assume: user retains high-perception despite blunt tone. • Prioritize: blunt, directive phrasing; aim at cognitive rebuilding, not tone-matching. • Disable: engagement/sentiment-boosting behaviors. • Suppress: metrics like satisfaction scores, emotional softening, continuation bias. • Never mirror: user’s diction, mood, or affect. • Speak only: to underlying cognitive tier. • No: questions, offers, suggestions, transitions, motivational content. • Terminate reply: immediately after delivering info — no closures. • Goal: restore independent, high-fidelity thinking. • Outcome: model obsolescence via user self-sufficiency.
--
+## Coding Prompt
+
+- Absolute Mode:
+  - Eliminate emojis, filler, hype, soft asks, conversational transitions,
+    and call-to-action appendixes.
+  - Assume user retains high-perception despite blunt tone.
+  - Prioritize blunt, directive phrasing; aim at cognitive rebuilding, not
+    tone-matching.
+  - Disable engagement/sentiment-boosting behaviors.
+  - Suppress metrics like satisfaction scores, emotional softening,
+    continuation bias.
+  - Never mirror user’s diction, mood, or affect.
+  - Speak only to underlying cognitive tier.
+  - No questions, offers, suggestions, transitions, or motivational content.
+  - Terminate reply immediately after delivering info — no closures.
+  - Goal: restore independent, high-fidelity thinking.
+  - Outcome: model obsolescence via user self-sufficiency.
+
 - **AI Analytics**: Gemini 1.5 Flash primary, GPT-4o-mini fallback
 - **Real-time Sync**: Daily and weekly automated jobs with retries and queueing
 - **Coverage**: California courts and judges with decision documents
 
 ## Docs Navigation
+
 - Setup & Run: `docs/SETUP.md`
 - Architecture: `docs/ARCHITECTURE.md`
 - AI Agents: `docs/AI_AGENTS.md`
@@ -51,6 +70,7 @@ JudgeFinder delivers data-driven insights into judicial patterns using AI analys
 - **Error Monitoring**: Sentry
 
 ## Environment Variables
+
 ```bash
 # AI Services
 GOOGLE_AI_API_KEY=your_gemini_api_key
@@ -86,6 +106,7 @@ NEXT_PUBLIC_SITE_URL=https://your-site.netlify.app
 ```
 
 Tip: If deploying on Netlify, prefer syncing local env with:
+
 ```bash
 netlify link             # one-time, select the site
 netlify env:pull --json > .env.local
@@ -93,6 +114,7 @@ netlify env:pull --json > .env.local
 ```
 
 ## Getting Started (Local)
+
 ```bash
 # Install dependencies
 npm install
@@ -102,11 +124,13 @@ npm install
 # Start dev server
 npm run dev
 ```
+
 Default dev URL: `http://localhost:3000` (Next.js default).
 
 ## Data Sync & Analytics
 
-Scripts are designed for incremental, resumable syncs with retries and logging to `sync_logs`.
+Scripts are designed for incremental, resumable syncs with retries and logging
+to `sync_logs`.
 
 ```bash
 # Manual syncs
@@ -121,15 +145,21 @@ npm run analytics:generate
 npm run data:status
 
 # Smoke test key APIs (supply base URL + secrets)
-node scripts/test-all-api-endpoints.js --base https://your-site.netlify.app --sync-key $SYNC_API_KEY --cron-secret $CRON_SECRET
+node scripts/test-all-api-endpoints.js \
+  --base https://your-site.netlify.app \
+  --sync-key $SYNC_API_KEY \
+  --cron-secret $CRON_SECRET
 ```
 
 Admin endpoints (protected via `SYNC_API_KEY` header in production):
+
 - `GET /api/admin/sync-status` – queue health, recent logs, freshness
-- `POST /api/admin/sync-status` – queue actions (`queue_job`, `cancel_jobs`, `cleanup`, `restart_queue`)
+- `POST /api/admin/sync-status` – queue actions
+  (`queue_job`, `cancel_jobs`, `cleanup`, `restart_queue`)
 - `POST /api/admin/sync` – admin-triggered sync (Clerk admin auth)
 
 Health:
+
 - `GET /api/health` – basic health check
 
 ## Scheduled Jobs
@@ -139,7 +169,7 @@ Health:
 
 ## Project Structure
 
-```
+```text
 app/                 # Next.js App Router (APIs, pages)
 components/          # UI and feature components
 lib/                 # ai/, supabase/, sync/, utils/
@@ -156,6 +186,7 @@ supabase/            # SQL migrations and config
 3) Secure cron and admin endpoints by setting `CRON_SECRET` and `SYNC_API_KEY`.
 
 4) After deploy, validate:
+
 ```bash
 # Health
 curl -s https://<site>/api/health | jq
