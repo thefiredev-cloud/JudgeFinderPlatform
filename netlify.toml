@@ -25,6 +25,7 @@
   [headers.values]
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+  Cache-Control = "no-store"
     # Avoid global HTML caching to prevent stale pages referencing old asset hashes
     # Cache is handled per-route in next.config.js and middleware
 

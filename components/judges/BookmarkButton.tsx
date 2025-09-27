@@ -90,7 +90,7 @@ export function BookmarkButton({ judgeId, judgeName, className = '' }: BookmarkB
 
   if (!isSignedIn) {
     return (
-      <SafeSignInButton mode="modal">
+      <SafeSignInButton mode="modal" fallbackRedirectUrl="/dashboard" forceRedirectUrl="/dashboard">
         <button
           className={cn(
             'flex items-center space-x-2 rounded-full border border-border/70 bg-[hsl(var(--bg-1))] px-4 py-2 text-[color:hsl(var(--text-2))] transition-colors hover:text-[color:hsl(var(--text-1))]',

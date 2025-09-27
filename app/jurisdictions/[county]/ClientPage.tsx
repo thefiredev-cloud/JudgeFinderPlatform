@@ -8,6 +8,7 @@ import { JurisdictionHeroSection } from './components/JurisdictionHeroSection'
 import { JurisdictionSearchPanel } from './components/JurisdictionSearchPanel'
 import { CourtsGridSection } from './components/CourtsGridSection'
 import { JurisdictionQuickLinks } from './components/JurisdictionQuickLinks'
+import CountyAdSection from './components/CountyAdSection'
 import { jurisdictionMap } from './constants'
 import { CourtInfo, CourtsQueryResult } from './types'
 
@@ -94,6 +95,13 @@ export default function CountyCourtsPage() {
         totalJudges={totalJudges}
       />
 
+      {/* Top Inline Ad */}
+      <CountyAdSection
+        title={`Sponsored in ${jurisdictionInfo.displayName}`}
+        slot={`jurisdiction-top-${county}`}
+        className="mt-8"
+      />
+
       <JurisdictionSearchPanel
         jurisdiction={jurisdictionInfo}
         searchValue={searchQuery}
@@ -104,12 +112,27 @@ export default function CountyCourtsPage() {
       />
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        {/* Mid-content Ad */}
+        <CountyAdSection
+          title="Sponsored Resources"
+          slot={`jurisdiction-mid-${county}`}
+          className="mb-6"
+        />
+
         <CourtsGridSection
           courts={courts}
           loading={loading}
           hasMore={hasMore}
           onLoadMore={handleLoadMore}
         />
+
+        {/* Bottom Inline Ad */}
+        <div className="mt-8">
+          <CountyAdSection
+            title="Local Legal Services"
+            slot={`jurisdiction-bottom-${county}`}
+          />
+        </div>
       </section>
 
       <JurisdictionQuickLinks jurisdiction={jurisdictionInfo} />

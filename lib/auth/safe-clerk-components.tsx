@@ -76,7 +76,19 @@ export function SafeUserButton(props: any) {
 }
 
 // Safe SignInButton component
-export function SafeSignInButton(props: { mode?: 'modal' | 'redirect'; children: ReactNode }) {
+interface SafeSignInButtonProps {
+  mode?: 'modal' | 'redirect'
+  children: ReactNode
+  fallbackRedirectUrl?: string
+  forceRedirectUrl?: string
+}
+
+export function SafeSignInButton({
+  mode,
+  children,
+  fallbackRedirectUrl = '/dashboard',
+  forceRedirectUrl,
+}: SafeSignInButtonProps) {
   const [mounted, setMounted] = useState(false)
   const [SignInButtonComponent, setSignInButtonComponent] = useState<any>(null)
   
@@ -93,15 +105,33 @@ export function SafeSignInButton(props: { mode?: 'modal' | 'redirect'; children:
   
   // During SSR or before mount, show fallback
   if (!mounted || !SignInButtonComponent) {
-    return <Link href="/sign-in">{props.children}</Link>
+    return <Link href="/sign-in">{children}</Link>
   }
   
   // Use Clerk's SignInButton when loaded
-  return <SignInButtonComponent {...props} />
+  return (
+    <SignInButtonComponent
+      mode={mode}
+      fallbackRedirectUrl={fallbackRedirectUrl}
+      forceRedirectUrl={forceRedirectUrl}
+    >
+      {children}
+    </SignInButtonComponent>
+  )
 }
 
 // Safe SignOutButton component (for AdvertiserSidebar)
-export function SafeSignOutButton(props: { children?: ReactNode; [key: string]: any }) {
+interface SafeSignOutButtonProps {
+  children?: ReactNode
+  signOutRedirectUrl?: string
+  [key: string]: any
+}
+
+export function SafeSignOutButton({
+  children,
+  signOutRedirectUrl = '/',
+  ...rest
+}: SafeSignOutButtonProps) {
   const [mounted, setMounted] = useState(false)
   const [SignOutButtonComponent, setSignOutButtonComponent] = useState<any>(null)
   
@@ -119,14 +149,21 @@ export function SafeSignOutButton(props: { children?: ReactNode; [key: string]: 
   // During SSR or before mount, show fallback
   if (!mounted || !SignOutButtonComponent) {
     return (
-      <button className="w-full text-left" onClick={() => window.location.href = '/'}>
-        {props.children || 'Sign Out'}
+      <button className="w-full text-left" onClick={() => { window.location.href = signOutRedirectUrl }}>
+        {children || 'Sign Out'}
       </button>
     )
   }
   
   // Use Clerk's SignOutButton when loaded
-  return <SignOutButtonComponent {...props} />
+  return (
+    <SignOutButtonComponent
+      signOutRedirectUrl={signOutRedirectUrl}
+      {...rest}
+    >
+      {children}
+    </SignOutButtonComponent>
+  )
 }
 
 // Safe useUser hook - Returns mock data during SSR, real data on client

@@ -21,6 +21,11 @@ export const jurisdictionMap: Record<string, JurisdictionMetadata> = {
     jurisdictionValue: 'CA',
     description: 'Metropolitan jurisdiction with specialized business and technology courts.'
   },
+  'sacramento-county': {
+    displayName: 'Sacramento County',
+    jurisdictionValue: 'CA',
+    description: 'Capital region jurisdiction serving Sacramento and surrounding communities.'
+  },
   'santa-clara-county': {
     displayName: 'Santa Clara County',
     jurisdictionValue: 'CA',

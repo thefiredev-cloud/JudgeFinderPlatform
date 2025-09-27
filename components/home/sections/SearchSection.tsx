@@ -8,7 +8,17 @@ export function SearchSection(): JSX.Element {
   const router = useRouter()
 
   const handleCountySelect = useCallback((county: string) => {
-    router.push(`/jurisdictions/${county.toLowerCase().replace(/\s+/g, '-')}`)
+    const countySlugMap: Record<string, string> = {
+      'Los Angeles': 'los-angeles-county',
+      'Orange': 'orange-county',
+      'San Diego': 'san-diego-county',
+      'San Francisco': 'san-francisco-county',
+      'Alameda': 'alameda-county',
+      'Sacramento': 'sacramento-county',
+    }
+
+    const slug = countySlugMap[county] || `${county.toLowerCase().replace(/\s+/g, '-')}-county`
+    router.push(`/jurisdictions/${slug}`)
   }, [router])
 
   return (

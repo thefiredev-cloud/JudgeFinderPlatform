@@ -7,6 +7,8 @@ import Link from 'next/link'
 import type { SearchResponse, SearchResult } from '@/types/search'
 import { SponsoredTile } from '@/components/search/SponsoredTile'
 
+export const dynamic = 'force-dynamic'
+
 function SearchResults() {
   const searchParams = useSearchParams()
   const router = useRouter()

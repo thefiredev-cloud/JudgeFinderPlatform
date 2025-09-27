@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { HomepageFAQ } from '@/components/seo/HomepageFAQ'
 import { getBaseUrl } from '@/lib/utils/baseUrl'
 
+export const dynamic = 'force-dynamic'
 export const revalidate = 300
 
 const BASE_URL = getBaseUrl()

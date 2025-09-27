@@ -80,7 +80,7 @@ export function Header() {
           {isSignedIn ? (
             <SafeUserButton afterSignOutUrl="/" appearance={{ elements: { userButtonAvatarBox: { width: '32px', height: '32px' } } }} />
           ) : (
-            <SafeSignInButton mode="modal">
+            <SafeSignInButton mode="modal" fallbackRedirectUrl="/dashboard" forceRedirectUrl="/dashboard">
               <span
                 className={cn(
                   buttonVariants({ variant: 'outline', size: 'sm' }),
@@ -159,7 +159,7 @@ export function Header() {
                   <SafeUserButton afterSignOutUrl="/" appearance={{ elements: { userButtonAvatarBox: { width: '36px', height: '36px' } } }} />
                 </div>
               ) : (
-                <SafeSignInButton mode="modal">
+                <SafeSignInButton mode="modal" fallbackRedirectUrl="/dashboard" forceRedirectUrl="/dashboard">
                   <span
                     className={cn(
                       buttonVariants({ size: 'lg' }),
