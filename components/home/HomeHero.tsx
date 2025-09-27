@@ -21,7 +21,7 @@ export default function HomeHero(): JSX.Element {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/search"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-colors hover:from-blue-700 hover:via-blue-800 hover:to-purple-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                className="link-reset inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-colors hover:from-blue-700 hover:via-blue-800 hover:to-purple-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
               >
                 Find My Judge
               </Link>
