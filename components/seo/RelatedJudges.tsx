@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { User, MapPin, Building } from 'lucide-react'
+import { motion } from 'framer-motion'
+import GlassCard from '@/components/ui/GlassCard'
 
 import { resolveCourtSlug } from '@/lib/utils/slug'
 
@@ -51,7 +53,7 @@ export function RelatedJudges({ currentJudgeId, courtName, jurisdiction, judgeNa
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <GlassCard className="p-6">
         <div className="animate-pulse">
           <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
           <div className="space-y-3">
@@ -66,7 +68,7 @@ export function RelatedJudges({ currentJudgeId, courtName, jurisdiction, judgeNa
             ))}
           </div>
         </div>
-      </div>
+      </GlassCard>
     )
   }
 
@@ -75,41 +77,48 @@ export function RelatedJudges({ currentJudgeId, courtName, jurisdiction, judgeNa
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <GlassCard className="p-6">
       <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
         <User className="h-5 w-5 text-blue-600 mr-2" />
         Other Judges You May Research
       </h2>
       
       <div className="space-y-4">
-        {relatedJudges.map((judge) => (
-          <Link
+        {relatedJudges.map((judge, idx) => (
+          <motion.div
             key={judge.id}
-            href={`/judges/${judge.slug}`}
-            className="block group hover:bg-gray-50 rounded-lg p-3 transition-colors"
+            initial={{ opacity: 0, y: 8 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-10% 0px' }}
+            transition={{ delay: idx * 0.05 }}
           >
-            <div className="flex items-center space-x-3">
-              <div className="h-12 w-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
-                <User className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
-                  Judge {judge.name}
-                </h3>
-                <div className="flex items-center text-sm text-gray-600 space-x-4">
-                  <span className="flex items-center">
-                    <Building className="h-3 w-3 mr-1" />
-                    {judge.court_name}
-                  </span>
-                  {judge.appointed_date && (
-                    <span className="text-gray-500">
-                      Since {new Date(judge.appointed_date).getFullYear()}
+            <Link
+              href={`/judges/${judge.slug}`}
+              className="block group hover:bg-gray-50 rounded-lg p-3 transition-colors"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="h-12 w-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
+                  <User className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
+                    Judge {judge.name}
+                  </h3>
+                  <div className="flex items-center text-sm text-gray-600 space-x-4">
+                    <span className="flex items-center">
+                      <Building className="h-3 w-3 mr-1" />
+                      {judge.court_name}
                     </span>
-                  )}
+                    {judge.appointed_date && (
+                      <span className="text-gray-500">
+                        Since {new Date(judge.appointed_date).getFullYear()}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </Link>
+            </Link>
+          </motion.div>
         ))}
       </div>
 
@@ -140,6 +149,6 @@ export function RelatedJudges({ currentJudgeId, courtName, jurisdiction, judgeNa
           and attorney selection in {jurisdiction} courts.
         </p>
       </div>
-    </div>
+    </GlassCard>
   )
 }

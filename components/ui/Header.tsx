@@ -9,6 +9,7 @@ import NavLogo from './NavLogo'
 import { ThemeToggle } from './ThemeToggle'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { motion, useScroll, useTransform } from 'framer-motion'
 
 const NAV_LINKS = [
   { href: '/judges', label: 'Judges' },
@@ -23,6 +24,12 @@ export function Header() {
   const pathname = usePathname()
   const { isSignedIn } = useSafeUser()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  // Liquid glass: dynamic blur/opacity based on scroll
+  const { scrollY } = useScroll()
+  const blur = useTransform(scrollY, [0, 120], [6, 14])
+  const blurPx = useTransform(blur, (v) => `blur(${v}px)`)
+  const opacity = useTransform(scrollY, [0, 120], [0.6, 0.9])
 
   useEffect(() => {
     if (typeof document === 'undefined') return
@@ -40,7 +47,10 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <motion.header
+      style={{ backdropFilter: blurPx, opacity }}
+      className="sticky top-0 z-50 w-full border-b border-border bg-background/60 supports-[backdrop-filter]:bg-background/50"
+    >
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <NavLogo />
@@ -174,6 +184,6 @@ export function Header() {
           </nav>
         </div>
       </div>
-    </header>
+    </motion.header>
   )
 }

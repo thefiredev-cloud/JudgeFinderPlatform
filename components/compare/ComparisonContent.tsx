@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import GlassCard from '@/components/ui/GlassCard'
 import { Search, X, Scale, Users, TrendingUp, BarChart, Calendar, MapPin, Gavel, Loader2 } from 'lucide-react'
 import { useSearchDebounce } from '@/lib/hooks/useDebounce'
 import type { Judge } from '@/types'
@@ -120,19 +122,21 @@ export function ComparisonContent({ initialJudges = [] }: ComparisonContentProps
       {/* Add Judge Section */}
       <div className="mb-8">
         {selectedJudges.length < 3 && (
-          <div className="bg-card rounded-lg border border-border p-6">
+          <GlassCard className="p-6">
             <h2 className="text-xl font-semibold mb-4">Select Judges to Compare</h2>
             <p className="text-muted-foreground mb-4">
               You can compare up to 3 judges. Currently comparing {selectedJudges.length} judge{selectedJudges.length !== 1 ? 's' : ''}.
             </p>
             
             {!showSearch ? (
-              <button
+              <motion.button
                 onClick={() => setShowSearch(true)}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
               >
                 Add Judge
-              </button>
+              </motion.button>
             ) : (
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -163,32 +167,39 @@ export function ComparisonContent({ initialJudges = [] }: ComparisonContentProps
 
             {/* Search Results */}
             {searchResults.length > 0 && (
-              <div className="mt-4 border border-border rounded-lg divide-y divide-border max-h-60 overflow-y-auto">
+              <motion.div 
+                className="mt-4 border border-border rounded-lg divide-y divide-border max-h-60 overflow-y-auto"
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+              >
                 {searchResults.map(judge => (
-                  <button
+                  <motion.button
                     key={judge.id}
                     onClick={() => addJudge(judge)}
                     disabled={selectedJudges.find(j => j.id === judge.id) !== undefined}
                     className="w-full px-4 py-3 text-left hover:bg-accent/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
                   >
                     <div className="font-medium">{judge.name}</div>
                     <div className="text-sm text-muted-foreground">{judge.court_name}</div>
-                  </button>
+                  </motion.button>
                 ))}
-              </div>
+              </motion.div>
             )}
             {searchError && !isSearching && (
               <div className="mt-4 text-sm text-destructive/80 bg-destructive/10 border border-destructive/20 rounded-lg p-3">
                 {searchError}
               </div>
             )}
-          </div>
+          </GlassCard>
         )}
       </div>
 
       {/* Comparison Table */}
       {selectedJudges.length > 0 ? (
-        <div className="bg-card rounded-lg border border-border overflow-hidden">
+        <GlassCard className="overflow-hidden p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted/50 border-b border-border">
@@ -201,12 +212,14 @@ export function ComparisonContent({ initialJudges = [] }: ComparisonContentProps
                           <div className="font-semibold text-foreground">{judge.name}</div>
                           <div className="text-sm text-muted-foreground mt-1">{judge.court_name}</div>
                         </div>
-                        <button
+                        <motion.button
                           onClick={() => removeJudge(judge.id)}
                           className="ml-2 p-1 hover:bg-destructive/10 rounded transition-colors"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                         >
                           <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                        </button>
+                        </motion.button>
                       </div>
                     </th>
                   ))}
@@ -365,15 +378,15 @@ export function ComparisonContent({ initialJudges = [] }: ComparisonContentProps
               </tbody>
             </table>
           </div>
-        </div>
+        </GlassCard>
       ) : (
-        <div className="bg-card rounded-lg border border-border p-12 text-center">
+        <GlassCard className="p-12 text-center">
           <Scale className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-xl font-semibold mb-2">No Judges Selected</h3>
           <p className="text-muted-foreground">
             Start by adding judges to compare their profiles and analytics side-by-side.
           </p>
-        </div>
+        </GlassCard>
       )}
     </div>
   )

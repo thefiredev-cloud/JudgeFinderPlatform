@@ -9,6 +9,7 @@ import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary'
 import { getBaseUrl } from '@/lib/utils/baseUrl'
 import { DonationButton } from '@/components/fundraising/DonationButton'
+import PageTransition from '@/components/transitions/PageTransition'
 
 const BASE_URL = getBaseUrl()
 
@@ -113,7 +114,9 @@ export default function RootLayout({
                 <DonationButton amount={25} variant="header" />
               </div>
               <main id="main-content" className="flex-1 pb-16 md:pb-0">
-                {children}
+                <PageTransition>
+                  {children}
+                </PageTransition>
               </main>
               <div className="mb-16 md:mb-0">
                 <Footer />

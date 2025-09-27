@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Calendar, FileText, ExternalLink, Gavel, TrendingUp, AlertCircle } from 'lucide-react'
 import { useJudgeFilterParams } from '@/hooks/useJudgeFilters'
 import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
+import GlassCard from '@/components/ui/GlassCard'
 
 interface RecentDecisionsProps {
   judgeId: string
@@ -116,7 +118,7 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-border bg-[hsl(var(--bg-2))] p-6">
+      <GlassCard className="p-6">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="flex items-center text-2xl font-semibold text-[color:hsl(var(--text-1))]">
             <Gavel className="mr-2 h-6 w-6 text-[color:hsl(var(--accent))]" />
@@ -128,14 +130,14 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
             <div key={item} className="h-24 animate-pulse rounded-2xl border border-border/60 bg-[hsl(var(--bg-1))]" />
           ))}
         </div>
-      </div>
+      </GlassCard>
     )
   }
 
   // If no real decisions available, show placeholder
   if (!loading && decisions.length === 0) {
     return (
-      <div className="overflow-hidden rounded-2xl border border-border bg-[hsl(var(--bg-2))]">
+      <GlassCard className="overflow-hidden p-0">
         <div className="border-b border-border/60 bg-[hsl(var(--bg-1))] p-6">
           <h2 className="flex items-center text-2xl font-semibold text-[color:hsl(var(--text-1))]">
             <Gavel className="mr-2 h-6 w-6 text-[color:hsl(var(--accent))]" />
@@ -155,7 +157,7 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
             </p>
           </div>
         </div>
-      </div>
+      </GlassCard>
     )
   }
 
@@ -218,8 +220,13 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-[hsl(var(--bg-2))] shadow-md">
-      <div className="border-b border-border/60 bg-[hsl(var(--bg-1))] px-6 py-5">
+    <GlassCard className="overflow-hidden p-0 shadow-md">
+      <motion.div 
+        className="border-b border-border/60 bg-[hsl(var(--bg-1))] px-6 py-5"
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+      >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="flex items-center text-2xl font-semibold text-[color:hsl(var(--text-1))]">
             <Gavel className="mr-2 h-6 w-6 text-[color:hsl(var(--accent))]" />
@@ -242,7 +249,7 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
             How we source filings
           </Link>
         </div>
-      </div>
+      </motion.div>
 
       <div className="space-y-4 px-6 py-5">
         {error && (
@@ -252,6 +259,7 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
           </div>
         )}
 
+        <AnimatePresence>
         {displayedDecisions.map((decision, index) => {
           const externalUrl = getExternalUrl(decision)
           const filingLabel = formatDate(decision.filing_date)
@@ -264,9 +272,14 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
           const mostRecent = index === 0
 
           return (
-            <article
+            <motion.article
               key={decision.id}
-              className="rounded-2xl border border-border/70 bg-[hsl(var(--bg-2))] p-5 transition-transform duration-200 hover:-translate-y-0.5 hover:border-[rgba(110,168,254,0.45)]"
+              className="rounded-2xl border border-border/70 bg-[hsl(var(--bg-2))] p-5"
+              initial={{ opacity: 0, y: 8 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-10% 0px' }}
+              whileHover={{ y: -2 }}
+              transition={{ type: 'spring', stiffness: 280, damping: 22 }}
             >
               <div className="mb-3 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="flex-1">
@@ -276,16 +289,18 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
                   <p className="break-words text-sm text-[color:hsl(var(--text-3))]">Case No. {decision.case_number}</p>
                 </div>
                 {externalUrl && (
-                  <a
+                  <motion.a
                     className="inline-flex items-center gap-1 rounded-full border border-border/60 px-3 py-1 text-xs text-[color:hsl(var(--text-3))] transition-colors hover:border-[rgba(110,168,254,0.45)] hover:text-[color:hsl(var(--accent))]"
                     href={externalUrl}
                     target="_blank"
                     rel="noreferrer"
                     title="View on CourtListener"
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                     Open document
-                  </a>
+                  </motion.a>
                 )}
               </div>
 
@@ -319,13 +334,19 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
                   </span>
                 )}
               </div>
-            </article>
+            </motion.article>
           )
         })}
+        </AnimatePresence>
       </div>
 
       {decisions.length > 0 && remainingCount > 0 && (
-        <div className="flex items-center justify-between gap-3 border-t border-border/60 bg-[hsl(var(--bg-1))] px-6 py-4 text-sm">
+        <motion.div 
+          className="flex items-center justify-between gap-3 border-t border-border/60 bg-[hsl(var(--bg-1))] px-6 py-4 text-sm"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+        >
           <div className="text-[color:hsl(var(--text-2))]">
             {remainingCount} additional {remainingCount === 1 ? 'filing' : 'filings'} available
           </div>
@@ -346,7 +367,7 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
               Show all
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
 
       <div className="border-t border-border/60 bg-[hsl(var(--bg-1))] px-6 py-4">
@@ -361,6 +382,6 @@ export function RecentDecisions({ judgeId }: RecentDecisionsProps) {
           </a>
         </p>
       </div>
-    </div>
+    </GlassCard>
   )
 }

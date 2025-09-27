@@ -68,7 +68,10 @@ export function JudgeHeader({
                 <Sparkles className="h-3 w-3" aria-hidden />
                 Judge Analytics Overview
               </div>
-              <h1 className="mt-1 break-words text-[1.75rem] font-semibold leading-tight text-[color:hsl(var(--text-1))] md:text-[2.125rem]">
+              <h1 
+                className="mt-1 break-words text-[1.75rem] font-semibold leading-tight text-[color:hsl(var(--text-1))] md:text-[2.125rem]"
+                data-view-transition-name={`judge-title-${judge.id}`}
+              >
                 {judge.name}
               </h1>
             </div>

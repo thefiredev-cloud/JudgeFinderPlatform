@@ -9,9 +9,11 @@ import { generateSlug } from '@/lib/utils/slug'
 import { useSearchDebounce } from '@/lib/hooks/useDebounce'
 import { JudgeCardSkeleton, SearchSkeleton } from '@/components/ui/Skeleton'
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
+import GlassCard from '@/components/ui/GlassCard'
 import { ParticleBackground } from '@/components/ui/ParticleBackground'
 import { TypewriterText } from '@/components/ui/TypewriterText'
 import { ScrollIndicator } from '@/components/ui/ScrollIndicator'
+import { SharedTransitionLink } from '@/components/ui/SharedTransitionLink'
 import * as Sentry from '@sentry/nextjs'
 
 const RECENT_JUDGE_YEARS = 3
@@ -999,12 +1001,14 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                     }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <Link
+                    <SharedTransitionLink 
                       href={`/judges/${generateJudgeSlug(judge)}`}
-                      className="block rounded-xl border border-border/80 bg-card p-6 group relative overflow-hidden shadow-sm transition-all duration-300 hover:border-primary/40 hover:shadow-md"
+                      className="block group relative overflow-hidden"
+                      viewTransitionName={`judge-title-${judge.id}`}
                     >
+                      <GlassCard className="p-6">
                       {/* Gradient overlay on hover */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-blue-800/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-800/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       
                       <div className="relative">
                         <div className="flex items-center justify-between mb-4">
@@ -1018,7 +1022,7 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                             {judge.jurisdiction || 'Jurisdiction'}
                           </span>
                         </div>
-                        <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                        <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2" data-view-transition-name={`judge-title-${judge.id}`}>
                           {judge.name}
                         </h3>
                         <div className="space-y-2 text-sm text-muted-foreground">
@@ -1039,7 +1043,8 @@ export default function JudgesContent({ initialData }: JudgesContentProps) {
                           </motion.div>
                         </div>
                       </div>
-                    </Link>
+                      </GlassCard>
+                    </SharedTransitionLink>
                   </motion.div>
                 ))}
               
