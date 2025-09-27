@@ -25,7 +25,8 @@
   [headers.values]
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Cache-Control = "public, s-maxage=300, stale-while-revalidate=86400"
+    # Avoid global HTML caching to prevent stale pages referencing old asset hashes
+    # Cache is handled per-route in next.config.js and middleware
 
 [[headers]]
   for = "/_next/static/*"
