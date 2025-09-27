@@ -150,6 +150,9 @@ function baseMiddleware(request: NextRequest) {
   } else if (pathname.startsWith('/judges') || pathname.startsWith('/courts')) {
     // Never cache SSR HTML for dynamic pages that include asset hashes in output
     response.headers.set('Cache-Control', 'no-store')
+  } else {
+    // Default: do not cache HTML documents to avoid stale pages referencing old asset hashes
+    response.headers.set('Cache-Control', 'no-store')
   }
   
   return response
