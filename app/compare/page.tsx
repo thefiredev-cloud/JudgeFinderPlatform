@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { Scale, ArrowLeft } from 'lucide-react'
-import { motion } from 'framer-motion'
 import { ComparisonContent } from '@/components/compare/ComparisonContent'
 
 export const dynamic = 'force-dynamic'
@@ -26,23 +25,15 @@ export default function ComparePage() {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12">
         {/* Hero Section */}
-        <motion.div 
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <motion.div 
-            className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4"
-            whileHover={{ scale: 1.05 }}
-          >
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
             <Scale className="h-8 w-8 text-primary" />
-          </motion.div>
+          </div>
           <h1 className="text-4xl font-bold mb-4">Judge Comparison Tool</h1>
           <p className="text-xl text-muted-foreground">
             Compare judicial profiles, decision patterns, and analytics side-by-side
           </p>
-        </motion.div>
+        </div>
 
         {/* Comparison Tool */}
         <ComparisonContent />
